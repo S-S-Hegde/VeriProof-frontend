@@ -9,10 +9,45 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  let logoutTimer;
+
+  const performLogout = () => {
+    localStorage.removeItem("userInfo");
+    localStorage.removeItem("loginTimestamp");
+    setUser(null);
+    if (logoutTimer) clearTimeout(logoutTimer);
+    if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+      window.location.href = "/login";
+    }
+  };
+
+  const scheduleLogout = (timeRemaining) => {
+    if (logoutTimer) clearTimeout(logoutTimer);
+    logoutTimer = setTimeout(() => {
+      console.log("[VeriProof] Session expired (1 Hour limit reached). Auto-logging out.");
+      performLogout();
+    }, timeRemaining);
+  };
+
   useEffect(() => {
     const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) {
-      setUser(JSON.parse(userInfo));
+    const loginTimestamp = localStorage.getItem("loginTimestamp");
+
+    if (userInfo && loginTimestamp) {
+      const timeElapsed = Date.now() - parseInt(loginTimestamp, 10);
+      const oneHour = 3600000;
+
+      if (timeElapsed >= oneHour) {
+        // Session already expired
+        performLogout();
+      } else {
+        // Session active, schedule the remaining time
+        setUser(JSON.parse(userInfo));
+        scheduleLogout(oneHour - timeElapsed);
+      }
+    } else if (userInfo) {
+      // Legacy session without timestamp -> force re-login to ensure security rule 
+      performLogout();
     }
     setLoading(false);
 
@@ -20,12 +55,7 @@ export const AuthProvider = ({ children }) => {
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
-          localStorage.removeItem("userInfo");
-          setUser(null);
-          // Redirect to login if user session expires
-          if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
-            window.location.href = "/login";
-          }
+          performLogout();
         }
         return Promise.reject(error);
       }
@@ -33,6 +63,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       axios.interceptors.response.eject(interceptor);
+      if (logoutTimer) clearTimeout(logoutTimer);
     };
   }, []);
 
@@ -46,15 +77,16 @@ export const AuthProvider = ({ children }) => {
       );
       setUser(data);
       localStorage.setItem("userInfo", JSON.stringify(data));
+      localStorage.setItem("loginTimestamp", Date.now().toString());
+      scheduleLogout(3600000); // 1 Hour
       return data;
     } catch (error) {
-      throw Math.random(); // we will handle error in the component, throw something real later
+      throw error; 
     }
   };
 
   const logout = () => {
-    localStorage.removeItem("userInfo");
-    setUser(null);
+    performLogout();
   };
 
   return (

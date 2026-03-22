@@ -81,7 +81,7 @@ const Navbar = () => {
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className={`fixed top-0 inset-x-0 z-[60] transition-all duration-500 ease-in-out ${
           scrolled || menuOpen
-            ? "py-3 bg-vp-teal/95 backdrop-blur-xl shadow-lg border-b border-vp-teal"
+            ? "py-3 bg-black/80 backdrop-blur-xl shadow-lg border-b border-orange-500/20"
             : "py-6 bg-transparent border-b border-transparent shadow-none"
         }`}
       >
@@ -89,10 +89,10 @@ const Navbar = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0 relative group z-[70]" onClick={() => setMenuOpen(false)}>
-                <span className={`text-xl md:text-2xl font-sans tracking-[0.3em] uppercase font-bold transition-colors ${scrolled || isHome || menuOpen ? 'text-white' : 'text-vp-teal'}`}>
+                <span className={`text-xl md:text-2xl font-sans tracking-[0.3em] uppercase font-bold transition-colors ${scrolled || isHome || menuOpen ? 'text-white' : 'text-orange-500'}`}>
                   VERIPROOF
                 </span>
-                <motion.div className={`absolute -bottom-2 left-0 w-0 h-[1px] group-hover:w-full transition-all duration-300 ${scrolled || isHome || menuOpen ? 'bg-white' : 'bg-vp-teal'}`} />
+                <motion.div className={`absolute -bottom-2 left-0 w-0 h-[1px] group-hover:w-full transition-all duration-300 ${scrolled || isHome || menuOpen ? 'bg-orange-500' : 'bg-orange-500'}`} />
               </Link>
             </div>
 
@@ -106,8 +106,8 @@ const Navbar = () => {
                   to={link.path}
                   className={`flex items-center space-x-2 text-xs xl:text-sm tracking-widest uppercase transition-colors duration-300 font-medium ${
                     location.pathname === link.path
-                      ? scrolled ? "text-ibex-gold" : "text-vp-teal"
-                      : scrolled ? "text-white/70 hover:text-white" : "text-ibex-muted hover:text-vp-teal"
+                      ? scrolled ? "text-orange-400" : "text-white"
+                      : scrolled ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-orange-400"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -148,7 +148,7 @@ const Navbar = () => {
                     </div>
                     <button
                       onClick={triggerLogout}
-                      className={`text-xs uppercase tracking-widest transition-colors duration-300 border-b border-transparent pb-1 font-medium ${scrolled ? 'text-white hover:text-ibex-gold hover:border-ibex-gold' : 'text-vp-teal hover:text-ibex-gold hover:border-ibex-gold'}`}
+                      className={`text-xs uppercase tracking-widest transition-colors duration-300 border-b border-transparent pb-1 font-medium ${scrolled ? 'text-white hover:text-orange-400 border-orange-400' : 'text-orange-500 hover:text-orange-400 border-orange-400'}`}
                     >
                       Logout
                     </button>
@@ -171,7 +171,7 @@ const Navbar = () => {
                     <Link
                       to="/login"
                       className={`text-xs uppercase tracking-widest transition-colors duration-300 font-medium ${
-                        scrolled ? "text-white hover:text-ibex-gold" : isHome ? "text-white hover:text-vp-teal bg-black/20 p-2 px-4 rounded-full" : "text-vp-teal hover:text-ibex-gold"
+                        scrolled ? "text-white hover:text-orange-400" : isHome ? "text-white hover:text-orange-400 bg-black/20 p-2 px-4 rounded-full" : "text-orange-500 hover:text-orange-400"
                       }`}
                     >
                       Login
@@ -180,8 +180,8 @@ const Navbar = () => {
                       to="/register"
                       className={`text-xs uppercase tracking-widest px-6 py-2.5 rounded-full transition-all duration-300 font-bold ${
                         scrolled || isHome
-                          ? "bg-white text-vp-teal hover:bg-opacity-90 shadow-lg"
-                          : "text-ibex-bg bg-ibex-gold hover:bg-ibex-surface hover:text-ibex-gold border border-ibex-gold"
+                          ? "bg-white text-orange-600 hover:bg-opacity-90 shadow-[0_0_15px_rgba(255,69,0,0.5)]"
+                          : "text-white bg-orange-600 hover:bg-orange-500 shadow-md"
                       }`}
                     >
                       Sign Up
@@ -346,7 +346,7 @@ const Navbar = () => {
                 </button>
                 <button
                   onClick={confirmLogout}
-                  className="flex-1 py-3 px-4 bg-gradient-premium text-white rounded-full text-xs uppercase tracking-widest hover:opacity-80 transition-opacity"
+                  className="flex-1 py-3 px-4 bg-orange-600 shadow-[0_0_15px_rgba(255,69,0,0.5)] text-white rounded-full text-xs uppercase tracking-widest hover:opacity-80 transition-opacity"
                 >
                   Logout
                 </button>

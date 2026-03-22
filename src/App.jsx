@@ -12,8 +12,9 @@ import { ThemeProvider } from "./context/ThemeContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import IntroScreen from "./components/IntroScreen";
-import AnimatedBackground from "./components/AnimatedBackground";
+import AsteroidsBackground from "./components/AsteroidsBackground";
 import CursorTracker from "./components/CursorTracker";
+import FieryCursor from "./components/FieryCursor";
 
 // Lazy load heavy page components
 const Login = lazy(() => import("./pages/Login"));
@@ -35,6 +36,7 @@ const Support = lazy(() => import("./pages/Support"));
 const Opportunities = lazy(() => import("./pages/Opportunities"));
 const VerificationRequests = lazy(() => import("./pages/VerificationRequests"));
 const VerificationPanel = lazy(() => import("./pages/VerificationPanel"));
+const DevelopmentStatus = lazy(() => import("./pages/DevelopmentStatus"));
 
 const LoadingScreen = () => (
   <div className="flex h-[50vh] items-center justify-center">
@@ -52,6 +54,14 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <Home />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/status"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <DevelopmentStatus />
             </Suspense>
           }
         />
@@ -136,16 +146,22 @@ const App = () => {
       <AuthProvider>
         <Router>
           <CursorTracker />
+          <FieryCursor />
           {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
-          <AnimatedBackground />
-          <div
-            className={`min-h-screen flex flex-col font-sans transition-opacity duration-1000 ${showIntro ? "opacity-0" : "opacity-100"}`}
-          >
-            <Navbar />
-            <main className="flex-grow w-full max-w-7xl mx-auto pt-28 pb-8 sm:px-6 lg:px-8 relative z-10 lg:min-h-[60vh]">
-              <AnimatedRoutes />
-            </main>
-            <Footer />
+          
+          <div className="min-h-screen relative bg-[#050505]">
+            {/* The Asteroids Canvas */}
+            <AsteroidsBackground />
+            
+            <div
+              className={`relative z-10 flex flex-col font-sans transition-opacity duration-1000 ${showIntro ? "opacity-0" : "opacity-100"} min-h-screen`}
+            >
+              <Navbar />
+              <main className="flex-grow w-full max-w-7xl mx-auto pt-28 pb-8 sm:px-6 lg:px-8 relative z-10 lg:min-h-[60vh]">
+                <AnimatedRoutes />
+              </main>
+              <Footer />
+            </div>
           </div>
         </Router>
       </AuthProvider>
