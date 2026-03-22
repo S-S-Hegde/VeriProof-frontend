@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ibex-bg: #F5F8FA; /* Light background for the application */
+  --color-ibex-surface: #91A6FF; /* Periwinkle Blue for panels/cards */
+  --color-ibex-text: #2D898B; /* Deep Teal for primary text */
+  --color-ibex-gold: #A6F4DC; /* Tiffany Blue mapping for primary CTA/highlights */
+  --color-ibex-rose: #B5838D; /* Muted Rose for accents */
+  --color-vp-champagne: #DDB771; /* Champagne Gold for badges */
+  --color-vp-teal: #2D898B; /* Deep Teal for explicit use */
+  --color-ibex-gold-muted: #4A9C9E; /* Muted teal */
+  --color-ibex-muted: #64748B; /* Standard muted slate */
+  --color-hero-cyan: #14FFEC; /* Neon Cyan for Demo Home */
+  --color-hero-cerulean: #00A8CC; /* Cerulean Blue for Demo Home */
+
+  --font-serif: "Playfair Display", "Cinzel", ui-serif, Georgia, Cambria,
+    "Times New Roman", Times, serif;
+  --font-sans: "Inter", "Montserrat", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  .dark {
+    --color-ibex-bg: #0F172A; /* Slate 900 for absolute deep background */
+    --color-ibex-surface: #1E293B; /* Slate 800 for cards */
+    --color-ibex-text: #E2E8F0; /* Slate 200 for stark readable text */
+    --color-ibex-gold: #A6F4DC; /* Tiffany Blue stays sharp in dark mode */
+    --color-ibex-rose: #B5838D; /* Muted Rose keeps premium accent */
+    --color-vp-champagne: #DDB771; /* Champagne Gold pops beautifully on dark */
+    --color-vp-teal: #A6F4DC; /* Swap Deep Teal text to Tiffany Blue in dark mode for contrast */
+    --color-ibex-gold-muted: #334155; /* Slate 700 for muted elements */
+    --color-ibex-muted: #94A3B8; /* Slate 400 for secondary text */
+  }
+}
+
+@layer base {
+  body {
+    @apply antialiased bg-ibex-bg text-ibex-text font-sans min-h-screen relative overflow-x-hidden transition-colors duration-500;
+  }
+
+  /* Hide scrollbar completely but allow scrolling */
+  ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-wide text-vp-teal;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/70 dark:bg-ibex-surface/60 backdrop-blur-xl border border-ibex-surface/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(145,166,255,0.15)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-2xl;
+  }
+
+  .glass-nav {
+    @apply bg-vp-teal/90 backdrop-blur-md border-b border-vp-teal sticky top-0 z-50;
+  }
+  
+  .ibex-button {
+    @apply px-8 py-3 w-full sm:w-auto text-base font-medium rounded-full border border-ibex-rose text-ibex-rose hover:bg-ibex-rose hover:text-white transition-all duration-300 md:py-4 md:text-lg uppercase tracking-widest text-sm flex items-center justify-center text-center;
+  }
+  .ibex-button-primary {
+    @apply px-8 py-3 w-full sm:w-auto text-base font-medium rounded-full bg-ibex-gold text-vp-teal hover:shadow-[0_4px_15px_rgba(166,244,220,0.5)] transition-all duration-300 md:py-4 md:text-lg uppercase tracking-widest text-sm flex items-center justify-center text-center font-bold;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-ibex-gold to-ibex-rose bg-clip-text text-transparent;
+  }
+  
+  .bg-gradient-premium {
+    @apply bg-gradient-to-r from-ibex-gold to-ibex-rose;
+  }
+  
+  .bg-gradient-cerulean {
+    @apply bg-gradient-to-br from-hero-cyan to-hero-cerulean;
+  }
+}
