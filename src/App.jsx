@@ -33,10 +33,11 @@ const RecruiterJobs = lazy(() => import("./pages/RecruiterJobs"));
 
 const Terms = lazy(() => import("./pages/Terms"));
 const Support = lazy(() => import("./pages/Support"));
-const Opportunities = lazy(() => import("./pages/Opportunities"));
+const VTUCalculator = lazy(() => import("./pages/VTUCalculator"));
 const VerificationRequests = lazy(() => import("./pages/VerificationRequests"));
 const VerificationPanel = lazy(() => import("./pages/VerificationPanel"));
 const DevelopmentStatus = lazy(() => import("./pages/DevelopmentStatus"));
+const Demo = lazy(() => import("./pages/Demo"));
 
 const LoadingScreen = () => (
   <div className="flex h-[50vh] items-center justify-center">
@@ -62,6 +63,14 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <DevelopmentStatus />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/demo"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <Demo />
             </Suspense>
           }
         />
@@ -123,7 +132,7 @@ const AnimatedRoutes = () => {
         
         <Route path="/terms" element={<Suspense fallback={<LoadingScreen />}><Terms /></Suspense>} />
         <Route path="/support" element={<Suspense fallback={<LoadingScreen />}><Support /></Suspense>} />
-        <Route path="/opportunities" element={<Suspense fallback={<LoadingScreen />}><Opportunities /></Suspense>} />
+        <Route path="/vtu-calculator" element={<Suspense fallback={<LoadingScreen />}><VTUCalculator /></Suspense>} />
         <Route path="/verification-requests" element={<Suspense fallback={<LoadingScreen />}><VerificationRequests /></Suspense>} />
         <Route path="/verification-panel" element={<Suspense fallback={<LoadingScreen />}><VerificationPanel /></Suspense>} />
       </Routes>

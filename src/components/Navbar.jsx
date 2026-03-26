@@ -2,31 +2,32 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Home, Compass, LayoutDashboard, UploadCloud, Briefcase, Users, Activity, Settings, Search, ShieldCheck, HelpCircle, TrendingUp, Moon, Sun } from "lucide-react";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const [scrolled, setScrolled]         = useState(false);
+  const [scrollY, setScrollY]           = useState(0);
+  const [menuOpen, setMenuOpen]         = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const isHome = location.pathname === "/";
 
-  // 2D Scroll Glassmorphism effect
+  // ── 2D Scroll: track Y position for parallax + threshold
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrollY(window.scrollY);
+      setScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Parallax: nav content shifts -4px upward as page scrolls down
+  const navTranslateY = Math.max(-4, Math.min(0, -(scrollY * 0.04)));
 
   const triggerLogout = () => {
     setShowLogoutModal(true);
@@ -53,7 +54,7 @@ const Navbar = () => {
         { name: "My Portfolio", path: "/portfolio", icon: Briefcase },
         { name: "Verification Requests", path: "/verification-requests", icon: ShieldCheck },
         { name: "Skill Growth", path: "/analytics", icon: TrendingUp },
-        { name: "Opportunities", path: "/opportunities", icon: Compass },
+        { name: "VTU Calculator", path: "/vtu-calculator", icon: Compass },
         { name: "Settings/Profile", path: "/settings", icon: Settings }
       ];
     }
@@ -81,9 +82,22 @@ const Navbar = () => {
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className={`fixed top-0 inset-x-0 z-[60] transition-all duration-500 ease-in-out ${
           scrolled || menuOpen
-            ? "py-3 bg-black/80 backdrop-blur-xl shadow-lg border-b border-orange-500/20"
-            : "py-6 bg-transparent border-b border-transparent shadow-none"
+            ? "py-3"
+            : "py-6"
         }`}
+        style={{
+          background: scrolled || menuOpen
+            ? "linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(10,10,10,0.88) 100%)"
+            : "transparent",
+          backdropFilter: scrolled || menuOpen ? "blur(24px) saturate(1.8)" : "none",
+          WebkitBackdropFilter: scrolled || menuOpen ? "blur(24px) saturate(1.8)" : "none",
+          borderBottom: scrolled || menuOpen
+            ? "1px solid rgba(255,255,255,0.07)"
+            : "1px solid transparent",
+          boxShadow: scrolled || menuOpen
+            ? "0 0 0 1px rgba(255,255,255,0.04) inset, 0 4px 32px rgba(0,0,0,0.6), 0 0 20px rgba(255,100,0,0.08)"
+            : "none",
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
@@ -96,26 +110,36 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                return (
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-8"
+            style={{ transform: `translateY(${navTranslateY}px)`, transition: "transform 0.1s linear" }}
+          >
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location.pathname === link.path;
+              return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`flex items-center space-x-2 text-xs xl:text-sm tracking-widest uppercase transition-colors duration-300 font-medium ${
-                    location.pathname === link.path
-                      ? scrolled ? "text-orange-400" : "text-white"
+                  className={`relative flex items-center space-x-2 text-xs xl:text-sm tracking-widest uppercase transition-colors duration-300 font-medium group ${
+                    isActive
+                      ? "text-orange-400"
                       : scrolled ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-orange-400"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{link.name}</span>
+                  {/* Active glow underline */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-underline"
+                      className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-orange-500 shadow-[0_0_8px_rgba(255,100,0,0.9)]"
+                    />
+                  )}
                 </Link>
-                );
-              })}
-            </div>
+              );
+            })}
+          </div>
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-6">

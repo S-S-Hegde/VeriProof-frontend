@@ -44,7 +44,7 @@ const Footer = () => {
             <h4 className="text-ibex-text font-serif uppercase tracking-widest text-sm font-bold">Resources</h4>
             <ul className="space-y-4">
               <li><Link to="/support" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Support & Help Center</Link></li>
-              <li><Link to="/opportunities" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Job Opportunities</Link></li>
+              <li><Link to="/vtu-calculator" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">VTU SGPA/CGPA Calculator</Link></li>
               <li><Link to="/terms" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">System Architecture</Link></li>
               <li><a href="#" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Verification APIs (Beta)</a></li>
             </ul>

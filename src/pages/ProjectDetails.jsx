@@ -3,9 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import PageTransition from "../components/PageTransition";
 import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
+import PlagiarismChecker from "../components/PlagiarismChecker";
 
 const ProjectDetails = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -121,6 +124,12 @@ const ProjectDetails = () => {
                       </div>
                     ))}
                   </div>
+                </section>
+              )}
+              {/* Plagiarism Checker — only shown when logged in */}
+              {user && (
+                <section className="mt-10 bg-black/60 backdrop-blur border border-orange-500/12 rounded-2xl p-6">
+                  <PlagiarismChecker projectId={id} />
                 </section>
               )}
             </div>

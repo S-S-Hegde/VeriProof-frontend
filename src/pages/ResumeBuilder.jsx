@@ -1,137 +1,304 @@
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
-import { FileText, Upload, PlusCircle, CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Upload, Link2, Wand2, CheckCircle, FileText, FolderOpen, Download, Loader2 } from "lucide-react";
+
+const TABS = [
+  { id: "file",    label: "File Upload",    icon: FolderOpen },
+  { id: "link",    label: "Paste Link",     icon: Link2      },
+  { id: "builder", label: "AI Builder",     icon: Wand2      },
+];
+
+const inputCls = "block w-full px-4 py-3 bg-black/50 border border-orange-500/25 rounded-lg focus:outline-none focus:border-orange-500 text-white placeholder-gray-600 transition-colors text-sm";
+const labelCls = "block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2";
 
 const ResumeBuilder = () => {
   const { user } = useAuth();
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState("file");
+
+  // ── File upload
+  const fileRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileStatus, setFileStatus] = useState("");
+
+  // ── Link/URL
   const [resumeUrl, setResumeUrl] = useState("");
-  const [resumeStatus, setResumeStatus] = useState(user?.resumeStatus || "Not Submitted");
-  const [resumeCurrentUrl, setResumeCurrentUrl] = useState(user?.resumeUrl || "");
+  const [urlStatus, setUrlStatus] = useState(user?.resumeStatus || "Not Submitted");
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const { data } = await axios.get("/api/users/profile", config);
-        if (data.resumeUrl) {
-           setResumeCurrentUrl(data.resumeUrl);
-           setResumeStatus(data.resumeStatus || "Pending Evaluation");
-           setResumeUrl(data.resumeUrl);
-        }
-      } catch (error) {
-        console.error("Failed to fetch profile info");
-      }
-    };
-    fetchProfile();
-  }, [user]);
+  // ── AI Builder fields
+  const [builderFields, setBuilderFields] = useState({
+    fullName: "", email: "", phone: "",
+    skills: "", education: "", experience: "",
+    cgpa: "",
+  });
+  const [builderStatus, setBuilderStatus] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
 
-  const handleResumeSubmit = async (e) => {
+  /* ── Handlers ─────────────────────────────────────────── */
+  const handleUrlSubmit = async (e) => {
     e.preventDefault();
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.put("/api/users/profile/resume", { resumeUrl }, config);
-      setResumeStatus(data.resumeStatus);
-      setResumeCurrentUrl(data.resumeUrl);
-      alert("Resume submitted for verification!");
-    } catch (error) {
-      alert("Error submitting resume");
+      const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.put("/api/users/profile/resume", { resumeUrl }, cfg);
+      setUrlStatus(data.resumeStatus || "Pending Evaluation");
+    } catch {
+      setUrlStatus("Submission failed — try again");
     }
   };
 
+  const handleFileUpload = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    const formData = new FormData();
+    formData.append("resume", selectedFile);
+    try {
+      const cfg = { headers: { Authorization: `Bearer ${user.token}`, "Content-Type": "multipart/form-data" } };
+      await axios.post("/api/users/profile/resume-file", formData, cfg);
+      setFileStatus("Uploaded — Pending Evaluation");
+    } catch {
+      setFileStatus("Upload failed — check file format (PDF/DOCX)");
+    }
+  };
+
+  const handleBuilderSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
+      await axios.post("/api/users/profile/resume-build", builderFields, cfg);
+      setBuilderStatus("Resume generated and queued for evaluation");
+    } catch {
+      setBuilderStatus("Generation failed — try again");
+    }
+  };
+
+  /* ── PDF Download ──────────────────────────────────────── */
+  const handleDownloadPDF = async (e) => {
+    e.preventDefault();
+    setPdfLoading(true);
+    try {
+      const cfg = {
+        headers: { Authorization: `Bearer ${user.token}` },
+        responseType: "blob",
+      };
+      const payload = {
+        fullName:   builderFields.fullName,
+        email:      builderFields.email,
+        phone:      builderFields.phone,
+        skills:     builderFields.skills,
+        education:  builderFields.education,
+        experience: builderFields.experience,
+        summary:    "",
+      };
+      const response = await axios.post("/api/resume/generate", payload, cfg);
+      const url  = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href  = url;
+      link.setAttribute("download", `${builderFields.fullName || user?.name || "resume"}_resume.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setBuilderStatus("PDF downloaded!");
+    } catch {
+      setBuilderStatus("PDF generation failed — check your profile data");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  /* ── UI ───────────────────────────────────────────────── */
+  const cardCls = "bg-black/70 backdrop-blur-xl border border-orange-500/15 rounded-2xl p-8 relative overflow-hidden";
+
   return (
     <PageTransition>
-      <div className="mb-12">
-        <h2 className="text-4xl font-serif text-vp-teal font-light tracking-wider uppercase mb-2">
-          My <span className="text-ibex-rose italic lowercase normal-case">Resume</span>
-        </h2>
-        <div className="h-[2px] w-24 bg-ibex-gold mt-4" />
-        <p className="mt-4 text-ibex-muted font-light tracking-wide text-sm max-w-2xl leading-relaxed">
-          Manage your verified professional credentials. Upload an existing portfolio link or use our integrated builder to generate a new resume tailored for technical recruiters.
-        </p>
-      </div>
+      <div className="max-w-4xl mx-auto pb-24">
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Option 1: Upload Existing Link */}
-        <div className="glass-card p-8 border border-ibex-surface/40 flex flex-col items-start transition-all duration-300 hover:border-vp-teal/30 hover:shadow-lg bg-white">
-          <div className="bg-ibex-gold/30 p-4 rounded-full mb-6 text-vp-teal shadow-sm">
-            <Upload className="w-8 h-8" />
-          </div>
-          <h3 className="text-2xl font-serif text-vp-teal mb-2 tracking-wide">
-            Link Existing Resume
-          </h3>
-          <p className="text-ibex-muted font-light text-sm mb-8 leading-relaxed">
-            Already have a PDF hosted online or a live portfolio? Submit your URL here for our automated verification and recruiter queuing system.
+        {/* Header */}
+        <div className="mb-10">
+          <h2 className="text-4xl font-black text-white uppercase tracking-wide">
+            My <span className="text-orange-500">Resume</span>
+          </h2>
+          <div className="h-[2px] w-20 bg-orange-600 mt-4" />
+          <p className="mt-4 text-gray-400 text-sm leading-relaxed max-w-2xl">
+            Upload your existing resume via file or link, or use our AI builder to generate a structured,
+            recruiter-ready document directly from your platform data.
           </p>
+        </div>
 
-          <form onSubmit={handleResumeSubmit} className="w-full flex justify-between flex-col h-full flex-grow">
-            <div className="mb-6">
-              <label className="block text-xs uppercase tracking-widest font-medium text-ibex-muted mb-2">
-                Resume/CV URL
-              </label>
-              <input
-                type="url"
-                required
-                value={resumeUrl}
-                onChange={(e) => setResumeUrl(e.target.value)}
-                placeholder="https://drive.google.com/..."
-                className="block w-full bg-ibex-bg/50 border-b border-ibex-gold/30 focus:border-ibex-gold py-3 px-2 text-ibex-text transition-colors focus:outline-none placeholder-ibex-muted/50"
-              />
+        {/* Tab Selector */}
+        <div className="flex gap-2 mb-8 p-1 bg-black/50 border border-white/5 rounded-xl w-fit flex-wrap">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold tracking-widest uppercase transition-all duration-200
+                ${activeTab === id
+                  ? "bg-orange-600 text-white shadow-[0_0_15px_rgba(255,69,0,0.5)]"
+                  : "text-gray-500 hover:text-gray-300"}`}
+            >
+              <Icon className="w-4 h-4" /> {label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── TAB: FILE UPLOAD ── */}
+        {activeTab === "file" && (
+          <motion.div key="file" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className={cardCls}>
+            <div className="absolute -top-8 -right-8 w-40 h-40 bg-orange-600/8 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex items-center gap-3 mb-6">
+              <FolderOpen className="w-6 h-6 text-orange-500" />
+              <h3 className="font-black uppercase tracking-widest text-white">Upload from Device</h3>
             </div>
-            
-            <div className="flex items-center justify-between w-full mt-auto pt-4 border-t border-ibex-gold/10">
-              <div className="flex flex-col">
-                <span className="text-[10px] text-ibex-muted uppercase tracking-widest mb-1">Status</span>
-                <span className={`text-xs tracking-widest uppercase font-medium flex items-center gap-2 ${resumeStatus === 'Verified' ? 'text-vp-champagne' : resumeStatus === 'Rejected' ? 'text-ibex-rose' : 'text-vp-teal'}`}>
-                  {resumeStatus === 'Verified' && <CheckCircle className="w-3 h-3 text-vp-champagne" />}
-                  {resumeStatus}
-                </span>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              Select a PDF or DOCX resume from your computer. It will be parsed and queued for recruiter evaluation.
+            </p>
+
+            <form onSubmit={handleFileUpload} className="space-y-6">
+              {/* Drop zone */}
+              <div
+                onClick={() => fileRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); setSelectedFile(e.dataTransfer.files[0]); }}
+                className="border-2 border-dashed border-orange-500/30 hover:border-orange-500/60 rounded-xl p-10 text-center cursor-pointer transition-colors group"
+              >
+                <Upload className="w-10 h-10 text-orange-500/50 group-hover:text-orange-500 mx-auto mb-3 transition-colors" />
+                {selectedFile
+                  ? <p className="text-white font-bold text-sm">{selectedFile.name}</p>
+                  : <><p className="text-gray-400 text-sm">Drag & drop your resume here</p><p className="text-gray-600 text-xs mt-1">or click to browse — PDF or DOCX only</p></>}
+                <input ref={fileRef} type="file" accept=".pdf,.docx" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} />
               </div>
-              <button type="submit" className="ibex-button-primary whitespace-nowrap !py-2 !px-6 text-xs shadow-lg">
-                Submit URL
-              </button>
+
+              <div className="flex items-center justify-between">
+                {fileStatus && (
+                  <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${fileStatus.includes("failed") ? "text-red-400" : "text-orange-400"}`}>
+                    {!fileStatus.includes("failed") && <CheckCircle className="w-3.5 h-3.5" />} {fileStatus}
+                  </span>
+                )}
+                <button
+                  type="submit"
+                  disabled={!selectedFile}
+                  className="ml-auto px-6 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold tracking-widest uppercase text-xs shadow-[0_0_15px_rgba(255,69,0,0.4)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Upload Resume
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+
+        {/* ── TAB: LINK ── */}
+        {activeTab === "link" && (
+          <motion.div key="link" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className={cardCls}>
+            <div className="absolute -top-8 -right-8 w-40 h-40 bg-orange-600/8 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex items-center gap-3 mb-6">
+              <Link2 className="w-6 h-6 text-orange-500" />
+              <h3 className="font-black uppercase tracking-widest text-white">Paste a Resume Link</h3>
             </div>
-          </form>
-        </div>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              Already have your resume hosted on Google Drive, Notion, or a portfolio site? Paste the public URL here.
+            </p>
 
-        {/* Option 2: Resume Builder for Beginners */}
-        <div className="glass-card p-8 border border-ibex-surface/40 flex flex-col items-start transition-all duration-300 hover:border-ibex-rose/40 hover:shadow-lg relative overflow-hidden group bg-white">
-          {/* subtle glow behind */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-ibex-rose/10 rounded-full blur-[80px] -z-10 pointer-events-none transition-all duration-500 group-hover:bg-ibex-rose/20" />
-          
-          <div className="bg-ibex-rose/20 p-4 rounded-full mb-6 text-ibex-rose">
-            <FileText className="w-8 h-8" />
-          </div>
-          <h3 className="text-2xl font-serif text-vp-teal mb-2 tracking-wide">
-            Build a New Resume
-          </h3>
-          <p className="text-ibex-muted font-light text-sm mb-6 leading-relaxed flex-grow">
-            Don't have a professional resume yet? Use our guided builder to generate a highly-optimized, recruiter-friendly verifiable resume right here on the platform.
-          </p>
+            <form onSubmit={handleUrlSubmit} className="space-y-6">
+              <div>
+                <label className={labelCls}>Resume / Portfolio URL</label>
+                <input type="url" required value={resumeUrl} onChange={(e) => setResumeUrl(e.target.value)}
+                  placeholder="https://drive.google.com/..., https://yourportfolio.com/resume"
+                  className={inputCls} />
+              </div>
 
-          <div className="w-full bg-ibex-bg/60 border border-ibex-gold/10 rounded-xl p-4 mb-8">
-            <ul className="space-y-4">
-              <li className="flex items-center text-xs text-ibex-text font-light tracking-wide">
-                <span className="w-1.5 h-1.5 rounded-full bg-ibex-rose mr-3" /> Auto-syncs your Verified Projects
-              </li>
-              <li className="flex items-center text-xs text-ibex-text font-light tracking-wide">
-                <span className="w-1.5 h-1.5 rounded-full bg-ibex-rose mr-3" /> ATS-Friendly structure by default
-              </li>
-              <li className="flex items-center text-xs text-ibex-text font-light tracking-wide">
-                <span className="w-1.5 h-1.5 rounded-full bg-ibex-rose mr-3" /> Standardized for our Recruiters
-              </li>
-            </ul>
-          </div>
-          
-          <button 
-            type="button"
-            className="w-full ibex-button flex items-center justify-center gap-2 !py-3 hover:border-transparent group-hover:bg-gradient-premium relative overflow-hidden"
-          >
-            <PlusCircle className="w-4 h-4 text-ibex-gold group-hover:text-white transition-colors relative z-10" />
-            <span className="relative z-10 group-hover:text-white transition-colors">Launch Builder</span>
-          </button>
-        </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${urlStatus === "Verified" ? "text-green-400" : urlStatus.includes("failed") ? "text-red-400" : "text-orange-400"}`}>
+                  {urlStatus === "Verified" && <CheckCircle className="w-3.5 h-3.5" />} {urlStatus}
+                </span>
+                <button type="submit" className="px-6 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold tracking-widest uppercase text-xs shadow-[0_0_15px_rgba(255,69,0,0.4)] transition-all">
+                  Submit URL
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+
+        {/* ── TAB: AI BUILDER ── */}
+        {activeTab === "builder" && (
+          <motion.div key="builder" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className={cardCls}>
+            <div className="absolute -top-8 -right-8 w-40 h-40 bg-orange-600/8 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex items-center gap-3 mb-2">
+              <Wand2 className="w-6 h-6 text-orange-500" />
+              <h3 className="font-black uppercase tracking-widest text-white">AI Resume Builder</h3>
+            </div>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              Fill in the form below. The platform will generate a structured, ATS-friendly resume aligned with verified projects already on your profile.
+            </p>
+
+            <form onSubmit={handleBuilderSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className={labelCls}>Full Name</label>
+                <input className={inputCls} required placeholder="Your full name"
+                  value={builderFields.fullName} onChange={(e) => setBuilderFields(p => ({ ...p, fullName: e.target.value }))} />
+              </div>
+              <div>
+                <label className={labelCls}>Email</label>
+                <input type="email" className={inputCls} required placeholder="you@email.com"
+                  value={builderFields.email} onChange={(e) => setBuilderFields(p => ({ ...p, email: e.target.value }))} />
+              </div>
+              <div>
+                <label className={labelCls}>Phone</label>
+                <input className={inputCls} placeholder="+91 XXXXX XXXXX"
+                  value={builderFields.phone} onChange={(e) => setBuilderFields(p => ({ ...p, phone: e.target.value }))} />
+              </div>
+              <div>
+                <label className={labelCls}>CGPA <span className="text-gray-600 normal-case tracking-normal">(minimal factor in recruiter view)</span></label>
+                <input className={inputCls} placeholder="e.g. 7.8 / 10"
+                  value={builderFields.cgpa} onChange={(e) => setBuilderFields(p => ({ ...p, cgpa: e.target.value }))} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelCls}>Core Skills (comma separated)</label>
+                <input className={inputCls} required placeholder="React, Node.js, Python, SQL"
+                  value={builderFields.skills} onChange={(e) => setBuilderFields(p => ({ ...p, skills: e.target.value }))} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelCls}>Education</label>
+                <textarea rows={2} className={inputCls} placeholder="B.E. Computer Science — XYZ University, 2024"
+                  value={builderFields.education} onChange={(e) => setBuilderFields(p => ({ ...p, education: e.target.value }))} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelCls}>Experience / Internships</label>
+                <textarea rows={3} className={inputCls} placeholder="Frontend Intern at ABC Corp — 3 months..."
+                  value={builderFields.experience} onChange={(e) => setBuilderFields(p => ({ ...p, experience: e.target.value }))} />
+              </div>
+
+              <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
+                {builderStatus && (
+                  <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${builderStatus.includes("failed") ? "text-red-400" : builderStatus === "PDF downloaded!" ? "text-green-400" : "text-orange-400"}`}>
+                    {(!builderStatus.includes("failed")) && <CheckCircle className="w-3.5 h-3.5" />} {builderStatus}
+                  </span>
+                )}
+                <div className="flex gap-3 ml-auto flex-wrap">
+                  {/* Save to platform */}
+                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-orange-500/35 hover:border-orange-500 text-orange-400 hover:text-orange-300 font-black tracking-widest uppercase text-xs transition-all">
+                    <FileText className="w-4 h-4" /> Save Profile
+                  </button>
+                  {/* Download PDF */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadPDF}
+                    disabled={pdfLoading}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-black tracking-widest uppercase text-xs shadow-[0_0_15px_rgba(255,69,0,0.5)] transition-all disabled:opacity-50"
+                  >
+                    {pdfLoading
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
+                      : <><Download className="w-4 h-4" /> Download PDF</>}
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </motion.div>
+        )}
       </div>
     </PageTransition>
   );

@@ -1,129 +1,256 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import PageTransition from "../components/PageTransition";
-import { TrendingUp, Activity, BarChart2, PieChart } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { BarChart2, Activity, PieChart, Info } from "lucide-react";
+import axios from "axios";
+
+/* ──────────────────────────────────────────────────────────
+   SVG Pie Chart — pure, no external lib needed
+   Accepts: slices = [{ label, value, color }]
+   Values are percentages (must sum to ≈100)
+────────────────────────────────────────────────────────── */
+const SVGPieChart = ({ slices }) => {
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = 85;
+  const holeR = 48; // donut hole
+
+  // Convert values to angles
+  const total = slices.reduce((s, d) => s + d.value, 0) || 1;
+  let cumulative = 0;
+
+  const arcs = slices.map((slice) => {
+    const startAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
+    cumulative += slice.value;
+    const endAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
+
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+
+    const hx1 = cx + holeR * Math.cos(startAngle);
+    const hy1 = cy + holeR * Math.sin(startAngle);
+    const hx2 = cx + holeR * Math.cos(endAngle);
+    const hy2 = cy + holeR * Math.sin(endAngle);
+
+    const largeArc = slice.value / total > 0.5 ? 1 : 0;
+
+    return {
+      ...slice,
+      d: `M ${hx1} ${hy1} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} L ${hx2} ${hy2} A ${holeR} ${holeR} 0 ${largeArc} 0 ${hx1} ${hy1} Z`,
+      pct: Math.round((slice.value / total) * 100),
+    };
+  });
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center gap-8">
+      <svg width={size} height={size} className="flex-shrink-0">
+        {arcs.map((arc, i) => (
+          <motion.path
+            key={i}
+            d={arc.d}
+            fill={arc.color}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 + i * 0.12, duration: 0.5 }}
+            className="hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            <title>{arc.label} — {arc.pct}%</title>
+          </motion.path>
+        ))}
+        {/* Centre label */}
+        <text x={cx} y={cy - 8} textAnchor="middle" fill="#ffffff" fontSize="22" fontWeight="900">{total}</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fill="#6b7280" fontSize="10" letterSpacing="2">TOTAL</text>
+      </svg>
+
+      {/* Legend */}
+      <div className="flex flex-col gap-3">
+        {arcs.map((arc, i) => (
+          <div key={i} className="flex items-center gap-3 text-sm">
+            <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: arc.color }} />
+            <span className="text-gray-300 font-medium">{arc.label}</span>
+            <span className="text-gray-600 text-xs ml-auto pl-4">{arc.pct}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ────────────────────────────────────────────────────────── */
+const EMPTY_STATE = (
+  <div className="flex flex-col items-center justify-center h-48 gap-2 text-center">
+    <Info className="w-8 h-8 text-gray-700" />
+    <p className="text-gray-600 text-sm">No data yet — add projects to see your analytics</p>
+  </div>
+);
+
+const cardCls = "bg-black/70 backdrop-blur-xl border border-orange-500/12 rounded-2xl p-8 relative overflow-hidden";
 
 const Analytics = () => {
-  const chartHeight = 250;
+  const { user } = useAuth();
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock Data for "Skill Distribution" Bar Chart
-  const skillData = [
-    { label: "React", value: 95 },
-    { label: "Node.js", value: 80 },
-    { label: "Python", value: 65 },
-    { label: "AWS", value: 40 },
-    { label: "Docker", value: 55 },
-  ];
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await axios.get("/api/projects/myprojects", cfg);
+        setProjects(data || []);
+      } catch {
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user?.token) fetchProjects();
+  }, [user]);
 
-  // Mock Data for "Profile Views" Line Chart approximation
-  const viewsData = [10, 25, 15, 40, 60, 45, 80];
+  // Derive skill tallies from real project data
+  const skillTally = {};
+  projects.forEach((p) => {
+    (p.technologies || []).forEach((tech) => {
+      skillTally[tech] = (skillTally[tech] || 0) + 1;
+    });
+  });
+
+  const skillBarData = Object.entries(skillTally)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 7)
+    .map(([label, count]) => ({ label, value: count }));
+
+  const maxSkillVal = Math.max(...skillBarData.map((s) => s.value), 1);
+
+  // Pie chart: project status distribution
+  const statusColors = {
+    Published:  "#f97316",
+    Verified:   "#22c55e",
+    Pending:    "#eab308",
+    Draft:      "#6b7280",
+  };
+  const statusTally = { Published: 0, Verified: 0, Pending: 0, Draft: 0 };
+  projects.forEach((p) => {
+    const s = p.status || "Published";
+    if (statusTally[s] !== undefined) statusTally[s]++;
+    else statusTally["Published"]++;
+  });
+  const pieSlices = Object.entries(statusTally)
+    .filter(([, v]) => v > 0)
+    .map(([label, value]) => ({ label, value, color: statusColors[label] }));
 
   return (
     <PageTransition>
-      <div className="max-w-7xl mx-auto space-y-8 mt-12 mb-20 px-4">
-        <header className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-serif text-vp-teal tracking-wide uppercase mb-2">
-            Skill <span className="text-ibex-rose italic lowercase normal-case">Growth</span>
+      <div className="max-w-6xl mx-auto pb-24 space-y-8">
+        <header className="mb-10">
+          <h1 className="text-4xl font-black text-white uppercase tracking-wide">
+            Skill <span className="text-orange-500">Growth</span>
           </h1>
-          <p className="text-ibex-muted tracking-widest uppercase text-sm">
-            Progressive Activity & Market Demand Visualizations
+          <div className="h-[2px] w-20 bg-orange-600 mt-4" />
+          <p className="mt-4 text-gray-500 text-sm">
+            All charts are generated from your actual project and skill data — no sample numbers.
           </p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* Skill Distribution Bar Chart */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="glass-card bg-white p-8 border border-vp-teal/10 relative overflow-hidden group"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-ibex-rose/5 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="flex items-center gap-3 mb-10 text-vp-teal pb-4 border-b border-vp-teal/10">
-              <BarChart2 className="w-5 h-5 text-ibex-rose" />
-              <h3 className="font-sans font-bold uppercase tracking-widest text-sm">Skill Proficiency</h3>
+
+          {/* ── Bar Chart: Skills by frequency ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className={cardCls}>
+            <div className="absolute -top-8 -right-8 w-36 h-36 bg-orange-600/6 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
+              <BarChart2 className="w-5 h-5 text-orange-500" />
+              <h3 className="font-black uppercase tracking-widest text-sm text-white">Skill Frequency</h3>
+              <span className="ml-auto text-gray-600 text-xs">from your projects</span>
             </div>
 
-            <div className="flex items-end justify-between gap-4 h-[250px] px-2 md:px-8">
-              {skillData.map((skill, i) => (
-                <div key={skill.label} className="flex flex-col items-center flex-1 group/bar">
-                  <div className="w-full relative flex justify-center bg-vp-teal/5 rounded-t-lg h-[200px]">
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${skill.value}%` }}
-                      transition={{ duration: 1.2, delay: 0.2 + (i * 0.1), ease: "easeOut" }}
-                      className="absolute bottom-0 w-full bg-gradient-premium rounded-t-md opacity-80 group-hover/bar:opacity-100 transition-opacity"
-                    >
-                      <div className="absolute -top-1 w-full h-2 bg-white/40 rounded-full blur-[2px]" />
-                    </motion.div>
-                    
-                    {/* Hover Value Popup */}
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      className="absolute -top-8 bg-vp-teal text-white text-xs py-1 px-2 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none"
-                    >
-                      {skill.value}%
-                    </motion.div>
+            {loading ? (
+              <div className="h-48 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+              </div>
+            ) : skillBarData.length === 0 ? EMPTY_STATE : (
+              <div className="flex items-end justify-between gap-3 h-52 px-2">
+                {skillBarData.map((skill, i) => (
+                  <div key={skill.label} className="flex flex-col items-center flex-1 group/bar">
+                    <div className="w-full flex justify-center bg-white/[0.03] rounded-t-lg" style={{ height: "180px" }}>
+                      <div className="relative w-full flex justify-center">
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: `${(skill.value / maxSkillVal) * 100}%` }}
+                          transition={{ duration: 1.1, delay: 0.15 + i * 0.1, ease: "easeOut" }}
+                          className="absolute bottom-0 w-3/4 bg-gradient-to-t from-orange-700 to-orange-400 rounded-t-md"
+                        />
+                        {/* tooltip */}
+                        <span className="absolute -top-7 text-xs bg-orange-600 text-white px-1.5 py-0.5 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none">
+                          {skill.value}×
+                        </span>
+                      </div>
+                    </div>
+                    <span className="mt-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center leading-tight">
+                      {skill.label}
+                    </span>
                   </div>
-                  <span className="mt-4 text-xs font-medium text-ibex-muted rotate-45 origin-left md:rotate-0 md:uppercase tracking-wider">
-                    {skill.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </motion.div>
 
-          {/* Activity Line/Wave Chart Mock */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="glass-card bg-white p-8 border border-vp-teal/10 relative overflow-hidden group"
-          >
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-ibex-gold/10 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="flex items-center gap-3 mb-10 text-vp-teal pb-4 border-b border-vp-teal/10">
-              <Activity className="w-5 h-5 text-ibex-gold" />
-              <h3 className="font-sans font-bold uppercase tracking-widest text-sm">Profile Velocity</h3>
+          {/* ── Pie Chart: Project status ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.15 }} className={cardCls}>
+            <div className="absolute -top-8 -right-8 w-36 h-36 bg-orange-600/6 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
+              <PieChart className="w-5 h-5 text-orange-500" />
+              <h3 className="font-black uppercase tracking-widest text-sm text-white">Project Status Distribution</h3>
             </div>
 
-            <div className="flex items-end justify-between h-[250px] relative px-2">
-              {/* Connecting line approximation using SVG */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 600 250">
-                <motion.path
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 1.5, delay: 0.5, ease: "easeInOut" }}
-                  d="M 10 200 C 100 150, 200 180, 250 100 S 400 120, 500 50 S 590 20, 590 20"
-                  fill="none"
-                  stroke="#A6F4DC"
-                  strokeWidth="4"
-                  className="drop-shadow-lg"
-                />
-              </svg>
-              
-              {viewsData.map((val, i) => (
-                <div key={i} className="flex flex-col items-center flex-1 relative z-10 h-full justify-end">
-                   <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.8 + (i * 0.1), type: "spring" }}
-                      className="w-3 h-3 md:w-4 md:h-4 bg-white border-2 border-ibex-rose rounded-full cursor-pointer hover:scale-150 transition-transform shadow-md"
-                      style={{ marginBottom: `${val * 2}px` }}
-                   />
-                   <span className="absolute bottom-[-30px] text-xs font-medium text-ibex-muted tracking-wider">
-                     {`W${i+1}`}
-                   </span>
-                </div>
-              ))}
+            {loading ? (
+              <div className="h-48 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+              </div>
+            ) : pieSlices.length === 0 ? EMPTY_STATE : (
+              <SVGPieChart slices={pieSlices} />
+            )}
+          </motion.div>
+
+          {/* ── Activity: project timeline ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.25 }} className={`${cardCls} lg:col-span-2`}>
+            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
+              <Activity className="w-5 h-5 text-orange-500" />
+              <h3 className="font-black uppercase tracking-widest text-sm text-white">Project Activity Timeline</h3>
+              <span className="ml-auto text-gray-600 text-xs">{projects.length} project{projects.length !== 1 ? "s" : ""} recorded</span>
             </div>
-            <div className="mt-8 pt-4 border-t border-vp-teal/10 flex justify-between items-center text-sm">
-                <span className="text-ibex-muted">Profile Views (+24% week over week)</span>
-                <span className="text-vp-teal font-bold">+184</span>
-            </div>
+
+            {loading ? (
+              <div className="h-24 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+              </div>
+            ) : projects.length === 0 ? EMPTY_STATE : (
+              <div className="space-y-3">
+                {[...projects]
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                  .slice(0, 6)
+                  .map((p, i) => (
+                    <motion.div
+                      key={p._id}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="flex items-center gap-4 p-3.5 rounded-lg bg-white/[0.025] border border-white/5"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />
+                      <span className="text-white text-sm font-bold flex-1 truncate">{p.title}</span>
+                      <span className="text-gray-600 text-xs flex-shrink-0">
+                        {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                      <span className={`text-[10px] uppercase tracking-widest font-black px-2 py-0.5 rounded flex-shrink-0 ${p.isVerified ? "bg-green-500/15 text-green-400" : "bg-orange-500/15 text-orange-400"}`}>
+                        {p.isVerified ? "Verified" : "Pending"}
+                      </span>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
           </motion.div>
 
         </div>
