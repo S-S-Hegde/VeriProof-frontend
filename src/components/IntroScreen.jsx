@@ -1,23 +1,8 @@
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
-
-/* ─────────────────────────────────────────────
-   CINEMATIC INTRO  –  Nolan / Tarantino / Spielberg
-   Stage flow (total ≈ 8.5 s then fades out):
-   0.0s  Black silence
-   0.5s  Scanlines flicker on
-   1.0s  "IN A WORLD WHERE RESUMES LIE…" – letter reveal
-   2.8s  Hard CUT (flash)
-   3.0s  "SKILLS CAN NO LONGER HIDE." – word slam
-   4.5s  Hard CUT (flash)
-   4.7s  VERIPROOF title burns in, letter by letter
-   6.0s  Subtitle crawl
-   7.5s  Iris-out / burn transition → app
-───────────────────────────────────────────── */
 
 const LETTER_DELAY = 0.045;
 
-// Split a string into individually animated spans
 const LetterReveal = ({ text, startDelay = 0, className = "", stagger = LETTER_DELAY }) => (
   <span className={className}>
     {text.split("").map((ch, i) => (
@@ -34,7 +19,6 @@ const LetterReveal = ({ text, startDelay = 0, className = "", stagger = LETTER_D
   </span>
 );
 
-// Hard-flash "cut" overlay
 const CutFlash = ({ trigger, onDone }) => (
   <AnimatePresence>
     {trigger && (
@@ -51,23 +35,22 @@ const CutFlash = ({ trigger, onDone }) => (
 );
 
 export default function IntroScreen({ onComplete }) {
-  const [stage, setStage] = useState(0);   // 0 black | 1 line1 | 2 flash1 | 3 line2 | 4 flash2 | 5 title | 6 exit
+  const [stage, setStage] = useState(0); 
   const [exitFlash, setExitFlash] = useState(false);
   const hasCompleted = useRef(false);
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setStage(1), 600),    // line 1 starts
-      setTimeout(() => setStage(2), 2700),   // flash 1
-      setTimeout(() => setStage(3), 3000),   // line 2
-      setTimeout(() => setStage(4), 4600),   // flash 2
-      setTimeout(() => setStage(5), 4900),   // title
-      setTimeout(() => setStage(6), 7600),   // exit
+      setTimeout(() => setStage(1), 300),    
+      setTimeout(() => setStage(2), 1500),   
+      setTimeout(() => setStage(3), 1700),   
+      setTimeout(() => setStage(4), 2800),   
+      setTimeout(() => setStage(5), 3000),   
+      setTimeout(() => setStage(6), 4500),   
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Exit sequence
   useEffect(() => {
     if (stage !== 6) return;
     setExitFlash(true);
@@ -86,7 +69,6 @@ export default function IntroScreen({ onComplete }) {
       animate={{ opacity: stage === 6 ? 0 : 1 }}
       transition={{ duration: 0.9, ease: "easeIn" }}
     >
-      {/* ── FILM GRAIN OVERLAY ── */}
       <div
         className="absolute inset-0 pointer-events-none z-[5] opacity-[0.06]"
         style={{
@@ -96,7 +78,6 @@ export default function IntroScreen({ onComplete }) {
         }}
       />
 
-      {/* ── SCANLINES ── */}
       <AnimatePresence>
         {stage >= 1 && (
           <motion.div
@@ -110,7 +91,6 @@ export default function IntroScreen({ onComplete }) {
         )}
       </AnimatePresence>
 
-      {/* ── EDGE VIGNETTE ── */}
       <div
         className="absolute inset-0 pointer-events-none z-[6]"
         style={{
@@ -118,7 +98,6 @@ export default function IntroScreen({ onComplete }) {
         }}
       />
 
-      {/* ── STAGE 1 – "IN A WORLD WHERE RESUMES LIE…" ── */}
       <AnimatePresence mode="wait">
         {stage === 1 && (
           <motion.div
@@ -133,7 +112,6 @@ export default function IntroScreen({ onComplete }) {
           </motion.div>
         )}
 
-        {/* ── STAGE 3 – "SKILLS CAN NO LONGER HIDE." ── */}
         {stage === 3 && (
           <motion.div
             key="line2"
@@ -143,14 +121,13 @@ export default function IntroScreen({ onComplete }) {
             transition={{ duration: 0.2 }}
             className="absolute text-center z-10 px-6"
           >
-            {/* Red underline accent */}
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
-              className="h-[2px] bg-orange-600 w-full mb-4 origin-left"
+              className="h-[2px] bg-blue-600 w-full mb-4 origin-left shadow-[0_0_15px_#2563EB]"
             />
-            <p className="text-white font-black uppercase" style={{ fontSize: "clamp(1.6rem, 5vw, 3.5rem)", letterSpacing: "0.04em" }}>
+            <p className="text-white font-black uppercase italic" style={{ fontSize: "clamp(1.6rem, 5vw, 3.5rem)", letterSpacing: "0.04em" }}>
               {["SKILLS", " ", "CAN", " ", "NO", " ", "LONGER", " ", "HIDE."].map((word, i) => (
                 <motion.span
                   key={i}
@@ -167,12 +144,11 @@ export default function IntroScreen({ onComplete }) {
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
-              className="h-[2px] bg-orange-600 w-full mt-4 origin-right"
+              className="h-[2px] bg-blue-600 w-full mt-4 origin-right shadow-[0_0_15px_#2563EB]"
             />
           </motion.div>
         )}
 
-        {/* ── STAGE 5 – VERIPROOF TITLE ── */}
         {stage >= 5 && stage < 6 && (
           <motion.div
             key="title"
@@ -182,26 +158,22 @@ export default function IntroScreen({ onComplete }) {
             transition={{ duration: 0.3 }}
             className="absolute text-center z-10 px-4 flex flex-col items-center"
           >
-            {/* PRODUCED BY line */}
             <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-gray-500 uppercase tracking-[0.5em] text-xs mb-8"
+              className="text-gray-500 uppercase tracking-[0.5em] text-xs mb-8 font-mono"
             >
-              Presented By
+              System Initialization
             </motion.p>
 
-            {/* Main VERIPROOF */}
             <div className="relative mb-4" style={{ fontSize: "clamp(3rem, 10vw, 8rem)", fontWeight: 900, letterSpacing: "0.06em" }}>
-              {/* Glow bloom behind */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1, duration: 1.2 }}
-                className="absolute inset-0 blur-[60px] bg-orange-600/40 pointer-events-none"
+                className="absolute inset-0 blur-[60px] bg-blue-600/40 pointer-events-none"
               />
-              {/* Orange fill chars */}
               {"VERIPROOF".split("").map((ch, i) => (
                 <motion.span
                   key={i}
@@ -210,10 +182,11 @@ export default function IntroScreen({ onComplete }) {
                   transition={{ delay: 0.3 + i * 0.07, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     display: "inline-block",
-                    color: i % 2 === 0 ? "#ffffff" : "#f97316",
-                    textShadow: "0 0 30px rgba(249,115,22,0.8)",
+                    color: i % 2 === 0 ? "#ffffff" : "#2563EB",
+                    textShadow: "0 0 30px rgba(37,99,235,0.8)",
                     transformOrigin: "bottom",
                     perspective: "400px",
+                    fontStyle: "italic"
                   }}
                 >
                   {ch}
@@ -221,54 +194,39 @@ export default function IntroScreen({ onComplete }) {
               ))}
             </div>
 
-            {/* Separator line */}
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ delay: 1.1, duration: 0.8, ease: "easeOut" }}
-              className="h-[1px] w-64 bg-gradient-to-r from-transparent via-orange-500 to-transparent my-5"
+              className="h-[1px] w-64 bg-gradient-to-r from-transparent via-blue-500 to-transparent my-5"
             />
 
-            {/* Subtitle */}
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 0.7, y: 0 }}
               transition={{ delay: 1.4, duration: 0.8 }}
-              className="text-gray-400 uppercase tracking-[0.4em] text-xs"
+              className="text-gray-400 uppercase tracking-[0.4em] text-[10px] font-mono"
             >
-              <LetterReveal text="Skill Proof · Portfolio · Verification" startDelay={1.5} stagger={0.03} />
-            </motion.p>
-
-            {/* Year tag like a movie card */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              transition={{ delay: 2.2, duration: 0.8 }}
-              className="text-gray-600 uppercase tracking-[0.6em] text-xs mt-6"
-            >
-              MMXXVI
+              <LetterReveal text="Forensic · Portfolio · Verification" startDelay={1.5} stagger={0.03} />
             </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── CUT FLASHES ── */}
       <CutFlash trigger={stage === 2} onDone={() => {}} />
       <CutFlash trigger={stage === 4} onDone={() => {}} />
 
-      {/* Exit iris burn */}
       <AnimatePresence>
         {exitFlash && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[300] bg-black pointer-events-none"
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: 1 }}
+            transition={{ duration: 0.5, ease: [0.85, 0, 0.15, 1] }}
+            className="fixed inset-0 z-[300] bg-white pointer-events-none origin-top"
           />
         )}
       </AnimatePresence>
 
-      {/* ── CSS injected grain animation ── */}
       <style>{`
         @keyframes grain {
           0%, 100% { transform: translate(0, 0); }

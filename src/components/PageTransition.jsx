@@ -1,58 +1,78 @@
-/**
- * PageTransition — cinematic page-change effect
- *
- * The transition works in two stages:
- *   EXIT:  current page burns/slides right + saturates → fades to black
- *   ENTER: new page slides in from left + unsaturates → arrives
- *
- * Combined with AnimatePresence mode="wait" in App.jsx this gives a
- * smooth BURN → ARRIVE effect between every route change.
- */
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme, THEMES } from "../context/ThemeContext";
 
-// Duration shared between exit + enter so they don't overlap
-const DUR = 0.42;
+const PageTransition = ({ children, className = "" }) => {
+  const { theme } = useTheme();
 
-const variants = {
-  initial: {
-    opacity:   0,
-    x:         "-4vw",
-    scale:     0.97,
-    filter:    "brightness(2.5) saturate(4) blur(6px)",
-  },
-  animate: {
-    opacity:   1,
-    x:         0,
-    scale:     1,
-    filter:    "brightness(1) saturate(1) blur(0px)",
-    transition: {
-      duration: DUR,
-      ease:     [0.25, 0.46, 0.45, 0.94],   // custom cubic-bezier: fast-out-slow-in
-    },
-  },
-  exit: {
-    opacity:   0,
-    x:         "4vw",
-    scale:     1.03,
-    filter:    "brightness(3) saturate(6) blur(12px) hue-rotate(-20deg)",
-    transition: {
-      duration: DUR * 0.8,
-      ease:     [0.55, 0, 1, 0.45],          // fast-in, snappy exit
-    },
-  },
+  // MERSI ARCHITECTURE INSPIRED: ARCHITECTURAL UNVEIL
+  // A clean, vertical slide that reveals the content like a sophisticated "blind" or "shutter"
+  
+  // Choose overlay color based on theme
+  const getOverlayColor = () => {
+    switch (theme) {
+      case THEMES.LIGHT: return "#FAF9F6"; // Greige (Mersi Light)
+      case THEMES.IMMERSIVE: return "#05070a"; // Midnight (Sun Hung)
+      default: return "#000000"; // Deep Black
+    }
+  };
+
+  return (
+    <div className={`relative w-full min-h-screen ${className}`}>
+      
+      {/* ── THE ARCHITECTURAL SHUTTER (UNVEIL) ── */}
+      <motion.div
+        initial={{ scaleY: 1 }}
+        animate={{ scaleY: 0 }}
+        exit={{ scaleY: 0 }}
+        transition={{ 
+            duration: 1.2, 
+            ease: [0.19, 1, 0.22, 1] // Quintic ease for that "weighty" premium feel
+        }}
+        style={{ 
+            backgroundColor: getOverlayColor(),
+            originY: 0,
+            zIndex: 200
+        }}
+        className="fixed inset-0 pointer-events-none"
+      />
+
+      {/* ── EXIT SHUTTER (COVER) ── */}
+      <motion.div
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: 0 }}
+        exit={{ scaleY: 1 }}
+        transition={{ 
+            duration: 0.8, 
+            ease: [0.76, 0, 0.24, 1] 
+        }}
+        style={{ 
+            backgroundColor: getOverlayColor(),
+            originY: 1,
+            zIndex: 200
+        }}
+        className="fixed inset-0 pointer-events-none"
+      />
+
+      {/* ── CONTENT FADE & SLIGHT SCALE ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -20, scale: 1.02 }}
+        transition={{ 
+            duration: 1, 
+            ease: [0.19, 1, 0.22, 1],
+            delay: 0.2 // Wait for the shutter to start moving
+        }}
+      >
+        {children}
+      </motion.div>
+
+      {/* ── CINEMATIC VIGNETTE (LIGHT THEME ONLY) ── */}
+      {theme === THEMES.LIGHT && (
+        <div className="fixed inset-0 pointer-events-none z-50 opacity-10 shadow-[inset_0_0_150px_rgba(0,0,0,0.1)]" />
+      )}
+    </div>
+  );
 };
-
-const PageTransition = ({ children, className = "" }) => (
-  <motion.div
-    variants={variants}
-    initial="initial"
-    animate="animate"
-    exit="exit"
-    style={{ willChange: "transform, opacity, filter" }}
-    className={`relative ${className}`}
-  >
-    {children}
-  </motion.div>
-);
 
 export default PageTransition;

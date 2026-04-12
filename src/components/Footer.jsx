@@ -1,73 +1,79 @@
 import { Link } from "react-router-dom";
-import { ShieldCheck, Twitter, Linkedin, Github, Mail } from "lucide-react";
+import { ShieldCheck, Twitter, Linkedin, Github, Mail, ExternalLink } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-ibex-surface/20 dark:bg-ibex-surface/40 mt-32 border-t border-ibex-surface/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+    <footer className="mt-32 border-t border-[var(--color-border)] glass-card rounded-none border-x-0 border-b-0">
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
           
-          <div className="md:col-span-1 space-y-6">
-            <Link to="/" className="flex items-center space-x-2 text-xl md:text-2xl font-sans tracking-[0.3em] uppercase font-bold text-vp-teal">
-              VERIPROOF
+          <div className="md:col-span-1 space-y-8">
+            <Link to="/" className="inline-block">
+              <span className="text-3xl tracking-[0.3em] font-bold h1 uppercase block">
+                VeriProof
+              </span>
             </Link>
-            <p className="text-ibex-muted text-sm tracking-wider font-light leading-relaxed">
-              The definite standard for cryptographic portfolio validation. Empowering true talent to defeat ordinary expectations.
+            <p className="text-[11px] opacity-50 tracking-wider font-light leading-relaxed max-w-xs">
+              The definite standard for cryptographic portfolio validation. Empowering true talent to defeat ordinary expectations through verified artifacts.
             </p>
-            <div className="flex items-center space-x-4">
-              <a href="#" className="p-2 border border-ibex-muted/30 rounded-full text-vp-teal hover:text-ibex-gold hover:border-ibex-gold transition-colors">
+            <div className="flex items-center space-x-6">
+              <a href="#" className="opacity-40 hover:opacity-100 hover:text-[var(--color-accent)] transition-all">
                 <Twitter className="w-4 h-4" />
               </a>
-              <a href="#" className="p-2 border border-ibex-muted/30 rounded-full text-vp-teal hover:text-ibex-gold hover:border-ibex-gold transition-colors">
+              <a href="#" className="opacity-40 hover:opacity-100 hover:text-[var(--color-accent)] transition-all">
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#" className="p-2 border border-ibex-muted/30 rounded-full text-vp-teal hover:text-ibex-gold hover:border-ibex-gold transition-colors">
+              <a href="#" className="opacity-40 hover:opacity-100 hover:text-[var(--color-accent)] transition-all">
                 <Github className="w-4 h-4" />
-              </a>
-              <a href="mailto:support@veriproof.com" className="p-2 border border-ibex-muted/30 rounded-full text-vp-teal hover:text-ibex-gold hover:border-ibex-gold transition-colors">
-                <Mail className="w-4 h-4" />
               </a>
             </div>
           </div>
 
-          <div className="space-y-6">
-            <h4 className="text-ibex-text font-serif uppercase tracking-widest text-sm font-bold">Platform</h4>
+          <div className="space-y-8">
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Platform</h4>
             <ul className="space-y-4">
-              <li><Link to="/discover" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Discover Talent</Link></li>
-              <li><Link to="/portfolio" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Candidate Hub</Link></li>
-              <li><Link to="/recruiter/jobs" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Recruiter Engine</Link></li>
-              <li><Link to="/analytics" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Global Analytics</Link></li>
+              <li><Link to="/discover" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Discover_Talent</Link></li>
+              <li><Link to="/dashboard" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Candidate_Hub</Link></li>
+              <li><Link to="/opportunities" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Market_Engine</Link></li>
             </ul>
           </div>
 
-          <div className="space-y-6">
-            <h4 className="text-ibex-text font-serif uppercase tracking-widest text-sm font-bold">Resources</h4>
+          <div className="space-y-8">
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Resources</h4>
             <ul className="space-y-4">
-              <li><Link to="/support" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Support & Help Center</Link></li>
-              <li><Link to="/vtu-calculator" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">VTU SGPA/CGPA Calculator</Link></li>
-              <li><Link to="/terms" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">System Architecture</Link></li>
-              <li><a href="#" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Verification APIs (Beta)</a></li>
+              <li><Link to="/support" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Help_Center</Link></li>
+              <li><Link to="/status" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">System_Status</Link></li>
+              <li><Link to="/terms" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Architecture</Link></li>
             </ul>
           </div>
 
-          <div className="space-y-6">
-            <h4 className="text-ibex-text font-serif uppercase tracking-widest text-sm font-bold">Legal & Security</h4>
-            <ul className="space-y-4">
-              <li><Link to="/terms" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Terms of Service</Link></li>
-              <li><Link to="/terms" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors">Privacy Database</Link></li>
-              <li><Link to="/verification-panel" className="text-ibex-muted hover:text-vp-teal text-sm tracking-wide transition-colors flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-ibex-gold" /> Trust Center</Link></li>
-            </ul>
+          <div className="space-y-8">
+            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Security</h4>
+            <div className="p-6 border border-[var(--color-border)] bg-[var(--color-bg)]/50 backdrop-blur-md">
+              <div className="flex items-center gap-3 mb-4">
+                <ShieldCheck className="w-5 h-5 text-[var(--color-accent)]" />
+                <span className="text-[10px] tracking-widest uppercase font-bold">Verified_Node</span>
+              </div>
+              <p className="text-[9px] opacity-40 uppercase tracking-tighter leading-relaxed">
+                All artifacts are cryptographically hashed and cross-referenced with repository metadata.
+              </p>
+            </div>
           </div>
 
         </div>
 
-        <div className="mt-16 pt-8 border-t border-ibex-surface/30 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-xs text-ibex-muted tracking-widest uppercase">
-            &copy; 2026 VeriProof Cryptographic Architecture. All Rights Reserved.
-          </p>
-          <div className="flex space-x-6 text-xs text-ibex-muted tracking-widest uppercase">
-            <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-ibex-gold"></span> System Online</span>
-            <span>Version 2.0.26</span>
+        <div className="mt-24 pt-8 border-t border-[var(--color-border)] flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-6">
+            <p className="text-[9px] opacity-30 tracking-[0.3em] uppercase">
+              &copy; 2026 VeriProof_Global_Systems
+            </p>
+          </div>
+          <div className="flex items-center space-x-8 text-[9px] opacity-40 tracking-[0.3em] uppercase font-mono">
+            <span className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-pulse"></span> 
+              Protocol_Online
+            </span>
+            <span>v2.4.0</span>
           </div>
         </div>
       </div>

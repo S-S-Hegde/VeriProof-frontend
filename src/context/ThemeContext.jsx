@@ -4,33 +4,47 @@ const ThemeContext = createContext();
 
 export const useTheme = () => useContext(ThemeContext);
 
+export const THEMES = {
+  LIGHT: 'light',
+  DARK: 'dark',
+  STORYTELLER: 'storyteller', // Cabinet of Wonders inspired
+  IMMERSIVE: 'immersive'      // Sun Hung inspired
+};
+
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('veriproof-theme');
-      if (savedTheme) {
-        return savedTheme === 'dark';
+      if (savedTheme && Object.values(THEMES).includes(savedTheme)) {
+        return savedTheme;
       }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? THEMES.DARK : THEMES.LIGHT;
     }
-    return false;
+    return THEMES.LIGHT;
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
-    if (isDarkMode) {
+    // Remove all theme classes
+    Object.values(THEMES).forEach(t => root.classList.remove(`theme-${t}`));
+    root.classList.remove('dark'); // Keep 'dark' for tailwind compatibility if needed
+    
+    root.classList.add(`theme-${theme}`);
+    if (theme === THEMES.DARK || theme === THEMES.IMMERSIVE) {
       root.classList.add('dark');
-      localStorage.setItem('veriproof-theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('veriproof-theme', 'light');
     }
-  }, [isDarkMode]);
+    
+    localStorage.setItem('veriproof-theme', theme);
+  }, [theme]);
 
-  const toggleTheme = () => setIsDarkMode(prev => !prev);
+  const toggleTheme = () => {
+    setTheme(prev => (prev === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT));
+  };
+
+  const isDarkMode = theme === THEMES.DARK || theme === THEMES.IMMERSIVE;
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, isDarkMode, toggleTheme, THEMES }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -1,25 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import {
   User, Mail, Phone, MapPin, Globe, Linkedin, Twitter,
-  Instagram, Github, BookOpen, Shield, Bell, Eye, Lock,
+  Instagram, Github, Shield, Bell, Eye, Lock,
   CheckCircle, AlertCircle, GraduationCap, Save,
+  Terminal as TerminalIcon, Cpu, Activity, Zap, HardDrive,
+  Fingerprint
 } from "lucide-react";
 
-const inputCls = "block w-full px-4 py-3 bg-black/50 border border-orange-500/20 rounded-lg focus:outline-none focus:border-orange-500 text-white placeholder-gray-600 transition-colors text-sm";
-const labelCls = "block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2";
-const sectionCls = "bg-black/70 backdrop-blur-xl border border-white/5 rounded-2xl p-7 relative overflow-hidden";
+// Redesigned styling constants
+const inputCls = "block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text)] placeholder-[var(--color-muted)]/40 transition-all duration-500 font-mono text-xs tracking-wider";
+const labelCls = "block text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--color-muted)] mb-3 flex items-center gap-2";
+const sectionCls = "relative overflow-hidden p-1 bg-gradient-to-br from-[var(--color-border)]/10 to-transparent";
 
-const TABS = ["Profile", "Academic", "Social", "Notifications & Privacy", "Security"];
+const TABS = [
+  { id: "Identity", icon: User, label: "User_Identity" },
+  { id: "Records", icon: GraduationCap, label: "Academic_Records" },
+  { id: "Nodes", icon: Globe, label: "Network_Nodes" },
+  { id: "Privacy", icon: Eye, label: "Privacy_Sync" },
+  { id: "Shield", icon: Lock, label: "Security_Shield" },
+];
 
 const Settings = () => {
   const { user, setUser } = useAuth();
-  const [activeTab, setActiveTab]   = useState("Profile");
+  const [activeTab, setActiveTab]   = useState("Identity");
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState(null);
+  const [systemStatus, setSystemStatus] = useState("Idle");
   const [form, setForm] = useState({
     name: "", email: "", bio: "", phone: "", location: "",
     website: "", linkedin: "", twitter: "", instagram: "", githubUsername: "",
@@ -30,9 +40,9 @@ const Settings = () => {
     newPassword: "", confirmPassword: "",
   });
 
-  // Load current profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
+      setSystemStatus("Fetching_Data...");
       try {
         const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
         const { data } = await axios.get("/api/users/profile", cfg);
@@ -58,20 +68,27 @@ const Settings = () => {
           notifPlatform:      data.notifications?.platform ?? true,
           newPassword: "", confirmPassword: "",
         });
-      } catch {}
+        setSystemStatus("Sync_Complete");
+      } catch (err) {
+        setSystemStatus("Sync_Error");
+      }
     };
     fetchProfile();
   }, [user.token]);
 
-  const f = (key) => (e) => setForm((p) => ({ ...p, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
+  const f = (key) => (e) => {
+    setForm((p) => ({ ...p, [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
+    setSystemStatus("Awaiting_Save");
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
     if (form.newPassword && form.newPassword !== form.confirmPassword) {
-      setToast({ type: "error", msg: "Passwords do not match" });
+      setToast({ type: "error", msg: "Protocols: Password Mismatch" });
       return;
     }
     setSaving(true);
+    setSystemStatus("Injecting_Data...");
     try {
       const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
       const payload = {
@@ -90,10 +107,12 @@ const Settings = () => {
       const updated = { ...user, ...data };
       setUser(updated);
       localStorage.setItem("userInfo", JSON.stringify(updated));
-      setToast({ type: "success", msg: "Profile updated successfully" });
+      setToast({ type: "success", msg: "Success: Protocols Updated" });
+      setSystemStatus("Protocol_Secured");
       setForm((p) => ({ ...p, newPassword: "", confirmPassword: "" }));
     } catch (err) {
-      setToast({ type: "error", msg: err.response?.data?.message || "Update failed" });
+      setToast({ type: "error", msg: err.response?.data?.message || "Protocol: Update Failed" });
+      setSystemStatus("Fatal_Error");
     } finally {
       setSaving(false);
       setTimeout(() => setToast(null), 3500);
@@ -102,199 +121,315 @@ const Settings = () => {
 
   return (
     <PageTransition>
-      <div className="max-w-4xl mx-auto pb-24">
-
-        {/* Header */}
-        <div className="mb-10">
-          <h2 className="text-4xl font-black text-white uppercase tracking-wide">
-            Settings <span className="text-orange-500">&</span> Profile
-          </h2>
-          <div className="h-[2px] w-20 bg-orange-600 mt-4" />
-        </div>
-
-        {/* Toast */}
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className={`flex items-center gap-3 px-5 py-3 rounded-xl mb-6 text-sm font-bold border ${
-              toast.type === "success"
-                ? "bg-green-500/10 border-green-500/30 text-green-400"
-                : "bg-red-500/10 border-red-500/30 text-red-400"
-            }`}
-          >
-            {toast.type === "success" ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-            {toast.msg}
-          </motion.div>
-        )}
-
-        {/* Tab nav */}
-        <div className="flex flex-wrap gap-2 mb-8 border-b border-white/5 pb-4">
-          {TABS.map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg text-xs font-black tracking-widest uppercase transition-all
-                ${activeTab === tab ? "bg-orange-600 text-white shadow-[0_0_12px_rgba(255,69,0,0.4)]" : "text-gray-500 hover:text-gray-300"}`}>
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleSave}>
-
-          {/* ── PROFILE TAB ── */}
-          {activeTab === "Profile" && (
-            <motion.div key="profile" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-              className={`${sectionCls} space-y-6`}>
-              <div className="flex items-center gap-3 mb-2">
-                <User className="w-5 h-5 text-orange-500" />
-                <h3 className="font-black uppercase tracking-widest text-sm text-white">Personal Information</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div><label className={labelCls}><User className="inline w-3 h-3 mr-1" />Full Name</label>
-                  <input className={inputCls} value={form.name} onChange={f("name")} required placeholder="Your full name" /></div>
-                <div><label className={labelCls}><Mail className="inline w-3 h-3 mr-1" />Email</label>
-                  <input className={`${inputCls} opacity-50 cursor-not-allowed`} value={form.email} disabled placeholder="Email cannot be changed" /></div>
-                <div><label className={labelCls}><Phone className="inline w-3 h-3 mr-1" />Phone</label>
-                  <input className={inputCls} value={form.phone} onChange={f("phone")} placeholder="+91 XXXXX XXXXX" /></div>
-                <div><label className={labelCls}><MapPin className="inline w-3 h-3 mr-1" />Location</label>
-                  <input className={inputCls} value={form.location} onChange={f("location")} placeholder="City, State" /></div>
-                <div className="sm:col-span-2"><label className={labelCls}>Bio</label>
-                  <textarea rows={3} className={inputCls} value={form.bio} onChange={f("bio")} placeholder="A short bio about yourself..." /></div>
-                <div className="sm:col-span-2"><label className={labelCls}>Skills <span className="text-gray-600 normal-case tracking-normal">(comma separated)</span></label>
-                  <input className={inputCls} value={form.skills} onChange={f("skills")} placeholder="React, Python, SQL, Docker" /></div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── ACADEMIC TAB ── */}
-          {activeTab === "Academic" && (
-            <motion.div key="academic" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-              className={`${sectionCls} space-y-6`}>
-              <div className="flex items-center gap-3 mb-2">
-                <GraduationCap className="w-5 h-5 text-orange-500" />
-                <h3 className="font-black uppercase tracking-widest text-sm text-white">Academic Details</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div><label className={labelCls}>College / University</label>
-                  <input className={inputCls} value={form.college} onChange={f("college")} placeholder="e.g. Visvesvaraya Technological University" /></div>
-                <div><label className={labelCls}>Branch / Department</label>
-                  <input className={inputCls} value={form.branch} onChange={f("branch")} placeholder="e.g. Computer Science and Engineering" /></div>
-                <div><label className={labelCls}>USN (University Seat Number)</label>
-                  <input className={inputCls} value={form.usn} onChange={f("usn")} placeholder="e.g. 4SU21IS013" /></div>
-                <div><label className={labelCls}>Batch / Year</label>
-                  <input className={inputCls} value={form.batch} onChange={f("batch")} placeholder="e.g. 2021–2025" /></div>
-                <div><label className={labelCls}>CGPA <span className="text-gray-600 normal-case tracking-normal">(minimal consideration factor)</span></label>
-                  <input className={inputCls} value={form.cgpa} onChange={f("cgpa")} placeholder="e.g. 7.8 / 10" /></div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── SOCIAL TAB ── */}
-          {activeTab === "Social" && (
-            <motion.div key="social" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-              className={`${sectionCls} space-y-6`}>
-              <div className="flex items-center gap-3 mb-2">
-                <Globe className="w-5 h-5 text-orange-500" />
-                <h3 className="font-black uppercase tracking-widest text-sm text-white">Links & Social Profiles</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {[
-                  { key: "website",    icon: Globe,     label: "Portfolio / Website",  ph: "https://yoursite.com" },
-                  { key: "linkedin",   icon: Linkedin,  label: "LinkedIn",            ph: "https://linkedin.com/in/username" },
-                  { key: "github",     icon: Github,    label: "GitHub Username",     ph: "yourusername", fk: "githubUsername" },
-                  { key: "twitter",    icon: Twitter,   label: "Twitter / X",         ph: "@handle" },
-                  { key: "instagram",  icon: Instagram, label: "Instagram",           ph: "@handle" },
-                ].map(({ key, icon: Icon, label, ph, fk }) => (
-                  <div key={key}>
-                    <label className={labelCls}><Icon className="inline w-3 h-3 mr-1" />{label}</label>
-                    <input className={inputCls} value={form[fk || key]} onChange={f(fk || key)} placeholder={ph} />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── NOTIFICATIONS & PRIVACY TAB ── */}
-          {activeTab === "Notifications & Privacy" && (
-            <motion.div key="notif" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-              className={`${sectionCls} space-y-8`}>
-              <div>
-                <div className="flex items-center gap-3 mb-5">
-                  <Bell className="w-5 h-5 text-orange-500" />
-                  <h3 className="font-black uppercase tracking-widest text-sm text-white">Notifications</h3>
-                </div>
-                {[
-                  { key: "notifEmail",    label: "Email Notifications",    desc: "Receive updates, verification results, and recruiter messages via email" },
-                  { key: "notifPlatform", label: "Platform Notifications",  desc: "In-app alerts for activity on your projects and profile" },
-                ].map(({ key, label, desc }) => (
-                  <label key={key} className="flex items-start gap-4 cursor-pointer group mb-4">
-                    <div className="relative mt-0.5 flex-shrink-0">
-                      <input type="checkbox" className="sr-only" checked={form[key]} onChange={f(key)} />
-                      <div className={`w-11 h-6 rounded-full transition-colors ${form[key] ? "bg-orange-600" : "bg-white/10"}`} />
-                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form[key] ? "translate-x-5" : "translate-x-0"}`} />
-                    </div>
-                    <div>
-                      <p className="text-white text-sm font-bold">{label}</p>
-                      <p className="text-gray-500 text-xs mt-0.5">{desc}</p>
-                    </div>
-                  </label>
-                ))}
-              </div>
-
-              <div>
-                <div className="flex items-center gap-3 mb-5">
-                  <Eye className="w-5 h-5 text-orange-500" />
-                  <h3 className="font-black uppercase tracking-widest text-sm text-white">Profile Visibility</h3>
-                </div>
-                {[
-                  { val: "public",           label: "Public",           desc: "Anyone on the platform can view your profile and projects" },
-                  { val: "recruiters-only",  label: "Recruiters Only",  desc: "Only verified recruiters can view your full profile" },
-                  { val: "private",          label: "Private",          desc: "Only you can see your profile" },
-                ].map(({ val, label, desc }) => (
-                  <label key={val} className="flex items-start gap-4 cursor-pointer mb-4">
-                    <input type="radio" name="visibility" value={val} checked={form.profileVisibility === val}
-                      onChange={() => setForm((p) => ({ ...p, profileVisibility: val }))}
-                      className="mt-1 accent-orange-500 flex-shrink-0" />
-                    <div>
-                      <p className="text-white text-sm font-bold">{label}</p>
-                      <p className="text-gray-500 text-xs mt-0.5">{desc}</p>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── SECURITY TAB ── */}
-          {activeTab === "Security" && (
-            <motion.div key="security" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-              className={`${sectionCls} space-y-6`}>
-              <div className="flex items-center gap-3 mb-2">
-                <Lock className="w-5 h-5 text-orange-500" />
-                <h3 className="font-black uppercase tracking-widest text-sm text-white">Change Password</h3>
-              </div>
-              <p className="text-gray-500 text-xs">Leave blank if you don't want to change your password. Minimum 6 characters.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-lg">
-                <div><label className={labelCls}>New Password</label>
-                  <input type="password" className={inputCls} value={form.newPassword} onChange={f("newPassword")} placeholder="New password" /></div>
-                <div><label className={labelCls}>Confirm Password</label>
-                  <input type="password" className={inputCls} value={form.confirmPassword} onChange={f("confirmPassword")} placeholder="Confirm password" /></div>
-              </div>
-              <div className="flex items-center gap-3 mt-4 p-4 rounded-xl bg-orange-500/5 border border-orange-500/15">
-                <Shield className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                <p className="text-gray-400 text-xs">Session automatically expires after <span className="text-orange-400 font-bold">1 hour</span> of inactivity for security.</p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Save button – always visible */}
-          <div className="flex justify-end mt-6">
-            <button type="submit" disabled={saving}
-              className="flex items-center gap-2 px-8 py-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-black tracking-widest uppercase text-sm shadow-[0_0_18px_rgba(255,69,0,0.4)] transition-all disabled:opacity-50">
-              <Save className="w-4 h-4" />
-              {saving ? "Saving…" : "Save Changes"}
-            </button>
+      <div className="max-w-7xl mx-auto px-6 pb-32 pt-12">
+        
+        {/* ── TOP TERMINAL BAR ── */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 border-b border-[var(--color-border)] pb-8">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <TerminalIcon className="w-4 h-4 text-[var(--color-accent)]" />
+              <span className="text-[10px] font-mono uppercase tracking-[0.4em] opacity-40">System // Configuration</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter h1 uppercase">
+                Protocols.
+            </h1>
           </div>
-        </form>
+          
+          <div className="flex flex-col items-end font-mono">
+            <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] mb-2">
+                <span className="opacity-40">System_Status:</span>
+                <span className={`flex items-center gap-2 ${systemStatus.includes("Error") ? "text-red-500" : "text-[var(--color-accent)]"}`}>
+                    <Activity className="w-3 h-3 animate-pulse" />
+                    {systemStatus}
+                </span>
+            </div>
+            <div className="text-[10px] opacity-20 uppercase tracking-[0.2em]">
+                Verified_Node: {user.name.replace(/\s+/g, '_').toUpperCase()}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          
+          {/* ── SIDEBAR NAVIGATION ── */}
+          <aside className="lg:col-span-3 flex flex-col gap-2">
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`group relative flex items-center justify-between p-4 transition-all duration-500 ${
+                    isActive 
+                      ? "bg-[var(--color-accent)] text-[var(--color-bg)]" 
+                      : "hover:bg-[var(--color-accent)]/5 text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <Icon className={`w-4 h-4 ${isActive ? "opacity-100" : "opacity-40"}`} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.3em]">{tab.label}</span>
+                  </div>
+                  {isActive && (
+                    <motion.div layoutId="tab-indicator" className="absolute left-0 top-0 bottom-0 w-1 bg-white" />
+                  )}
+                  <Zap className={`w-3 h-3 transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`} />
+                </button>
+              );
+            })}
+
+            <div className="mt-12 p-6 border border-[var(--color-border)] opacity-30">
+                <div className="flex items-center gap-2 mb-4">
+                    <Shield className="w-3 h-3 text-[var(--color-accent)]" />
+                    <span className="text-[9px] uppercase font-bold tracking-widest">Security_Level: 04</span>
+                </div>
+                <div className="h-1 bg-[var(--color-border)] w-full">
+                    <div className="h-full bg-[var(--color-accent)] w-3/4" />
+                </div>
+            </div>
+          </aside>
+
+          {/* ── MAIN CONFIGURATION AREA ── */}
+          <main className="lg:col-span-9">
+            <AnimatePresence mode="wait">
+              {toast && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                  className={`fixed top-32 right-12 z-[100] flex items-center gap-4 px-6 py-4 backdrop-blur-xl border font-mono text-[10px] uppercase tracking-widest ${
+                    toast.type === "success"
+                      ? "bg-green-500/10 border-green-500/30 text-green-400"
+                      : "bg-red-500/10 border-red-500/30 text-red-400"
+                  }`}
+                >
+                  {toast.type === "success" ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                  {toast.msg}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form onSubmit={handleSave} className="space-y-12">
+              
+              <AnimatePresence mode="wait">
+                {/* ── IDENTITY TAB ── */}
+                {activeTab === "Identity" && (
+                  <motion.div
+                    key="identity"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10"
+                  >
+                    <div className="md:col-span-2 flex items-center gap-4 mb-4">
+                        <Fingerprint className="w-6 h-6 text-[var(--color-accent)]" />
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Core_Identity</h3>
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                        <label className={labelCls}><User className="w-3 h-3" />Full_Legal_Name</label>
+                        <input className={inputCls} value={form.name} onChange={f("name")} required />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}><Mail className="w-3 h-3" />Network_Address</label>
+                        <input className={`${inputCls} opacity-30 cursor-not-allowed`} value={form.email} disabled />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}><Phone className="w-3 h-3" />Voice_Comms</label>
+                        <input className={inputCls} value={form.phone} onChange={f("phone")} placeholder="+X XXXXXXXXXX" />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className={labelCls}><MapPin className="w-3 h-3" />Geographic_Origin</label>
+                        <input className={inputCls} value={form.location} onChange={f("location")} placeholder="CITY // COUNTRY" />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className={labelCls}><Cpu className="w-3 h-3" />Personal_Manifesto</label>
+                        <textarea rows={4} className={inputCls} value={form.bio} onChange={f("bio")} placeholder="ENCODE YOUR BIO..." />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className={labelCls}><Zap className="w-3 h-3" />Verified_Skill_Nodes</label>
+                        <input className={inputCls} value={form.skills} onChange={f("skills")} placeholder="REACT, TYPESCRIPT, KUBERNETES..." />
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ── RECORDS TAB ── */}
+                {activeTab === "Records" && (
+                  <motion.div
+                    key="records"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10"
+                  >
+                    <div className="md:col-span-2 flex items-center gap-4 mb-4">
+                        <GraduationCap className="w-6 h-6 text-[var(--color-accent)]" />
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Academic_Ledger</h3>
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className={labelCls}>Institution_Identifier</label>
+                        <input className={inputCls} value={form.college} onChange={f("college")} />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>Field_of_Specialization</label>
+                        <input className={inputCls} value={form.branch} onChange={f("branch")} />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>System_Index (USN)</label>
+                        <input className={inputCls} value={form.usn} onChange={f("usn")} />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>Batch_Cycle</label>
+                        <input className={inputCls} value={form.batch} onChange={f("batch")} />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>Performance_Index (CGPA)</label>
+                        <input className={inputCls} value={form.cgpa} onChange={f("cgpa")} />
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ── NODES TAB ── */}
+                {activeTab === "Nodes" && (
+                  <motion.div
+                    key="nodes"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10"
+                  >
+                    <div className="md:col-span-2 flex items-center gap-4 mb-4">
+                        <Globe className="w-6 h-6 text-[var(--color-accent)]" />
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">External_Links</h3>
+                    </div>
+                    
+                    {[
+                      { key: "website",    icon: Globe,     label: "Primary_Node_URL",  ph: "HTTPS://..." },
+                      { key: "linkedin",   icon: Linkedin,  label: "Professional_Registry", ph: "LINKEDIN.COM/IN/..." },
+                      { key: "github",     icon: Github,    label: "Source_Control_ID", ph: "GITHUB_USERNAME", fk: "githubUsername" },
+                      { key: "twitter",    icon: Twitter,   label: "Signal_Stream", ph: "@HANDLE" },
+                      { key: "instagram",  icon: Instagram, label: "Visual_Archive", ph: "@HANDLE" },
+                    ].map(({ key, icon: Icon, label, ph, fk }) => (
+                      <div key={key}>
+                        <label className={labelCls}><Icon className="w-3 h-3" />{label}</label>
+                        <input className={inputCls} value={form[fk || key]} onChange={f(fk || key)} placeholder={ph} />
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+
+                {/* ── PRIVACY TAB ── */}
+                {activeTab === "Privacy" && (
+                  <motion.div
+                    key="privacy"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="space-y-16"
+                  >
+                    <div>
+                        <div className="flex items-center gap-4 mb-10">
+                            <Bell className="w-6 h-6 text-[var(--color-accent)]" />
+                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Transmission_Protocols</h3>
+                        </div>
+                        <div className="space-y-6 max-w-2xl">
+                            {[
+                                { key: "notifEmail",    label: "Email_Broadcasts",    desc: "Verification reports and secure handshakes via SMTP." },
+                                { key: "notifPlatform", label: "Direct_Uplink",  desc: "Real-time system alerts and recruiter signals." },
+                            ].map(({ key, label, desc }) => (
+                                <label key={key} className="flex items-center justify-between group cursor-pointer p-4 border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 transition-all">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
+                                        <span className="text-[9px] opacity-40 uppercase tracking-tighter">{desc}</span>
+                                    </div>
+                                    <input type="checkbox" className="sr-only" checked={form[key]} onChange={f(key)} />
+                                    <div className={`w-10 h-5 rounded-sm transition-colors relative ${form[key] ? "bg-[var(--color-accent)]" : "bg-[var(--color-border)]"}`}>
+                                        <div className={`absolute top-1 w-3 h-3 bg-white transition-all ${form[key] ? "left-6" : "left-1"}`} />
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="flex items-center gap-4 mb-10">
+                            <Eye className="w-6 h-6 text-[var(--color-accent)]" />
+                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Visibility_Shield</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[
+                                { val: "public",           label: "Open_Mesh",           desc: "GLOBAL READ ACCESS" },
+                                { val: "recruiters-only",  label: "Authorized_Only",  desc: "RECRUITER CLEARANCE" },
+                                { val: "private",          label: "Restricted",          desc: "ZERO EXTERNAL ACCESS" },
+                            ].map(({ val, label, desc }) => (
+                                <button key={val} type="button" onClick={() => { setForm(p => ({ ...p, profileVisibility: val })); setSystemStatus("Awaiting_Save"); }}
+                                    className={`flex flex-col p-6 border transition-all text-left ${form.profileVisibility === val ? "bg-[var(--color-accent)] border-[var(--color-accent)] text-[var(--color-bg)]" : "border-[var(--color-border)] opacity-40 hover:opacity-100 hover:border-[var(--color-accent)]/50"}`}
+                                >
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2">{label}</span>
+                                    <span className="text-[8px] uppercase tracking-tighter font-mono">{desc}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ── SECURITY TAB ── */}
+                {activeTab === "Shield" && (
+                  <motion.div
+                    key="security"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10"
+                  >
+                    <div className="md:col-span-2 flex items-center gap-4 mb-4">
+                        <Lock className="w-6 h-6 text-[var(--color-accent)]" />
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Authentication_Re-Key</h3>
+                    </div>
+                    
+                    <div className="md:col-span-2 text-[10px] opacity-40 font-mono uppercase tracking-[0.2em]">
+                        MINIMUM_ENTROPY: 06_CHARACTERS // LEAVE BLANK TO RETAIN CURRENT KEY
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>New_Access_Key</label>
+                        <input type="password" className={inputCls} value={form.newPassword} onChange={f("newPassword")} />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>Validate_Access_Key</label>
+                        <input type="password" className={inputCls} value={form.confirmPassword} onChange={f("confirmPassword")} />
+                    </div>
+
+                    <div className="md:col-span-2 p-6 border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/5 flex items-center gap-6">
+                        <HardDrive className="w-6 h-6 text-[var(--color-accent)] animate-pulse" />
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent)]">Session_Persistence_Protocol</p>
+                            <p className="text-[9px] opacity-50 uppercase tracking-tighter mt-1">Automatic session termination after 3600 seconds of inactivity.</p>
+                        </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ── GLOBAL ACTION BAR ── */}
+              <div className="flex items-center justify-between pt-12 border-t border-[var(--color-border)]">
+                <div className="hidden md:flex flex-col gap-1">
+                    <span className="text-[9px] font-mono uppercase tracking-[0.2em] opacity-40">Changes: {systemStatus === "Awaiting_Save" ? "UNCOMMITTED" : "SYNCHRONIZED"}</span>
+                    <div className={`h-[1px] w-32 ${systemStatus === "Awaiting_Save" ? "bg-red-500 animate-pulse" : "bg-[var(--color-accent)]"}`} />
+                </div>
+                <button type="submit" disabled={saving}
+                  className="group flex items-center gap-4 px-12 py-5 bg-[var(--color-accent)] text-[var(--color-bg)] font-bold tracking-[0.4em] uppercase text-[11px] shadow-[0_0_30px_var(--color-accent)]/20 hover:shadow-[0_0_40px_var(--color-accent)]/40 transition-all disabled:opacity-50"
+                >
+                  {saving ? "SYNCHRONIZING..." : (
+                    <>
+                      Execute_Update <Save className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </main>
+        </div>
       </div>
     </PageTransition>
   );

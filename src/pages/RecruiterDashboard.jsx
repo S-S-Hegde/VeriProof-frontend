@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
+import { useTheme, THEMES } from "../context/ThemeContext";
+import { Search, Users, ShieldCheck, Activity, ExternalLink, CheckCircle } from "lucide-react";
 
 const RecruiterDashboard = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [projects, setProjects] = useState([]);
   const [pendingResumes, setPendingResumes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +40,6 @@ const RecruiterDashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       await axios.put(`/api/users/${studentId}/verify-resume`, { status: "Verified" }, config);
-      
-      // Remove from pending list
       setPendingResumes(pendingResumes.filter(r => r._id !== studentId));
     } catch (error) {
       alert("Failed to verify resume");
@@ -47,63 +48,74 @@ const RecruiterDashboard = () => {
 
   return (
     <PageTransition>
-      <div className="md:flex md:items-center md:justify-between mb-8">
+      <div className="md:flex md:items-end md:justify-between mb-12 border-b border-[var(--color-border)] pb-8">
         <div className="flex-1 min-w-0">
-          <h2 className="text-4xl font-serif text-vp-teal font-light tracking-wider uppercase mb-2">
-            Talent <span className="text-ibex-rose italic lowercase normal-case">Acquisition</span>
+          <p className="text-[10px] font-mono tracking-[0.4em] uppercase opacity-40 mb-2 flex items-center gap-2">
+            <Activity className="w-3 h-3" /> Investigator_Auth: {user.name?.toUpperCase()}
+          </p>
+          <h2 className="text-5xl h1">
+            Talent <span className="opacity-40 italic">Forensics</span>
           </h2>
-          <div className="h-[2px] w-24 bg-ibex-gold mt-4" />
+        </div>
+        <div className="mt-8 flex md:mt-0 md:ml-4">
+          <Link
+            to="/discover"
+            className="px-8 py-3 bg-[var(--color-accent)] text-[var(--color-bg)] font-bold tracking-[0.2em] uppercase text-[10px] flex items-center gap-2 hover:opacity-90 transition-all shadow-[0_0_20px_var(--color-accent)]/20"
+          >
+            <Search className="w-3 h-3" /> Global Search
+          </Link>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className="glass-card p-6 border-l-4 border-vp-teal border-r-0 border-y-0 bg-white">
-          <p className="text-xs tracking-widest uppercase text-ibex-muted mb-2">Candidates Parsed</p>
-          <p className="text-3xl font-serif text-vp-teal">1,204</p>
+        <div className="glass-card p-6 border-l-4 border-[var(--color-accent)]">
+          <p className="text-[10px] tracking-[0.2em] uppercase opacity-50 mb-1">Authenticated_Talent</p>
+          <p className="text-3xl font-bold h1">1,204</p>
         </div>
-        <div className="glass-card p-6 border-l-4 border-ibex-rose border-r-0 border-y-0 bg-white">
-          <p className="text-xs tracking-widest uppercase text-ibex-muted mb-2">Pending Validations</p>
-          <p className="text-3xl font-serif text-vp-teal">{pendingResumes.length}</p>
+        <div className="glass-card p-6 border-l-4 border-[var(--color-accent)]/30">
+          <p className="text-[10px] tracking-[0.2em] uppercase opacity-50 mb-1">Pending_Verifications</p>
+          <p className="text-3xl font-bold h1">{pendingResumes.length}</p>
         </div>
-        <div className="glass-card p-6 border-l-4 border-vp-champagne border-r-0 border-y-0 bg-white">
-          <p className="text-xs tracking-widest uppercase text-ibex-muted mb-2">Matching Talent</p>
-          <p className="text-3xl font-serif text-vp-teal">342</p>
+        <div className="glass-card p-6 border-l-4 border-[var(--color-accent)]/10">
+          <p className="text-[10px] tracking-[0.2em] uppercase opacity-50 mb-1">High_Integrity_Matches</p>
+          <p className="text-3xl font-bold h1">342</p>
         </div>
       </div>
 
       {/* Resume Processing Queue */}
       {pendingResumes.length > 0 && (
         <div className="mb-16">
-          <h3 className="text-xl font-serif text-vp-teal mb-6 tracking-wide border-b border-ibex-surface/40 pb-4">
-            Pending Credential Validations
-          </h3>
+          <div className="flex items-center gap-3 mb-8">
+            <ShieldCheck className="w-5 h-5 text-[var(--color-accent)]" />
+            <h3 className="text-xl tracking-widest uppercase h1">Verification Queue</h3>
+          </div>
           <div className="grid grid-cols-1 gap-4">
             {pendingResumes.map((student) => (
-              <div key={student._id} className="glass-card p-6 border border-ibex-surface/40 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div key={student._id} className="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 group hover:border-[var(--color-accent)] transition-all">
                 <div className="flex items-center space-x-4">
-                  <div className="h-10 w-10 rounded-full border border-vp-teal/30 flex items-center justify-center text-vp-teal font-serif bg-vp-teal/5">
+                  <div className="h-12 w-12 border border-[var(--color-border)] flex items-center justify-center font-mono text-lg bg-[var(--color-bg)]/50">
                     {student.name.charAt(0)}
                   </div>
                   <div>
-                    <h4 className="text-vp-teal font-serif text-lg">{student.name}</h4>
-                    <p className="text-xs tracking-widest uppercase text-ibex-muted">@{student.githubUsername}</p>
+                    <h4 className="text-lg font-bold h1 leading-none mb-1">{student.name}</h4>
+                    <p className="text-[10px] tracking-[0.2em] uppercase opacity-40 font-mono">GH: @{student.githubUsername}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-8">
                   <a 
                     href={student.resumeUrl} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="text-xs tracking-widest uppercase text-ibex-gold hover:text-white transition-colors"
+                    className="flex items-center gap-2 text-[10px] tracking-[0.2em] uppercase opacity-60 hover:opacity-100 transition-opacity underline decoration-[var(--color-accent)] underline-offset-4"
                   >
-                    View Document →
+                    Examine_Docs <ExternalLink className="w-3 h-3" />
                   </a>
                   <button 
                     onClick={() => handleVerifyResume(student._id)}
-                    className="inline-flex items-center px-4 py-2 border border-green-800/50 text-green-500 bg-green-900/20 text-xs tracking-widest uppercase hover:bg-green-800/40 transition-colors"
+                    className="px-6 py-2 bg-[var(--color-accent)] text-[var(--color-bg)] text-[10px] tracking-[0.2em] uppercase font-bold hover:opacity-90 transition-all flex items-center gap-2"
                   >
-                    Verify Credential
+                    <CheckCircle className="w-3 h-3" /> Authenticate
                   </button>
                 </div>
               </div>
@@ -113,15 +125,20 @@ const RecruiterDashboard = () => {
       )}
 
       {/* Projects Gallery */}
-      <h3 className="text-xl font-serif text-vp-teal mb-6 tracking-wide border-b border-ibex-surface/40 pb-4">
-        Verified Projects
-      </h3>
+      <div className="flex items-center gap-3 mb-8">
+        <Users className="w-5 h-5 text-[var(--color-accent)]" />
+        <h3 className="text-xl tracking-widest uppercase h1">Verified Artifacts</h3>
+      </div>
+      
       {loading ? (
-        <p className="text-ibex-muted tracking-widest uppercase text-sm">Loading candidate projects...</p>
+        <div className="flex flex-col items-center py-20 opacity-40">
+           <div className="w-8 h-8 border-[var(--color-accent)] border-t-transparent animate-spin mb-4" />
+           <p className="text-[10px] font-mono tracking-widest uppercase">Fetching_Archive_Data...</p>
+        </div>
       ) : projects.length === 0 ? (
-        <div className="text-center glass-card py-20 px-4 border border-ibex-surface/40 bg-white">
-          <h3 className="mt-2 text-xl font-serif text-vp-teal tracking-widest uppercase">
-            No Projects Available
+        <div className="text-center glass-card py-20 border opacity-40">
+          <h3 className="text-[10px] uppercase tracking-[0.3em]">
+            No Authenticated Evidence Found
           </h3>
         </div>
       ) : (
@@ -129,68 +146,53 @@ const RecruiterDashboard = () => {
           {projects.map((project) => (
             <div
               key={project._id}
-              className="glass-card bg-white overflow-hidden flex flex-col transition-all hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(145,166,255,0.2)] hover:border-vp-teal/30 duration-500 border-ibex-surface/40"
+              className="glass-card group overflow-hidden flex flex-col transition-all duration-700 hover:shadow-[0_0_30px_var(--color-accent)]/10"
             >
-              <div className="px-6 py-8 flex-grow">
+              <div className="p-8 flex-grow">
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="h-12 w-12 rounded-full border border-vp-teal/30 flex items-center justify-center text-vp-teal font-serif text-xl bg-vp-teal/5">
+                  <div className="h-10 w-10 border border-[var(--color-border)] flex items-center justify-center font-mono text-sm bg-[var(--color-bg)]">
                     {project.user.name.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="text-sm font-light tracking-widest uppercase text-vp-teal">
+                    <h3 className="text-[10px] font-mono tracking-widest uppercase opacity-40">
                       {project.user.name}
                     </h3>
-                    <p className="text-xs text-ibex-rose font-light mt-1">
+                    <p className="text-[9px] font-mono uppercase tracking-tighter mt-1 text-[var(--color-accent)]">
                       @{project.user.githubUsername}
                     </p>
                   </div>
                 </div>
-                <Link
-                  to={`/project/${project._id}`}
-                  className="block hover:opacity-80 transition-opacity"
-                >
-                  <h3 className="text-2xl font-serif text-vp-teal mb-4">
+                <Link to={`/project/${project._id}`} className="block hover:opacity-80 transition-opacity">
+                  <h3 className="text-2xl mb-4 h1 leading-tight">
                     {project.title}
                   </h3>
                 </Link>
-                <div className="text-sm text-ibex-muted font-light leading-relaxed line-clamp-3 mb-6">
-                  <p>{project.description}</p>
+                <div className="text-xs opacity-60 font-light leading-relaxed line-clamp-3 mb-8 italic">
+                  "{project.description}"
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {project.technologies.slice(0, 3).map((tech, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center px-3 py-1 text-xs tracking-widest uppercase text-vp-teal border border-vp-teal/20 bg-vp-teal/5"
+                      className="inline-flex items-center px-2 py-1 text-[8px] tracking-[0.2em] uppercase font-mono border border-[var(--color-border)] text-[var(--color-muted)]"
                     >
                       {tech}
                     </span>
                   ))}
                 </div>
               </div>
-              <div className="bg-vp-teal/5 px-6 py-5 flex flex-col space-y-4 text-sm border-t border-vp-teal/10 backdrop-blur-sm">
-                <div className="flex justify-between items-center">
-                  <a
-                    href={project.repositoryUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-vp-teal hover:text-ibex-rose uppercase tracking-widest text-xs transition-colors font-medium border-b border-vp-teal"
-                  >
-                    Source Code
-                  </a>
-                  <span
-                    className={`inline-flex items-center px-3 py-1 text-xs tracking-widest uppercase border ${project.isVerified ? "border-vp-champagne text-vp-champagne bg-vp-champagne/10" : "border-ibex-muted/30 text-ibex-muted bg-ibex-muted/5"}`}
-                  >
-                    {project.isVerified ? "Verified" : "Pending Evaluation"}
-                  </span>
-                </div>
-                {project.githubStats && project.githubStats.lastCommitDate && (
-                  <div className="text-[10px] uppercase tracking-widest text-ibex-muted font-light border-t border-vp-teal/10 pt-4">
-                    Last touched:{" "}
-                    {new Date(
-                      project.githubStats.lastCommitDate,
-                    ).toLocaleDateString()}
-                  </div>
-                )}
+              <div className="px-8 py-5 flex items-center justify-between border-t border-[var(--color-border)] bg-black/5">
+                <a
+                  href={project.repositoryUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[9px] uppercase tracking-[0.2em] font-bold border-b border-transparent hover:border-[var(--color-accent)] text-[var(--color-accent)] transition-all"
+                >
+                  Source_Archive
+                </a>
+                <span className={`inline-flex items-center px-2 py-1 text-[8px] tracking-[0.2em] uppercase font-mono border ${project.isVerified ? "border-[var(--color-accent)] text-[var(--color-accent)]" : "opacity-40"}`}>
+                  {project.isVerified ? "AUTHENTICATED" : "PENDING_REVIEW"}
+                </span>
               </div>
             </div>
           ))}

@@ -2,19 +2,18 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Link,
   useLocation,
 } from "react-router-dom";
-import { useEffect, useState, Suspense, lazy } from "react";
+import { useState, Suspense, lazy } from "react";
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import IntroScreen from "./components/IntroScreen";
-import AsteroidsBackground from "./components/AsteroidsBackground";
+import ArchiveBackground from "./components/ArchiveBackground";
 import CursorTracker from "./components/CursorTracker";
-import FieryCursor from "./components/FieryCursor";
+import PageTransition from "./components/PageTransition";
 
 // Lazy load heavy page components
 const Login = lazy(() => import("./pages/Login"));
@@ -32,21 +31,33 @@ const RecruiterResumes = lazy(() => import("./pages/RecruiterResumes"));
 const RecruiterJobs = lazy(() => import("./pages/RecruiterJobs"));
 
 const Terms = lazy(() => import("./pages/Terms"));
+const Opportunities = lazy(() => import("./pages/Opportunities"));
 const Support = lazy(() => import("./pages/Support"));
-const VTUCalculator = lazy(() => import("./pages/VTUCalculator"));
+const DevelopmentStatus = lazy(() => import("./pages/DevelopmentStatus"));
+
+// Import individual dashboard components
+const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const RecruiterDashboard = lazy(() => import("./pages/RecruiterDashboard"));
+
 const VerificationRequests = lazy(() => import("./pages/VerificationRequests"));
 const VerificationPanel = lazy(() => import("./pages/VerificationPanel"));
-const DevelopmentStatus = lazy(() => import("./pages/DevelopmentStatus"));
-const Demo = lazy(() => import("./pages/Demo"));
 
+// A simple loading screen for Suspense fallback
 const LoadingScreen = () => (
-  <div className="flex h-[50vh] items-center justify-center">
-    <div className="w-10 h-10 border-2 border-ibex-gold/20 border-t-ibex-gold rounded-full animate-spin opacity-80"></div>
+  <div className="flex h-[60vh] items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-12 h-12 border-current border-t-transparent animate-spin opacity-20" />
+      <p className="text-current/60 font-mono text-[10px] tracking-widest uppercase animate-pulse">
+        Initializing_Archive_Protocol...
+      </p>
+    </div>
   </div>
 );
 
+
 const AnimatedRoutes = () => {
   const location = useLocation();
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -54,23 +65,9 @@ const AnimatedRoutes = () => {
           path="/"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <Home />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/status"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <DevelopmentStatus />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/demo"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <Demo />
+              <PageTransition>
+                <Home />
+              </PageTransition>
             </Suspense>
           }
         />
@@ -78,7 +75,9 @@ const AnimatedRoutes = () => {
           path="/login"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <Login />
+              <PageTransition>
+                <Login />
+              </PageTransition>
             </Suspense>
           }
         />
@@ -86,7 +85,9 @@ const AnimatedRoutes = () => {
           path="/register"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <Register />
+              <PageTransition>
+                <Register />
+              </PageTransition>
             </Suspense>
           }
         />
@@ -94,15 +95,29 @@ const AnimatedRoutes = () => {
           path="/dashboard"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <Dashboard />
+              <PageTransition>
+                <Dashboard />
+              </PageTransition>
             </Suspense>
           }
         />
         <Route
-          path="/portfolio"
+          path="/student-dashboard"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <ResumeBuilder />
+              <PageTransition>
+                <StudentDashboard />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/recruiter-dashboard"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <RecruiterDashboard />
+              </PageTransition>
             </Suspense>
           }
         />
@@ -110,7 +125,9 @@ const AnimatedRoutes = () => {
           path="/add-project"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <AddProject />
+              <PageTransition>
+                <AddProject />
+              </PageTransition>
             </Suspense>
           }
         />
@@ -118,29 +135,151 @@ const AnimatedRoutes = () => {
           path="/project/:id"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <ProjectDetails />
+              <PageTransition>
+                <ProjectDetails />
+              </PageTransition>
             </Suspense>
           }
         />
-        <Route path="/discover" element={<Suspense fallback={<LoadingScreen />}><Discover /></Suspense>} />
-        <Route path="/analytics" element={<Suspense fallback={<LoadingScreen />}><Analytics /></Suspense>} />
-        <Route path="/recruiter/analytics" element={<Suspense fallback={<LoadingScreen />}><Analytics /></Suspense>} />
-        <Route path="/talent" element={<Suspense fallback={<LoadingScreen />}><Talent /></Suspense>} />
-        <Route path="/settings" element={<Suspense fallback={<LoadingScreen />}><Settings /></Suspense>} />
-        <Route path="/recruiter/resumes" element={<Suspense fallback={<LoadingScreen />}><RecruiterResumes /></Suspense>} />
-        <Route path="/recruiter/jobs" element={<Suspense fallback={<LoadingScreen />}><RecruiterJobs /></Suspense>} />
-        
-        <Route path="/terms" element={<Suspense fallback={<LoadingScreen />}><Terms /></Suspense>} />
-        <Route path="/support" element={<Suspense fallback={<LoadingScreen />}><Support /></Suspense>} />
-        <Route path="/vtu-calculator" element={<Suspense fallback={<LoadingScreen />}><VTUCalculator /></Suspense>} />
-        <Route path="/verification-requests" element={<Suspense fallback={<LoadingScreen />}><VerificationRequests /></Suspense>} />
-        <Route path="/verification-panel" element={<Suspense fallback={<LoadingScreen />}><VerificationPanel /></Suspense>} />
+        <Route
+          path="/discover"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Discover />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Analytics />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/talent"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Talent />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Settings />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/resume-builder"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <ResumeBuilder />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/recruiter-resumes"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <RecruiterResumes />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/recruiter-jobs"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <RecruiterJobs />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/terms"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Terms />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/opportunities"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Opportunities />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Support />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/status"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <DevelopmentStatus />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/verification-requests"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <VerificationRequests />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/verification-panel"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <VerificationPanel />
+              </PageTransition>
+            </Suspense>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );
 };
 
 const App = () => {
+  // Only shows the intro if "introSeen" is NOT in sessionStorage
   const [showIntro, setShowIntro] = useState(
     () => !sessionStorage.getItem("introSeen"),
   );
@@ -155,13 +294,20 @@ const App = () => {
       <AuthProvider>
         <Router>
           <CursorTracker />
-          <FieryCursor />
-          {showIntro && <IntroScreen onComplete={handleIntroComplete} />}
-          
-          <div className="min-h-screen relative bg-[#050505]">
-            {/* The Asteroids Canvas */}
-            <AsteroidsBackground />
-            
+
+          <AnimatePresence>
+            {showIntro && (
+              <IntroScreen
+                key="cinematic-intro"
+                onComplete={handleIntroComplete}
+              />
+            )}
+          </AnimatePresence>
+
+          <div className="min-h-screen relative overflow-x-hidden">
+            <ArchiveBackground />
+
+            {/* Let the app fade in softly as the cinematic intro finishes its iris out */}
             <div
               className={`relative z-10 flex flex-col font-sans transition-opacity duration-1000 ${showIntro ? "opacity-0" : "opacity-100"} min-h-screen`}
             >
@@ -172,6 +318,7 @@ const App = () => {
               <Footer />
             </div>
           </div>
+
         </Router>
       </AuthProvider>
     </ThemeProvider>

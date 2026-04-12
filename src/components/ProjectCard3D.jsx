@@ -1,17 +1,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useTheme, THEMES } from "../context/ThemeContext";
+import { Github, ShieldCheck, ExternalLink, Plus } from "lucide-react";
 
 const ProjectCard3D = ({ project }) => {
+  const { theme } = useTheme();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
   const mouseXSpring = useSpring(x);
   const mouseYSpring = useSpring(y);
 
-  // Subtle 3D rotation based on mouse position
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7deg", "-7deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7deg", "7deg"]);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -37,56 +39,71 @@ const ProjectCard3D = ({ project }) => {
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="glass-card flex flex-col transition-all hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)] hover:border-ibex-gold/40 duration-300 relative group"
+      className="group flex flex-col h-full relative overflow-hidden transition-all duration-700 border border-[var(--color-border)] hover:border-[var(--color-accent)] bg-[var(--color-bg)]"
     >
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-ibex-gold/5 border to-transparent rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
-        style={{ transform: "translateZ(20px)" }} 
-      />
+      {/* Blueprint Grid Local Overlay */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none group-hover:opacity-[0.07] transition-opacity">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-text)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-text)_1px,transparent_1px)] bg-[size:20px_20px]" />
+      </div>
 
-      <div className="px-6 py-8 flex-grow" style={{ transform: "translateZ(30px)" }}>
-        <Link
-          to={`/project/${project._id}`}
-          className="block hover:opacity-80 transition-opacity"
-        >
-          <h3 className="text-2xl font-serif text-vp-teal mb-4 group-hover:text-ibex-gold transition-colors duration-300">
-            {project.title}
-          </h3>
-        </Link>
-        <div className="mt-2 text-sm text-ibex-muted font-light leading-relaxed line-clamp-3">
-          <p>{project.description}</p>
+      <div className="p-8 flex-grow relative z-10" style={{ transform: "translateZ(40px)" }}>
+        {/* Verification Badge (Surgical Style) */}
+        {project.isVerified && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 px-2 py-1 border border-[var(--color-accent)] text-[var(--color-accent)] text-[8px] font-mono tracking-widest uppercase bg-[var(--color-accent)]/5">
+            <ShieldCheck className="w-3 h-3" /> VERIFIED_DATA
+          </div>
+        )}
+
+        <div className="mb-8">
+          <p className="text-[9px] font-mono tracking-[0.4em] uppercase opacity-30 mb-4">ARCHIVE_NODE // {project._id?.substring(0, 8)}</p>
+          <Link to={`/project/${project._id}`}>
+            <h3 className="text-3xl font-black italic uppercase tracking-tighter leading-none group-hover:text-[var(--color-accent)] transition-colors">
+              {project.title}
+            </h3>
+          </Link>
+          <div className="mt-4 flex items-center gap-4">
+              <div className="h-[1px] w-8 bg-[var(--color-accent)]" />
+              <span className="text-[9px] font-mono opacity-20 uppercase tracking-widest">Protocol_Active</span>
+          </div>
         </div>
-        <div className="mt-6 flex flex-wrap gap-2">
-          {project.technologies.slice(0, 3).map((tech, i) => (
+
+        <p className="text-[11px] font-medium leading-relaxed opacity-50 mb-10 uppercase tracking-tighter max-w-[90%]">
+          {project.description?.substring(0, 150)}...
+        </p>
+
+        <div className="flex flex-wrap gap-2 mt-auto">
+          {project.technologies?.slice(0, 4).map((tech, i) => (
             <span
               key={i}
-              className="inline-flex items-center px-3 py-1 text-xs tracking-widest uppercase text-ibex-gold border border-ibex-gold/30 bg-ibex-gold/5 backdrop-blur-sm"
-              style={{ transform: "translateZ(40px)" }}
+              className="text-[8px] font-mono tracking-[0.2em] uppercase px-3 py-1 border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-all duration-300"
             >
               {tech}
             </span>
           ))}
         </div>
       </div>
+
       <div 
-        className="bg-vp-teal/5 px-6 py-5 flex flex-col space-y-4 text-sm border-t border-vp-teal/10 rounded-b-2xl"
+        className="px-8 py-5 flex items-center justify-between border-t border-[var(--color-border)] bg-[var(--color-text)]/[0.02] group-hover:bg-[var(--color-accent)]/[0.05] transition-colors"
         style={{ transform: "translateZ(20px)" }}
       >
-        <div className="flex justify-between items-center">
-          <a
-            href={project.repositoryUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-vp-teal hover:text-ibex-rose uppercase tracking-widest text-xs transition-colors font-medium border-b border-vp-teal pb-0.5"
-          >
-            Source Code
+        <div className="flex space-x-6">
+          <a href={project.repositoryUrl} target="_blank" rel="noreferrer" className="text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors duration-500">
+            <Github className="w-4 h-4" />
           </a>
-          <span
-            className={`inline-flex items-center px-3 py-1 text-xs tracking-widest uppercase border ${project.isVerified ? "border-vp-champagne text-vp-champagne bg-vp-champagne/10 shadow-[0_0_15px_rgba(221,183,113,0.3)]" : "border-ibex-muted/30 text-ibex-muted bg-ibex-muted/5"} transition-all duration-300`}
-          >
-            {project.isVerified ? "Verified" : "Pending"}
-          </span>
+          {project.demoUrl && (
+            <a href={project.demoUrl} target="_blank" rel="noreferrer" className="text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors duration-500">
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
         </div>
+        
+        <Link 
+          to={`/project/${project._id}`}
+          className="text-[9px] font-bold tracking-[0.3em] uppercase transition-all duration-500 text-[var(--color-text)] hover:text-[var(--color-accent)] flex items-center gap-2"
+        >
+          ACCESS_RECORDS <Plus className="w-3 h-3" />
+        </Link>
       </div>
     </motion.div>
   );

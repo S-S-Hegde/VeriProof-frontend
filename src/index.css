@@ -1,83 +1,141 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ibex-bg: #F5F8FA; /* Light background for the application */
-  --color-ibex-surface: #91A6FF; /* Periwinkle Blue for panels/cards */
-  --color-ibex-text: #2D898B; /* Deep Teal for primary text */
-  --color-ibex-gold: #A6F4DC; /* Tiffany Blue mapping for primary CTA/highlights */
-  --color-ibex-rose: #B5838D; /* Muted Rose for accents */
-  --color-vp-champagne: #DDB771; /* Champagne Gold for badges */
-  --color-vp-teal: #2D898B; /* Deep Teal for explicit use */
-  --color-ibex-gold-muted: #4A9C9E; /* Muted teal */
-  --color-ibex-muted: #64748B; /* Standard muted slate */
-  --color-hero-cyan: #14FFEC; /* Neon Cyan for Demo Home */
-  --color-hero-cerulean: #00A8CC; /* Cerulean Blue for Demo Home */
-
-  --font-serif: "Playfair Display", "Cinzel", ui-serif, Georgia, Cambria,
-    "Times New Roman", Times, serif;
-  --font-sans: "Inter", "Montserrat", ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* SHARED FONTS */
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", "Geist", sans-serif;
 }
 
 @layer base {
-  .dark {
-    --color-ibex-bg: #0F172A; /* Slate 900 for absolute deep background */
-    --color-ibex-surface: #1E293B; /* Slate 800 for cards */
-    --color-ibex-text: #E2E8F0; /* Slate 200 for stark readable text */
-    --color-ibex-gold: #A6F4DC; /* Tiffany Blue stays sharp in dark mode */
-    --color-ibex-rose: #B5838D; /* Muted Rose keeps premium accent */
-    --color-vp-champagne: #DDB771; /* Champagne Gold pops beautifully on dark */
-    --color-vp-teal: #A6F4DC; /* Swap Deep Teal text to Tiffany Blue in dark mode for contrast */
-    --color-ibex-gold-muted: #334155; /* Slate 700 for muted elements */
-    --color-ibex-muted: #94A3B8; /* Slate 400 for secondary text */
+  /* DEFAULT VARIABLES */
+  :root {
+    --color-bg: #F8FAFC;
+    --color-text: #0F172A;
+    --color-accent: #2563EB;
+    --color-muted: #64748B;
+    --color-border: #E2E8F0;
+    --bg-texture: none;
+    --bg-opacity: 1;
   }
-}
 
-@layer base {
+  /* 1. LIGHT THEME (Surgical / Architectural Minimalist) */
+  .theme-light {
+    --color-bg: #ffffff; 
+    --color-text: #000000;
+    --color-accent: #2563EB; /* Electric Blue for precision */
+    --color-muted: #888888;
+    --color-border: #e5e5e5;
+    --bg-texture: none;
+    --grid-opacity: 0.05;
+  }
+
+  /* 2. DARK THEME (The Detective - Softened Black) */
+  .theme-dark {
+    --color-bg: #0f172a; 
+    --color-text: #f1f5f9;
+    --color-accent: #f59e0b; 
+    --color-muted: #94a3b8;
+    --color-border: #1e293b;
+    --bg-texture: url("https://www.transparenttextures.com/patterns/dark-matter.png");
+    --grid-opacity: 0.1;
+  }
+
+  /* 3. STORYTELLER THEME (Cabinet of Wonders) */
+  .theme-storyteller {
+    --color-bg: #f4ead5; 
+    --color-text: #3d2b1f; 
+    --color-accent: #8b4513; 
+    --color-muted: #a68b6a;
+    --color-border: #dcd0b9;
+    --bg-texture: url("https://www.transparenttextures.com/patterns/old-mathematics.png");
+    --font-sans: var(--font-serif);
+    --grid-opacity: 0;
+  }
+
+  /* 4. IMMERSIVE THEME (Sun Hung) */
+  .theme-immersive {
+    --color-bg: #05070a; 
+    --color-text: #ffffff;
+    --color-accent: #00f3ff; 
+    --color-muted: #4a5568;
+    --color-border: #1a202c;
+    --bg-texture: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+    --grid-opacity: 0.15;
+  }
+
   body {
-    @apply antialiased bg-ibex-bg text-ibex-text font-sans min-h-screen relative overflow-x-hidden transition-colors duration-500;
-  }
-
-  /* Hide scrollbar completely but allow scrolling */
-  ::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-  }
-  * {
-    scrollbar-width: none;
+    @apply antialiased bg-[var(--color-bg)] text-[var(--color-text)] font-sans min-h-screen relative overflow-x-hidden transition-all duration-700 ease-in-out;
     -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif tracking-wide text-vp-teal;
+  /* Hide scrollbar */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Technical Grid Overlay */
+  body::before {
+    content: "";
+    @apply fixed inset-0 z-[-1] pointer-events-none;
+    background-image: 
+      linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: var(--grid-opacity);
+    transition: opacity 0.7s ease;
+  }
+
+  /* Secondary Crosshair Grid */
+  body::after {
+    content: "";
+    @apply fixed inset-0 z-[-1] pointer-events-none;
+    background-image: 
+      linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+    background-size: 200px 200px;
+    opacity: calc(var(--grid-opacity) * 2);
+    transition: opacity 0.7s ease;
+  }
+
+  h1, h2, h3, h4 {
+    @apply transition-all duration-700;
+  }
+
+  /* Theme-specific Headings */
+  .theme-light h1, .theme-light h2, .theme-light h3 {
+    @apply font-sans font-black tracking-tighter uppercase leading-[0.9] italic;
+  }
+
+  .theme-dark h1, .theme-dark h2 {
+    @apply font-serif italic tracking-wide text-[var(--color-accent)];
+  }
+
+  .theme-storyteller h1, .theme-storyteller h2 {
+    @apply font-serif font-bold tracking-tight capitalize;
+  }
+
+  .theme-immersive h1, .theme-immersive h2 {
+    @apply font-sans font-extrabold tracking-tighter uppercase italic text-[var(--color-accent)];
+    text-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+  }
+
+  .verified-data {
+    @apply font-mono text-xs tracking-tighter opacity-80;
   }
 }
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/70 dark:bg-ibex-surface/60 backdrop-blur-xl border border-ibex-surface/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(145,166,255,0.15)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-2xl;
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-lg;
   }
 
-  .glass-nav {
-    @apply bg-vp-teal/90 backdrop-blur-md border-b border-vp-teal sticky top-0 z-50;
+  .theme-storyteller .glass-card {
+    @apply bg-amber-50/40 backdrop-blur-sm border-amber-900/10 shadow-md;
   }
-  
-  .ibex-button {
-    @apply px-8 py-3 w-full sm:w-auto text-base font-medium rounded-full border border-ibex-rose text-ibex-rose hover:bg-ibex-rose hover:text-white transition-all duration-300 md:py-4 md:text-lg uppercase tracking-widest text-sm flex items-center justify-center text-center;
-  }
-  .ibex-button-primary {
-    @apply px-8 py-3 w-full sm:w-auto text-base font-medium rounded-full bg-ibex-gold text-vp-teal hover:shadow-[0_4px_15px_rgba(166,244,220,0.5)] transition-all duration-300 md:py-4 md:text-lg uppercase tracking-widest text-sm flex items-center justify-center text-center font-bold;
-  }
-  
-  .text-gradient {
-    @apply bg-gradient-to-r from-ibex-gold to-ibex-rose bg-clip-text text-transparent;
-  }
-  
-  .bg-gradient-premium {
-    @apply bg-gradient-to-r from-ibex-gold to-ibex-rose;
-  }
-  
-  .bg-gradient-cerulean {
-    @apply bg-gradient-to-br from-hero-cyan to-hero-cerulean;
+
+  .theme-immersive .glass-card {
+    @apply bg-black/60 backdrop-blur-xl border-[var(--color-accent)]/20 shadow-[0_0_30px_rgba(0,243,255,0.1)];
   }
 }
