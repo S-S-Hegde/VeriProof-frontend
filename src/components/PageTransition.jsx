@@ -1,76 +1,81 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTheme, THEMES } from "../context/ThemeContext";
+
+// Kinematics for a flawless single-direction sweep
+const blockVariants = {
+  initial: {
+    top: 0,
+    bottom: "auto",
+    height: "100vh",
+  },
+  animate: {
+    top: 0,
+    bottom: "auto",
+    height: "0vh",
+    transition: {
+      duration: 0.8,
+      ease: [0.77, 0, 0.175, 1],
+    }
+  },
+  exit: {
+    top: "auto",
+    bottom: 0,
+    height: "100vh",
+    transition: {
+      duration: 0.8,
+      ease: [0.77, 0, 0.175, 1],
+    }
+  }
+};
 
 const PageTransition = ({ children, className = "" }) => {
   const { theme } = useTheme();
 
-  // MERSI ARCHITECTURE INSPIRED: ARCHITECTURAL UNVEIL
-  // A clean, vertical slide that reveals the content like a sophisticated "blind" or "shutter"
-  
-  // Choose overlay color based on theme
-  const getOverlayColor = () => {
+  // Multi-color arrays for elite Awwwards sweeps
+  const getThemeColors = () => {
     switch (theme) {
-      case THEMES.LIGHT: return "#FAF9F6"; // Greige (Mersi Light)
-      case THEMES.IMMERSIVE: return "#05070a"; // Midnight (Sun Hung)
-      default: return "#000000"; // Deep Black
+      case THEMES.LIGHT:
+        return ["#dbeafe", "#bfdbfe", "#93c5fd", "#60a5fa", "#3b82f6"];
+      case THEMES.DARK:
+      case THEMES.IMMERSIVE:
+      case THEMES.STORYTELLER:
+      default:
+        return ["#172554", "#1e3a8a", "#1e40af", "#1d4ed8", "#2563eb"];
     }
   };
+
+  const blockColors = getThemeColors();
 
   return (
     <div className={`relative w-full min-h-screen ${className}`}>
       
-      {/* ── THE ARCHITECTURAL SHUTTER (UNVEIL) ── */}
-      <motion.div
-        initial={{ scaleY: 1 }}
-        animate={{ scaleY: 0 }}
-        exit={{ scaleY: 0 }}
-        transition={{ 
-            duration: 1.2, 
-            ease: [0.19, 1, 0.22, 1] // Quintic ease for that "weighty" premium feel
-        }}
-        style={{ 
-            backgroundColor: getOverlayColor(),
-            originY: 0,
-            zIndex: 200
-        }}
-        className="fixed inset-0 pointer-events-none"
-      />
+      {/* ── 5-BLOCK SINGLE DIRECTION SWEEP ── */}
+      <div className="fixed inset-0 z-[200] pointer-events-none flex">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <motion.div
+            key={i}
+            variants={blockVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="w-1/5 shadow-2xl relative"
+            style={{ 
+              backgroundColor: blockColors[i],
+              borderRight: i < 4 ? "1px solid rgba(255,255,255,0.05)" : "none"
+            }}
+            transition={{
+              duration: 0.8,
+              ease: [0.77, 0, 0.175, 1],
+              delay: i * 0.05 // Stagger effect
+            }}
+          />
+        ))}
+      </div>
 
-      {/* ── EXIT SHUTTER (COVER) ── */}
-      <motion.div
-        initial={{ scaleY: 0 }}
-        animate={{ scaleY: 0 }}
-        exit={{ scaleY: 1 }}
-        transition={{ 
-            duration: 0.8, 
-            ease: [0.76, 0, 0.24, 1] 
-        }}
-        style={{ 
-            backgroundColor: getOverlayColor(),
-            originY: 1,
-            zIndex: 200
-        }}
-        className="fixed inset-0 pointer-events-none"
-      />
-
-      {/* ── CONTENT FADE & SLIGHT SCALE ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -20, scale: 1.02 }}
-        transition={{ 
-            duration: 1, 
-            ease: [0.19, 1, 0.22, 1],
-            delay: 0.2 // Wait for the shutter to start moving
-        }}
-      >
+      {/* ── CONTENT MANIFESTATION ── */}
+      <div className="relative z-10 w-full h-full">
         {children}
-      </motion.div>
-
-      {/* ── CINEMATIC VIGNETTE (LIGHT THEME ONLY) ── */}
-      {theme === THEMES.LIGHT && (
-        <div className="fixed inset-0 pointer-events-none z-50 opacity-10 shadow-[inset_0_0_150px_rgba(0,0,0,0.1)]" />
-      )}
+      </div>
     </div>
   );
 };

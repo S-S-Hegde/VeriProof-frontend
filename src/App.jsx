@@ -4,16 +4,19 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { useState, Suspense, lazy } from "react";
-import { AnimatePresence } from "framer-motion";
-import { AuthProvider } from "./context/AuthContext";
+import { useState, Suspense, lazy, useEffect } from "react";
+import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import IntroScreen from "./components/IntroScreen";
+import OutroScreen from "./components/OutroScreen";
 import ArchiveBackground from "./components/ArchiveBackground";
 import CursorTracker from "./components/CursorTracker";
 import PageTransition from "./components/PageTransition";
+import ScrollToTop from "./components/ScrollToTop";
+import Lenis from '@studio-freight/lenis';
 
 // Lazy load heavy page components
 const Login = lazy(() => import("./pages/Login"));
@@ -27,6 +30,7 @@ const Talent = lazy(() => import("./pages/Talent"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Home = lazy(() => import("./pages/Home"));
 const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
+const AIResumeBuilder = lazy(() => import("./pages/AIResumeBuilder"));
 const RecruiterResumes = lazy(() => import("./pages/RecruiterResumes"));
 const RecruiterJobs = lazy(() => import("./pages/RecruiterJobs"));
 
@@ -192,6 +196,16 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/ai-resume-builder"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <AIResumeBuilder />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
           path="/recruiter-resumes"
           element={
             <Suspense fallback={<LoadingScreen />}>
@@ -278,48 +292,97 @@ const AnimatedRoutes = () => {
   );
 };
 
-const App = () => {
-  // Only shows the intro if "introSeen" is NOT in sessionStorage
-  const [showIntro, setShowIntro] = useState(
-    () => !sessionStorage.getItem("introSeen"),
-  );
+const AppContent = () => {
+  const { isExiting, setIsExiting, logout } = useAuth();
+  const [showIntro, setShowIntro] = useState(true);
+  const [isAppVisible, setIsAppVisible] = useState(false);
+
+  // Global Scroll Logic
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   const handleIntroComplete = () => {
     setShowIntro(false);
-    sessionStorage.setItem("introSeen", "true");
+    setTimeout(() => setIsAppVisible(true), 400);
   };
 
+  const handleOutroComplete = () => {
+    logout();
+    setIsExiting(false);
+    window.location.href = "/login";
+  };
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smooth: true,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    return () => lenis.destroy();
+  }, []);
+
+  return (
+    <Router>
+      <ScrollToTop />
+      <CursorTracker />
+
+      {/* ── DEFINTIVE GLOBAL SCROLL PROGRESS BAR ── */}
+      <motion.div 
+        className="fixed top-0 left-0 right-0 h-[4px] bg-[#81D8D0] z-[9999] origin-left shadow-[0_0_20px_#81D8D0]"
+        style={{ scaleX }}
+      />
+
+      <AnimatePresence>
+        {showIntro && (
+          <IntroScreen
+            key="cinematic-intro"
+            onComplete={handleIntroComplete}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isExiting && (
+          <OutroScreen 
+            key="system-outro" 
+            onComplete={handleOutroComplete} 
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="min-h-screen relative overflow-x-hidden">
+        <ArchiveBackground />
+
+        <div
+          className={`relative z-10 flex flex-col font-sans transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] ${isAppVisible ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-105 blur-2xl"} min-h-screen`}
+        >
+          <Navbar />
+          <main className="flex-grow w-full max-w-7xl mx-auto pt-28 pb-8 sm:px-6 lg:px-8 relative z-10 lg:min-h-[60vh]">
+            {isAppVisible && <AnimatedRoutes />}
+          </main>
+          <Footer />
+        </div>
+      </div>
+    </Router>
+  );
+};
+
+const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <CursorTracker />
-
-          <AnimatePresence>
-            {showIntro && (
-              <IntroScreen
-                key="cinematic-intro"
-                onComplete={handleIntroComplete}
-              />
-            )}
-          </AnimatePresence>
-
-          <div className="min-h-screen relative overflow-x-hidden">
-            <ArchiveBackground />
-
-            {/* Let the app fade in softly as the cinematic intro finishes its iris out */}
-            <div
-              className={`relative z-10 flex flex-col font-sans transition-opacity duration-1000 ${showIntro ? "opacity-0" : "opacity-100"} min-h-screen`}
-            >
-              <Navbar />
-              <main className="flex-grow w-full max-w-7xl mx-auto pt-28 pb-8 sm:px-6 lg:px-8 relative z-10 lg:min-h-[60vh]">
-                <AnimatedRoutes />
-              </main>
-              <Footer />
-            </div>
-          </div>
-
-        </Router>
+        <AppContent />
       </AuthProvider>
     </ThemeProvider>
   );

@@ -13,7 +13,7 @@ const Footer = () => {
                 VeriProof
               </span>
             </Link>
-            <p className="text-[11px] opacity-50 tracking-wider font-light leading-relaxed max-w-xs">
+            <p className="text-base opacity-50 tracking-wider font-light leading-relaxed max-w-xs">
               The definite standard for cryptographic portfolio validation. Empowering true talent to defeat ordinary expectations through verified artifacts.
             </p>
             <div className="flex items-center space-x-6">
@@ -30,7 +30,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-8">
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Platform</h4>
+            <h4 className="text-sm uppercase tracking-[0.4em] font-bold opacity-30">Platform</h4>
             <ul className="space-y-4">
               <li><Link to="/discover" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Discover_Talent</Link></li>
               <li><Link to="/dashboard" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Candidate_Hub</Link></li>
@@ -39,7 +39,7 @@ const Footer = () => {
           </div>
 
           <div className="space-y-8">
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Resources</h4>
+            <h4 className="text-sm uppercase tracking-[0.4em] font-bold opacity-30">Resources</h4>
             <ul className="space-y-4">
               <li><Link to="/support" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">Help_Center</Link></li>
               <li><Link to="/status" className="text-xs tracking-widest opacity-60 hover:opacity-100 hover:text-[var(--color-accent)] transition-all uppercase">System_Status</Link></li>
@@ -48,13 +48,13 @@ const Footer = () => {
           </div>
 
           <div className="space-y-8">
-            <h4 className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30">Security</h4>
+            <h4 className="text-sm uppercase tracking-[0.4em] font-bold opacity-30">Security</h4>
             <div className="p-6 border border-[var(--color-border)] bg-[var(--color-bg)]/50 backdrop-blur-md">
               <div className="flex items-center gap-3 mb-4">
                 <ShieldCheck className="w-5 h-5 text-[var(--color-accent)]" />
-                <span className="text-[10px] tracking-widest uppercase font-bold">Verified_Node</span>
+                <span className="text-sm tracking-widest uppercase font-bold">Verified_Node</span>
               </div>
-              <p className="text-[9px] opacity-40 uppercase tracking-tighter leading-relaxed">
+              <p className="text-sm opacity-40 uppercase tracking-tighter leading-relaxed">
                 All artifacts are cryptographically hashed and cross-referenced with repository metadata.
               </p>
             </div>
@@ -64,11 +64,11 @@ const Footer = () => {
 
         <div className="mt-24 pt-8 border-t border-[var(--color-border)] flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-6">
-            <p className="text-[9px] opacity-30 tracking-[0.3em] uppercase">
+            <p className="text-sm opacity-30 tracking-[0.3em] uppercase">
               &copy; 2026 VeriProof_Global_Systems
             </p>
           </div>
-          <div className="flex items-center space-x-8 text-[9px] opacity-40 tracking-[0.3em] uppercase font-mono">
+          <div className="flex items-center space-x-8 text-sm opacity-40 tracking-[0.3em] uppercase font-mono">
             <span className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-pulse"></span> 
               Protocol_Online

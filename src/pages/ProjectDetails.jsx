@@ -196,7 +196,7 @@ const ProjectDetails = () => {
                       {project.isVerified ? "Verified ✅" : "Pending Evaluation"}
                     </p>
                     <div>
-                      <p className="text-[10px] text-ibex-muted uppercase tracking-widest mb-1">
+                      <p className="text-sm text-ibex-muted uppercase tracking-widest mb-1">
                         Recent Metamorphosis
                       </p>
                       <p className="text-sm font-light text-vp-teal">
@@ -212,7 +212,7 @@ const ProjectDetails = () => {
                     {project.githubStats.languages &&
                       Object.keys(project.githubStats.languages).length > 0 && (
                         <div>
-                          <p className="text-[10px] text-ibex-muted uppercase tracking-widest mb-2">
+                          <p className="text-sm text-ibex-muted uppercase tracking-widest mb-2">
                             Dominant Linguistics
                           </p>
                           <div className="flex flex-wrap gap-2">
@@ -221,7 +221,7 @@ const ProjectDetails = () => {
                               .map((lang) => (
                                 <span
                                   key={lang}
-                                  className="text-[10px] uppercase font-light text-ibex-gold border border-ibex-gold/20 px-2 py-1"
+                                  className="text-sm uppercase font-light text-ibex-gold border border-ibex-gold/20 px-2 py-1"
                                 >
                                   {lang}
                                 </span>

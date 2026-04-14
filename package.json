@@ -10,13 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@splinetool/react-spline": "^4.1.0",
+    "@studio-freight/lenis": "^1.0.42",
+    "animejs": "^4.3.6",
     "aos": "^2.3.4",
     "axios": "^1.13.5",
+    "chart.js": "^4.5.1",
     "framer-motion": "^12.35.0",
+    "gsap": "^3.14.2",
     "lucide-react": "^0.577.0",
+    "luxon": "^3.7.2",
     "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.13.0"
+    "react-router-dom": "^7.13.0",
+    "sweetalert2": "^11.26.24"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

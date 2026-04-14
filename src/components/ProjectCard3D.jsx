@@ -49,13 +49,13 @@ const ProjectCard3D = ({ project }) => {
       <div className="p-8 flex-grow relative z-10" style={{ transform: "translateZ(40px)" }}>
         {/* Verification Badge (Surgical Style) */}
         {project.isVerified && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 px-2 py-1 border border-[var(--color-accent)] text-[var(--color-accent)] text-[8px] font-mono tracking-widest uppercase bg-[var(--color-accent)]/5">
+          <div className="absolute top-4 right-4 flex items-center gap-2 px-2 py-1 border border-[var(--color-accent)] text-[var(--color-accent)] text-xs font-mono tracking-widest uppercase bg-[var(--color-accent)]/5">
             <ShieldCheck className="w-3 h-3" /> VERIFIED_DATA
           </div>
         )}
 
         <div className="mb-8">
-          <p className="text-[9px] font-mono tracking-[0.4em] uppercase opacity-30 mb-4">ARCHIVE_NODE // {project._id?.substring(0, 8)}</p>
+          <p className="text-sm font-mono tracking-[0.4em] uppercase opacity-30 mb-4">ARCHIVE_NODE // {project._id?.substring(0, 8)}</p>
           <Link to={`/project/${project._id}`}>
             <h3 className="text-3xl font-black italic uppercase tracking-tighter leading-none group-hover:text-[var(--color-accent)] transition-colors">
               {project.title}
@@ -63,11 +63,11 @@ const ProjectCard3D = ({ project }) => {
           </Link>
           <div className="mt-4 flex items-center gap-4">
               <div className="h-[1px] w-8 bg-[var(--color-accent)]" />
-              <span className="text-[9px] font-mono opacity-20 uppercase tracking-widest">Protocol_Active</span>
+              <span className="text-sm font-mono opacity-20 uppercase tracking-widest">Protocol_Active</span>
           </div>
         </div>
 
-        <p className="text-[11px] font-medium leading-relaxed opacity-50 mb-10 uppercase tracking-tighter max-w-[90%]">
+        <p className="text-base font-medium leading-relaxed opacity-50 mb-10 uppercase tracking-tighter max-w-[90%]">
           {project.description?.substring(0, 150)}...
         </p>
 
@@ -75,7 +75,7 @@ const ProjectCard3D = ({ project }) => {
           {project.technologies?.slice(0, 4).map((tech, i) => (
             <span
               key={i}
-              className="text-[8px] font-mono tracking-[0.2em] uppercase px-3 py-1 border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-all duration-300"
+              className="text-xs font-mono tracking-[0.2em] uppercase px-3 py-1 border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-all duration-300"
             >
               {tech}
             </span>
@@ -100,7 +100,7 @@ const ProjectCard3D = ({ project }) => {
         
         <Link 
           to={`/project/${project._id}`}
-          className="text-[9px] font-bold tracking-[0.3em] uppercase transition-all duration-500 text-[var(--color-text)] hover:text-[var(--color-accent)] flex items-center gap-2"
+          className="text-sm font-bold tracking-[0.3em] uppercase transition-all duration-500 text-[var(--color-text)] hover:text-[var(--color-accent)] flex items-center gap-2"
         >
           ACCESS_RECORDS <Plus className="w-3 h-3" />
         </Link>

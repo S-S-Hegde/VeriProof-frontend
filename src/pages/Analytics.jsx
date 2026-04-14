@@ -188,7 +188,7 @@ const Analytics = () => {
                         </span>
                       </div>
                     </div>
-                    <span className="mt-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center leading-tight">
+                    <span className="mt-3 text-sm font-bold text-gray-500 uppercase tracking-wider text-center leading-tight">
                       {skill.label}
                     </span>
                   </div>
@@ -244,7 +244,7 @@ const Analytics = () => {
                       <span className="text-gray-600 text-xs flex-shrink-0">
                         {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
-                      <span className={`text-[10px] uppercase tracking-widest font-black px-2 py-0.5 rounded flex-shrink-0 ${p.isVerified ? "bg-green-500/15 text-green-400" : "bg-orange-500/15 text-orange-400"}`}>
+                      <span className={`text-sm uppercase tracking-widest font-black px-2 py-0.5 rounded flex-shrink-0 ${p.isVerified ? "bg-green-500/15 text-green-400" : "bg-orange-500/15 text-orange-400"}`}>
                         {p.isVerified ? "Verified" : "Pending"}
                       </span>
                     </motion.div>

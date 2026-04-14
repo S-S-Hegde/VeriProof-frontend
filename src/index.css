@@ -15,19 +15,21 @@
     --color-accent: #2563EB;
     --color-muted: #64748B;
     --color-border: #E2E8F0;
+    --grid-color: var(--color-border);
     --bg-texture: none;
     --bg-opacity: 1;
   }
 
-  /* 1. LIGHT THEME (Surgical / Architectural Minimalist) */
+  /* 1. LIGHT THEME (Corporate Blue) */
   .theme-light {
-    --color-bg: #ffffff; 
-    --color-text: #000000;
-    --color-accent: #2563EB; /* Electric Blue for precision */
-    --color-muted: #888888;
-    --color-border: #e5e5e5;
+    --color-bg: #B6D8DE;
+    --color-text: #0F172A;
+    --color-accent: #023E8A; /* Professional deep blue/teal */
+    --color-muted: #334155; /* Slate 700 for highly readable muted text */
+    --color-border: rgba(15, 23, 42, 0.1);
+    --grid-color: rgba(15, 23, 42, 0.05);
     --bg-texture: none;
-    --grid-opacity: 0.05;
+    --grid-opacity: 1;
   }
 
   /* 2. DARK THEME (The Detective - Softened Black) */
@@ -65,7 +67,11 @@
   }
 
   body {
-    @apply antialiased bg-[var(--color-bg)] text-[var(--color-text)] font-sans min-h-screen relative overflow-x-hidden transition-all duration-700 ease-in-out;
+    @apply antialiased text-[var(--color-text)] font-sans min-h-screen relative overflow-x-hidden transition-all duration-700 ease-in-out;
+    background-color: var(--color-bg);
+    background-image: var(--bg-texture);
+    background-attachment: fixed;
+    background-size: cover;
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
@@ -80,8 +86,8 @@
     content: "";
     @apply fixed inset-0 z-[-1] pointer-events-none;
     background-image: 
-      linear-gradient(to right, var(--color-border) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+      linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
     background-size: 40px 40px;
     opacity: var(--grid-opacity);
     transition: opacity 0.7s ease;
@@ -92,8 +98,8 @@
     content: "";
     @apply fixed inset-0 z-[-1] pointer-events-none;
     background-image: 
-      linear-gradient(to right, var(--color-border) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+      linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
     background-size: 200px 200px;
     opacity: calc(var(--grid-opacity) * 2);
     transition: opacity 0.7s ease;
@@ -105,7 +111,12 @@
 
   /* Theme-specific Headings */
   .theme-light h1, .theme-light h2, .theme-light h3 {
-    @apply font-sans font-black tracking-tighter uppercase leading-[0.9] italic;
+    @apply font-sans font-black tracking-tighter uppercase leading-[0.9] italic text-[#008080];
+  }
+  nav.theme-light-nav {
+    background-color: rgba(182, 216, 222, 0.85); /* Slightly transparent B6D8DE */
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
   }
 
   .theme-dark h1, .theme-dark h2 {

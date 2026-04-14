@@ -121,22 +121,22 @@ const VerificationRequests = () => {
                       <h4 className="text-lg font-serif text-ibex-text uppercase tracking-widest">{result.jobId?.title || "Unknown Specification"}</h4>
                       
                       {result.status === "Verified" ? (
-                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] tracking-widest uppercase border border-green-500/20 font-bold">
+                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-sm tracking-widest uppercase border border-green-500/20 font-bold">
                           <CheckCircle className="w-3 h-3" />
                           <span>Verified</span>
                         </span>
                       ) : result.status === "Pending Exam" ? (
-                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[10px] tracking-widest uppercase border border-yellow-500/20 font-bold">
+                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-sm tracking-widest uppercase border border-yellow-500/20 font-bold">
                           <Clock className="w-3 h-3" />
                           <span>Exam Required</span>
                         </span>
                       ) : result.status === "Failed" ? (
-                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] tracking-widest uppercase border border-red-500/20 font-bold">
+                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-sm tracking-widest uppercase border border-red-500/20 font-bold">
                           <XCircle className="w-3 h-3" />
                           <span>Validation Failed</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-ibex-surface/10 text-ibex-muted text-[10px] tracking-widest uppercase border border-ibex-surface/20 font-bold">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-ibex-surface/10 text-ibex-muted text-sm tracking-widest uppercase border border-ibex-surface/20 font-bold">
                           In Review
                         </span>
                       )}
@@ -144,11 +144,11 @@ const VerificationRequests = () => {
                     
                     <div className="flex items-center space-x-6 text-sm">
                       <div className="flex items-center space-x-2 text-ibex-muted">
-                        <span className="uppercase tracking-widest text-[10px]">NLP Alignment:</span>
+                        <span className="uppercase tracking-widest text-sm">NLP Alignment:</span>
                         <span className="font-medium text-ibex-text">{result.alignmentScore}%</span>
                       </div>
                       <div className="flex items-center space-x-2 text-ibex-muted">
-                        <span className="uppercase tracking-widest text-[10px]">Verification Score:</span>
+                        <span className="uppercase tracking-widest text-sm">Verification Score:</span>
                         <span className="font-medium text-ibex-text">{result.examScore !== undefined ? `${result.examScore}%` : "—"}</span>
                       </div>
                     </div>
@@ -199,10 +199,10 @@ const VerificationRequests = () => {
                     <div className="bg-gradient-premium p-4 md:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center text-white shrink-0 gap-4">
                       <div>
                         <h3 className="font-serif text-xl md:text-2xl tracking-widest uppercase">{examData?.topic || "Verification Exam"}</h3>
-                        <p className="text-[10px] md:text-xs uppercase tracking-widest opacity-90 mt-1">Passing Threshold: {examData?.passingScore}%</p>
+                        <p className="text-sm md:text-xs uppercase tracking-widest opacity-90 mt-1">Passing Threshold: {examData?.passingScore}%</p>
                       </div>
                       <div className="flex flex-col sm:items-end w-full sm:w-auto bg-white/10 sm:bg-transparent p-3 sm:p-0 rounded-lg sm:rounded-none">
-                        <span className="text-[10px] md:text-xs uppercase tracking-widest opacity-80 mb-1">Time Remaining</span>
+                        <span className="text-sm md:text-xs uppercase tracking-widest opacity-80 mb-1">Time Remaining</span>
                         <div className={`text-2xl md:text-3xl font-mono font-bold ${timeLeft < 60 ? 'text-red-200 animate-pulse' : 'text-white'}`}>
                           {formatTime(timeLeft)}
                         </div>

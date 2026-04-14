@@ -17,7 +17,7 @@ const RISK_CONFIG = {
 
 const ScoreBar = ({ label, pct, color }) => (
   <div className="space-y-1">
-    <div className="flex justify-between text-[10px] text-gray-500 uppercase tracking-widest">
+    <div className="flex justify-between text-sm text-gray-500 uppercase tracking-widest">
       <span>{label}</span><span className={color}>{pct}%</span>
     </div>
     <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
@@ -107,7 +107,7 @@ export default function PlagiarismChecker({ projectId }) {
                   {result.flags.length > 0 ? `${result.flags[0].score}%` : "0%"}
                 </span>
               </div>
-              <p className="text-gray-600 text-[10px] uppercase tracking-widest">
+              <p className="text-gray-600 text-sm uppercase tracking-widest">
                 Checked at {new Date(result.checkedAt).toLocaleTimeString("en-IN")}
               </p>
             </div>
@@ -115,7 +115,7 @@ export default function PlagiarismChecker({ projectId }) {
             {/* Flag list */}
             {result.flags.length > 0 && (
               <div className="space-y-3">
-                <p className="text-gray-600 text-[10px] uppercase tracking-widest font-bold">
+                <p className="text-gray-600 text-sm uppercase tracking-widest font-bold">
                   Similar Projects Detected
                 </p>
                 {result.flags.map((flag) => {
@@ -135,12 +135,12 @@ export default function PlagiarismChecker({ projectId }) {
                         </div>
                         <div className="flex items-center gap-3 flex-shrink-0">
                           {flag.exactUrl && (
-                            <span className="text-[10px] bg-red-500/20 text-red-400 font-black uppercase tracking-widest px-2 py-0.5 rounded">
+                            <span className="text-sm bg-red-500/20 text-red-400 font-black uppercase tracking-widest px-2 py-0.5 rounded">
                               Exact URL
                             </span>
                           )}
                           <span className={`text-lg font-black ${fc.color}`}>{flag.score}%</span>
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${fc.bg} ${fc.color}`}>
+                          <span className={`text-sm font-black uppercase tracking-widest px-2 py-0.5 rounded ${fc.bg} ${fc.color}`}>
                             {flag.risk}
                           </span>
                           {isExpanded

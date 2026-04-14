@@ -44,7 +44,7 @@ const StudentDashboard = () => {
             <div className="flex-1 min-w-0 z-10">
               <div className="flex items-center gap-4 mb-6">
                   <span className="w-8 h-[1px] bg-[var(--color-accent)]" />
-                  <p className="text-[9px] font-mono tracking-[0.5em] uppercase text-[var(--color-accent)] font-bold">
+                  <p className="text-sm font-mono tracking-[0.5em] uppercase text-[var(--color-accent)] font-bold">
                     Archive_Authorized // {user.name?.replace(" ", "_").toUpperCase()}
                   </p>
               </div>
@@ -59,7 +59,7 @@ const StudentDashboard = () => {
             <div className="mt-12 md:mt-0 flex gap-4 z-10">
               <button
                 onClick={() => navigate("/add-project")}
-                className="px-10 py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.3em] uppercase text-[10px] hover:bg-[var(--color-accent)] transition-all flex items-center gap-4"
+                className="px-10 py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.3em] uppercase text-sm hover:bg-[var(--color-accent)] transition-all flex items-center gap-4"
               >
                 <Plus className="w-4 h-4" /> Upload_Evidence
               </button>
@@ -77,9 +77,9 @@ const StudentDashboard = () => {
                 <div key={i} className="p-10 border-r border-b md:border-b-0 last:border-r-0 border-[var(--color-border)] group hover:bg-[var(--color-text)]/[0.02] transition-colors">
                     <div className="flex justify-between items-start mb-10">
                         <stat.icon className="w-5 h-5 opacity-20 group-hover:text-[var(--color-accent)] group-hover:opacity-100 transition-all" />
-                        <span className="text-[9px] font-mono opacity-20">STAT_{stat.id}</span>
+                        <span className="text-sm font-mono opacity-20">STAT_{stat.id}</span>
                     </div>
-                    <p className="text-[9px] font-mono tracking-[0.2em] uppercase opacity-40 mb-2">{stat.label}</p>
+                    <p className="text-sm font-mono tracking-[0.2em] uppercase opacity-40 mb-2">{stat.label}</p>
                     <p className="text-3xl font-black italic uppercase tracking-tighter">{stat.val}</p>
                 </div>
             ))}
@@ -89,17 +89,17 @@ const StudentDashboard = () => {
         {loading ? (
             <div className="flex flex-col items-center py-32 border border-dashed border-[var(--color-border)]">
                 <div className="w-12 h-[1px] bg-[var(--color-accent)] animate-pulse mb-8" />
-                <p className="text-[10px] font-mono tracking-[0.4em] uppercase opacity-30">Parsing_Secure_Data_Stream...</p>
+                <p className="text-sm font-mono tracking-[0.4em] uppercase opacity-30">Parsing_Secure_Data_Stream...</p>
             </div>
         ) : projects.length === 0 ? (
             <div className="text-center py-48 border border-[var(--color-border)] bg-[var(--color-bg)] relative overflow-hidden group">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.05]" />
                 <div className="relative z-10">
                     <h3 className="text-4xl font-black italic uppercase tracking-tighter mb-4 opacity-20">EMPTY_ARCHIVE</h3>
-                    <p className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-40 mb-12">No evidence has been synchronized with this node.</p>
+                    <p className="text-sm font-mono uppercase tracking-[0.3em] opacity-40 mb-12">No evidence has been synchronized with this node.</p>
                     <button 
                         onClick={() => navigate("/add-project")}
-                        className="px-8 py-4 border border-[var(--color-text)] text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] transition-all"
+                        className="px-8 py-4 border border-[var(--color-text)] text-sm font-bold uppercase tracking-[0.4em] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] transition-all"
                     >
                         Initiate_First_Sync
                     </button>

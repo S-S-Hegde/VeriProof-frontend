@@ -34,41 +34,66 @@ const CutFlash = ({ trigger, onDone }) => (
   </AnimatePresence>
 );
 
+// Import useRef
 export default function IntroScreen({ onComplete }) {
   const [stage, setStage] = useState(0); 
-  const [exitFlash, setExitFlash] = useState(false);
+  const [isUnfolding, setIsUnfolding] = useState(false);
   const hasCompleted = useRef(false);
+  const timersRef = useRef([]);
+
+  const handleSkip = () => {
+    if (hasCompleted.current) return;
+    timersRef.current.forEach(clearTimeout);
+    setIsUnfolding(true);
+    setTimeout(() => {
+        hasCompleted.current = true;
+        onComplete?.();
+    }, 500); // Shorter unfold for skip
+  };
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setStage(1), 300),    
-      setTimeout(() => setStage(2), 1500),   
-      setTimeout(() => setStage(3), 1700),   
-      setTimeout(() => setStage(4), 2800),   
-      setTimeout(() => setStage(5), 3000),   
-      setTimeout(() => setStage(6), 4500),   
+    console.log("[VeriProof] Intro Sequence Initialized");
+    timersRef.current = [
+      setTimeout(() => { console.log("Stage 1: Narrative"); setStage(1); }, 500),    
+      setTimeout(() => { console.log("Stage 2: Cut"); setStage(2); }, 3000),   
+      setTimeout(() => { console.log("Stage 3: The Problem"); setStage(3); }, 3200),   
+      setTimeout(() => { console.log("Stage 4: Cut"); setStage(4); }, 5500),   
+      setTimeout(() => { console.log("Stage 5: Manifestation"); setStage(5); }, 5700),   
+      setTimeout(() => { console.log("Stage 6: Unfold"); setStage(6); }, 9500),   
     ];
-    return () => timers.forEach(clearTimeout);
+    return () => timersRef.current.forEach(clearTimeout);
   }, []);
 
   useEffect(() => {
     if (stage !== 6) return;
-    setExitFlash(true);
+    setIsUnfolding(true);
     const t = setTimeout(() => {
       if (!hasCompleted.current) {
+        console.log("[VeriProof] Intro Complete - Handing over to App");
         hasCompleted.current = true;
         onComplete?.();
       }
-    }, 900);
+    }, 1500);
     return () => clearTimeout(t);
   }, [stage, onComplete]);
 
   return (
     <motion.div
       className="fixed inset-0 z-[150] bg-black flex items-center justify-center overflow-hidden select-none"
-      animate={{ opacity: stage === 6 ? 0 : 1 }}
-      transition={{ duration: 0.9, ease: "easeIn" }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.8 }}
     >
+      
+      {!isUnfolding && (
+        <button 
+          onClick={handleSkip}
+          className="absolute items-center justify-center bottom-12 z-[200] px-6 py-2 border border-white/20 text-white/40 hover:text-white hover:border-white/60 transition-all font-mono uppercase tracking-widest text-xs"
+        >
+          Skip_Sequence
+        </button>
+      )}
+      {/* 1. Global Background FX */}
       <div
         className="absolute inset-0 pointer-events-none z-[5] opacity-[0.06]"
         style={{
@@ -78,14 +103,23 @@ export default function IntroScreen({ onComplete }) {
         }}
       />
 
+      {/* 2. Technical Overlay Grid */}
       <AnimatePresence>
         {stage >= 1 && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.04 }}
+            animate={{ 
+              opacity: stage >= 5 ? [0.04, 0.08, 0.04] : 0.04,
+              scale: stage >= 5 ? [1, 1.05, 1] : 1
+            }}
+            transition={stage >= 5 ? { repeat: Infinity, duration: 2, ease: "easeInOut" } : {}}
             className="absolute inset-0 pointer-events-none z-[4]"
             style={{
-              backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.8) 2px, rgba(255,255,255,0.8) 4px)",
+              backgroundImage: `
+                linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: "40px 40px",
             }}
           />
         )}
@@ -155,60 +189,100 @@ export default function IntroScreen({ onComplete }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
             className="absolute text-center z-10 px-4 flex flex-col items-center"
           >
+            {/* Stage 4: VeriProof Manifestation */}
             <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-gray-500 uppercase tracking-[0.5em] text-xs mb-8 font-mono"
+              className="text-gray-500 uppercase tracking-[0.5em] text-xs mb-12 font-mono"
             >
-              System Initialization
+              Architectural_Validation_Sequence
             </motion.p>
 
-            <div className="relative mb-4" style={{ fontSize: "clamp(3rem, 10vw, 8rem)", fontWeight: 900, letterSpacing: "0.06em" }}>
+            <div className="relative mb-8" style={{ fontSize: "clamp(3.5rem, 12vw, 9rem)", fontWeight: 900, letterSpacing: "-0.02em" }}>
               <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1, duration: 1.2 }}
-                className="absolute inset-0 blur-[60px] bg-blue-600/40 pointer-events-none"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 0.4, scale: 1.2 }}
+                transition={{ 
+                  delay: 0.1, 
+                  duration: 2, 
+                  repeat: Infinity, 
+                  repeatType: "reverse" 
+                }}
+                className="absolute inset-0 blur-[80px] bg-blue-600/30 pointer-events-none"
               />
-              {"VERIPROOF".split("").map((ch, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ opacity: 0, y: 60, rotateX: -90, filter: "blur(10px)" }}
-                  animate={{ opacity: 1, y: 0, rotateX: 0, filter: "blur(0px)" }}
-                  transition={{ delay: 0.3 + i * 0.07, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                  style={{
-                    display: "inline-block",
-                    color: i % 2 === 0 ? "#ffffff" : "#2563EB",
-                    textShadow: "0 0 30px rgba(37,99,235,0.8)",
-                    transformOrigin: "bottom",
-                    perspective: "400px",
-                    fontStyle: "italic"
-                  }}
-                >
-                  {ch}
-                </motion.span>
-              ))}
+              
+              <div className="flex items-baseline perspective-[1000px]">
+                {"VERIPROOF".split("").map((ch, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ 
+                      opacity: 0, 
+                      y: -200, 
+                      rotateX: 45,
+                      scale: 1.5,
+                      filter: "blur(15px)"
+                    }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0, 
+                      rotateX: 0,
+                      scale: 1,
+                      filter: "blur(0px)"
+                    }}
+                    transition={{ 
+                      delay: 0.4 + i * 0.08, 
+                      duration: 0.8, 
+                      ease: [0.22, 1, 0.36, 1], // Architectural Slam
+                      type: "spring",
+                      damping: 15,
+                      stiffness: 100
+                    }}
+                    style={{
+                      display: "inline-block",
+                      color: i % 2 === 0 ? "#ffffff" : "#2563EB",
+                      textShadow: i % 2 !== 0 ? "0 0 40px rgba(37,99,235,0.6)" : "none",
+                      fontStyle: "italic",
+                      position: "relative"
+                    }}
+                  >
+                    {ch}
+                    {/* Architectural Underline for each block */}
+                    <motion.div 
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 1.2 + i * 0.05, duration: 0.4 }}
+                      className="absolute -bottom-2 left-0 right-0 h-[4px] bg-current opacity-20"
+                    />
+                  </motion.span>
+                ))}
+              </div>
             </div>
 
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 1.1, duration: 0.8, ease: "easeOut" }}
-              className="h-[1px] w-64 bg-gradient-to-r from-transparent via-blue-500 to-transparent my-5"
-            />
-
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 0.7, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.8 }}
-              className="text-gray-400 uppercase tracking-[0.4em] text-[10px] font-mono"
-            >
-              <LetterReveal text="Forensic · Portfolio · Verification" startDelay={1.5} stagger={0.03} />
-            </motion.p>
+            <div className="flex gap-12 items-center">
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 1.8, duration: 0.8 }}
+                className="h-[1px] w-32 bg-gradient-to-r from-transparent to-blue-500/50"
+              />
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                transition={{ delay: 2.0 }}
+                className="text-gray-400 uppercase tracking-[0.6em] text-sm font-mono whitespace-nowrap"
+              >
+                TRUST_WITHOUT_FAITH
+              </motion.p>
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 1.8, duration: 0.8 }}
+                className="h-[1px] w-32 bg-gradient-to-l from-transparent to-blue-500/50"
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -216,14 +290,33 @@ export default function IntroScreen({ onComplete }) {
       <CutFlash trigger={stage === 2} onDone={() => {}} />
       <CutFlash trigger={stage === 4} onDone={() => {}} />
 
+      {/* Stage 5: King Size Unfolding Transition */}
       <AnimatePresence>
-        {exitFlash && (
-          <motion.div
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ duration: 0.5, ease: [0.85, 0, 0.15, 1] }}
-            className="fixed inset-0 z-[300] bg-white pointer-events-none origin-top"
-          />
+        {isUnfolding && (
+          <div className="fixed inset-0 z-[300] pointer-events-none flex flex-wrap">
+            {/* Top Shutter */}
+            <motion.div
+              initial={{ scaleY: 1 }}
+              animate={{ scaleY: 0 }}
+              transition={{ duration: 1, ease: [0.7, 0, 0.3, 1] }}
+              className="absolute top-0 left-0 right-0 h-1/2 bg-white origin-top border-b border-blue-500/30"
+            />
+            {/* Bottom Shutter */}
+            <motion.div
+              initial={{ scaleY: 1 }}
+              animate={{ scaleY: 0 }}
+              transition={{ duration: 1, ease: [0.7, 0, 0.3, 1] }}
+              className="absolute bottom-0 left-0 right-0 h-1/2 bg-white origin-bottom border-t border-blue-500/30"
+            />
+            {/* Lateral Expansion Lines */}
+            <motion.div
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="absolute top-1/2 left-0 right-0 h-[1px] bg-blue-600 shadow-[0_0_20px_#2563EB] z-[301]"
+            />
+          </div>
         )}
       </AnimatePresence>
 

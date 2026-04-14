@@ -116,7 +116,7 @@ export default function VTUCalculator() {
               const r = semResults[i];
               return (
                 <div key={s.id} className="text-center px-4 py-3 rounded-xl bg-white/3 border border-white/5">
-                  <p className="text-gray-600 text-[10px] uppercase tracking-widest mb-0.5">{s.name}</p>
+                  <p className="text-gray-600 text-sm uppercase tracking-widest mb-0.5">{s.name}</p>
                   <p className={`text-xl font-black ${badge(r.sgpa)}`}>{r.sgpa.toFixed(2)}</p>
                   <p className="text-gray-700 text-xs">{r.totalCredits} cr</p>
                 </div>
@@ -162,9 +162,9 @@ export default function VTUCalculator() {
                 <div className="p-5 space-y-3">
                   {/* Column headers */}
                   <div className="grid grid-cols-12 gap-3 px-1">
-                    <div className="col-span-6 text-[10px] text-gray-600 uppercase tracking-widest">Subject</div>
-                    <div className="col-span-2 text-[10px] text-gray-600 uppercase tracking-widest">Credits</div>
-                    <div className="col-span-3 text-[10px] text-gray-600 uppercase tracking-widest">Grade</div>
+                    <div className="col-span-6 text-sm text-gray-600 uppercase tracking-widest">Subject</div>
+                    <div className="col-span-2 text-sm text-gray-600 uppercase tracking-widest">Credits</div>
+                    <div className="col-span-3 text-sm text-gray-600 uppercase tracking-widest">Grade</div>
                     <div className="col-span-1" />
                   </div>
 
@@ -217,7 +217,7 @@ export default function VTUCalculator() {
 
           {/* Grade reference table */}
           <div className="flex-1 min-w-[260px] bg-black/50 border border-white/5 rounded-xl p-5">
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-3 flex items-center gap-2">
+            <p className="text-gray-500 text-sm uppercase tracking-widest mb-3 flex items-center gap-2">
               <Calculator className="w-3 h-3" /> VTU Grade Reference
             </p>
             <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">

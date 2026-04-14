@@ -212,7 +212,7 @@ const VerificationPanel = () => {
                   <Search className="w-5 h-5 text-ibex-rose" />
                   <h3 className="text-base md:text-lg font-serif tracking-widest uppercase text-ibex-text">Verification Pipeline</h3>
                 </div>
-                <span className="text-[10px] md:text-xs uppercase tracking-widest text-ibex-muted bg-ibex-surface/10 px-3 py-1 rounded-full">Total Processed: {results.length}</span>
+                <span className="text-sm md:text-xs uppercase tracking-widest text-ibex-muted bg-ibex-surface/10 px-3 py-1 rounded-full">Total Processed: {results.length}</span>
               </div>
               
               <div className="overflow-x-auto">

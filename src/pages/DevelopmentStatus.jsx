@@ -81,7 +81,7 @@ const DevelopmentStatus = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-xl font-bold tracking-wide">{item.title}</h3>
-                <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded-sm font-bold ${
+                <span className={`text-sm uppercase tracking-widest px-2 py-1 rounded-sm font-bold ${
                   item.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'
                 }`}>
                   {item.status}

@@ -8,6 +8,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isExiting, setIsExiting] = useState(false);
 
   let logoutTimer;
 
@@ -16,9 +17,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("loginTimestamp");
     setUser(null);
     if (logoutTimer) clearTimeout(logoutTimer);
-    if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
-      window.location.href = "/login";
-    }
   };
 
   const scheduleLogout = (timeRemaining) => {
@@ -90,7 +88,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, setUser, isExiting, setIsExiting }}>
       {children}
     </AuthContext.Provider>
   );

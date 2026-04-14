@@ -49,35 +49,35 @@ const ArchiveBackground = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // 1. BACKGROUND GRADIENTS
-      const grad = ctx.createRadialGradient(
-        canvas.width / 2, canvas.height / 2, 0,
-        canvas.width / 2, canvas.height / 2, canvas.width
-      );
-      
-      switch (theme) {
-        case THEMES.LIGHT:
-          grad.addColorStop(0, "#f5f7fa");
-          grad.addColorStop(1, "#c3cfe2");
-          break;
-        case THEMES.DARK:
-          grad.addColorStop(0, "#1e293b");
-          grad.addColorStop(1, "#0f172a");
-          break;
-        case THEMES.STORYTELLER:
-          grad.addColorStop(0, "#fdfcf9");
-          grad.addColorStop(1, "#e5e5f7");
-          break;
-        case THEMES.IMMERSIVE:
-          grad.addColorStop(0, "#0a0c14");
-          grad.addColorStop(1, "#020617");
-          break;
-        default:
-          grad.addColorStop(0, "#ffffff");
-          grad.addColorStop(1, "#f1f5f9");
+      let grad;
+      if (theme === THEMES.LIGHT) {
+        ctx.fillStyle = "#B6D8DE"; // Solid professional soft blue/tiffany color resembling the image
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        grad = ctx.createRadialGradient(
+          canvas.width / 2, canvas.height / 2, 0,
+          canvas.width / 2, canvas.height / 2, canvas.width
+        );
+        switch (theme) {
+          case THEMES.DARK:
+            grad.addColorStop(0, "#1e293b");
+            grad.addColorStop(1, "#0f172a");
+            break;
+          case THEMES.STORYTELLER:
+            grad.addColorStop(0, "#fdfcf9");
+            grad.addColorStop(1, "#e5e5f7");
+            break;
+          case THEMES.IMMERSIVE:
+            grad.addColorStop(0, "#0a0c14");
+            grad.addColorStop(1, "#020617");
+            break;
+          default:
+            grad.addColorStop(0, "#ffffff");
+            grad.addColorStop(1, "#f1f5f9");
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
-      
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // 2. THEME-SPECIFIC 3D ELEMENTS
       if (theme === THEMES.IMMERSIVE) {
