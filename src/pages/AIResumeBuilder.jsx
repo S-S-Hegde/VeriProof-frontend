@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import { 
@@ -8,11 +8,26 @@ import {
   ShieldCheck, 
   Cpu, 
   Activity,
-  ChevronRight,
   Loader2,
-  CheckCircle
+  TerminalSquare
 } from "lucide-react";
 import axios from "axios";
+
+// Framer motion variants for staggering form fields
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
+};
 
 const AIResumeBuilder = () => {
   const { user } = useAuth();
@@ -53,8 +68,8 @@ const AIResumeBuilder = () => {
     setStatus("Analyzing_Skill_Nodes...");
     
     try {
-      // Simulate AI Processing delay
-      await new Promise(r => setTimeout(r, 1500));
+      // Simulate Deep Architectural Analysis delay
+      await new Promise(r => setTimeout(r, 2000));
       setStatus("Compiling_Architectural_PDF...");
       
       const cfg = {
@@ -84,179 +99,226 @@ const AIResumeBuilder = () => {
     }
   };
 
-  const inputCls = "w-full bg-transparent border-b border-[var(--color-border)] py-4 focus:border-[var(--color-accent)] outline-none transition-all text-sm font-mono tracking-wider placeholder:opacity-20";
-  const labelCls = "text-sm uppercase tracking-[0.4em] font-bold opacity-40 flex items-center gap-2 mb-2";
+  const inputCls = "w-full bg-black/10 dark:bg-white/5 border border-[var(--color-border)] px-4 py-4 focus:border-[var(--color-accent)] focus:bg-transparent outline-none transition-all duration-300 text-sm font-mono tracking-wider placeholder:opacity-20 shadow-inner rounded-sm";
+  const labelCls = "text-xs uppercase tracking-[0.3em] font-bold opacity-60 flex items-center gap-2 mb-3";
 
   return (
     <PageTransition>
-      <div className="max-w-[1400px] mx-auto pt-12 pb-32 px-6">
-        
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-12">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-4 text-[var(--color-accent)] mb-6">
-              <Cpu className="w-5 h-5 animate-pulse" />
-              <span className="text-sm font-mono uppercase tracking-[0.5em]">Neural_Archive_Constructor_v2.1</span>
-            </div>
-            <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none mb-8">
-              AI_Resume<span className="text-[var(--color-accent)] not-italic">_</span>Architect
-            </h1>
-            <p className="text-lg opacity-40 font-medium max-w-xl leading-relaxed">
-              Transform your raw career metadata into a surgically precise, verified manifestation of your professional identity. 
-            </p>
-          </div>
+      <div className="min-h-screen relative overflow-hidden bg-[var(--color-bg)]">
+        {/* Dynamic Background Mesh */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--color-accent),transparent_50%)] opacity-[0.03] pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-[var(--color-accent)] to-transparent opacity-[0.02] pointer-events-none" />
+
+        <div className="max-w-[1400px] mx-auto pt-24 pb-32 px-6 relative z-10">
           
-          <div className="flex flex-col items-end">
-            <div className="text-sm font-mono opacity-20 uppercase tracking-[0.4em] mb-4">Current_Status</div>
-            <div className={`px-8 py-4 border font-bold text-xs tracking-[0.3em] uppercase flex items-center gap-4 transition-all ${
-              status.includes("Error") ? "border-red-500/50 text-red-500 bg-red-500/5" : "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/5"
-            }`}>
-              <Activity className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-              {status}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 relative">
-          {/* Background Grid Accent */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:100px_100px] opacity-[0.03] -z-10 pointer-events-none" />
-
-          {/* Left: Input Forge */}
-          <form onSubmit={handleGenerate} className="lg:col-span-8 space-y-12 bg-[var(--color-bg)]/40 p-12 border border-[var(--color-border)] backdrop-blur-sm">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-              <div className="group">
-                <label className={labelCls}>Identity_String</label>
-                <input 
-                  className={inputCls} 
-                  placeholder="FULL_LEGAL_NAME" 
-                  value={fields.fullName}
-                  onChange={e => setFields({...fields, fullName: e.target.value})}
-                  required 
-                />
+          {/* Header Section */}
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-8">
+            <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="max-w-3xl">
+              <div className="flex items-center gap-4 text-[var(--color-accent)] mb-6">
+                <Cpu className="w-5 h-5 animate-pulse" />
+                <span className="text-sm font-mono uppercase tracking-[0.4em]">Neural_Archive_Constructor</span>
               </div>
-              <div className="group">
-                <label className={labelCls}>Comm_Address</label>
-                <input 
-                  type="email" 
-                  className={inputCls} 
-                  placeholder="EMAIL@DOMAIN.COM" 
-                  value={fields.email}
-                  onChange={e => setFields({...fields, email: e.target.value})}
-                  required 
-                />
-              </div>
-              <div className="group">
-                <label className={labelCls}>Contact_Protocol</label>
-                <input 
-                  className={inputCls} 
-                  placeholder="+XX XXXXXXXXXX" 
-                  value={fields.phone}
-                  onChange={e => setFields({...fields, phone: e.target.value})}
-                />
-              </div>
-              <div className="group">
-                <label className={labelCls}>Verified_Skillset</label>
-                <input 
-                  className={inputCls} 
-                  placeholder="REACT, NODE.JS, NEURAL_NETS..." 
-                  value={fields.skills}
-                  onChange={e => setFields({...fields, skills: e.target.value})}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-10">
-              <div className="group">
-                <label className={labelCls}>Academic_Ledger</label>
-                <textarea 
-                  className={`${inputCls} h-24 resize-none`} 
-                  placeholder="INSTITUTION // DEGREE // GPA"
-                  value={fields.education}
-                  onChange={e => setFields({...fields, education: e.target.value})}
-                />
-              </div>
-              <div className="group">
-                <label className={labelCls}>Practical_Experience</label>
-                <textarea 
-                  className={`${inputCls} h-32 resize-none`} 
-                  placeholder="ROLE @ ORGANIZATION // CONTRIBUTIONS"
-                  value={fields.experience}
-                  onChange={e => setFields({...fields, experience: e.target.value})}
-                />
-              </div>
-              <div className="group">
-                <label className={labelCls}>Professional_Manifesto</label>
-                <textarea 
-                  className={`${inputCls} h-32 resize-none border-dashed`} 
-                  placeholder="STATE_YOUR_MISSION_OBJECTIVE..."
-                  value={fields.manifesto}
-                  onChange={e => setFields({...fields, manifesto: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="pt-8 border-t border-[var(--color-border)] flex items-center justify-between">
-              <div className="flex items-center gap-4 text-sm font-mono opacity-30">
-                <ShieldCheck className="w-4 h-4 text-[var(--color-accent)]" />
-                <span>ALL_DATA_VERIFIED_BY_TRUST_PROTOCOL</span>
-              </div>
-              
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="group relative overflow-hidden px-12 py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.5em] uppercase text-sm hover:bg-[var(--color-accent)] transition-all flex items-center gap-4"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Wand2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                )}
-                <span>Manifest_Resume</span>
-              </button>
-            </div>
-          </form>
-
-          {/* Right: Sidebar Metrics */}
-          <div className="lg:col-span-4 space-y-8">
-            <div className="p-8 border border-[var(--color-border)] bg-[var(--color-bg)]/40 relative group overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-accent)] opacity-[0.02] blur-3xl group-hover:opacity-10 transition-opacity" />
-              <h3 className="text-sm font-mono uppercase tracking-[0.4em] mb-8 border-b border-[var(--color-border)] pb-4">Evaluation_Matrix</h3>
-              
-              <div className="space-y-8">
-                {[
-                  { label: "ATS_Score", val: `${metrics.atsScore}%`, detail: metrics.atsScore > 80 ? "Optimized" : "Calibrating" },
-                  { label: "Truth_Index", val: `${metrics.truthIndex}%`, detail: "Verified" },
-                  { label: "Complexity", val: metrics.complexity, detail: "Dynamic" }
-                ].map((stat, i) => (
-                  <div key={i} className="flex justify-between items-end">
-                    <div>
-                      <p className="text-sm font-mono opacity-40 uppercase mb-1">{stat.label}</p>
-                      <p className="text-2xl font-black italic tracking-tighter">{stat.val}</p>
-                    </div>
-                    <div className="text-sm font-mono text-[var(--color-accent)] border border-[var(--color-accent)]/30 px-2 py-0.5">
-                      {stat.detail}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-8 border border-dashed border-[var(--color-border)] opacity-40">
-              <h3 className="text-sm font-mono uppercase tracking-[0.4em] mb-4">System_Note</h3>
-              <p className="text-sm leading-loose uppercase tracking-widest">
-                Verification signals are cross-referenced with your GitHub activity and project documentation. 
-                Fraudulent metadata will trigger a terminal lockout.
+              <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-[0.9] mb-6">
+                AI_Resume<br/><span className="text-[var(--color-accent)] not-italic">Architect.</span>
+              </h1>
+              <p className="text-lg opacity-50 font-medium max-w-xl leading-relaxed">
+                Transform your raw career metadata into a surgically precise, verified manifestation of your professional identity. 
               </p>
-            </div>
-
-            <button className="w-full flex items-center justify-between p-6 border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-all group">
-              <div className="flex flex-col items-start">
-                <span className="text-sm font-mono opacity-40 uppercase mb-1">Export_Format</span>
-                <span className="text-xs font-bold uppercase tracking-widest">Architectural_PDF</span>
+            </motion.div>
+            
+            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="flex flex-col lg:items-end">
+              <div className="text-sm font-mono opacity-30 uppercase tracking-[0.3em] mb-3">System Context Hub</div>
+              <div className={`px-6 py-4 backdrop-blur-md border font-bold text-xs tracking-[0.2em] uppercase flex items-center gap-3 transition-all rounded-sm shadow-xl ${
+                status.includes("Error") ? "border-red-500/50 text-red-500 bg-red-500/10" : "border-[var(--color-border)] text-[var(--color-text)] bg-white/5 dark:bg-black/20"
+              }`}>
+                {loading ? <Loader2 className="w-4 h-4 animate-spin text-[var(--color-accent)]" /> : <TerminalSquare className="w-4 h-4 opacity-50" />}
+                {status}
               </div>
-              <Download className="w-5 h-5 opacity-20 group-hover:opacity-100 group-hover:text-[var(--color-accent)] transition-all" />
-            </button>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12 relative">
+
+            {/* Left: Glassmorphic Forge */}
+            <motion.form 
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              onSubmit={handleGenerate} 
+              className="xl:col-span-8 space-y-12 bg-white/10 dark:bg-black/40 backdrop-blur-2xl p-8 md:p-12 border border-[var(--color-border)] shadow-2xl rounded-xl relative overflow-hidden"
+            >
+              {/* Internal subtle glow */}
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-accent)] blur-[100px] opacity-[0.05] rounded-full pointer-events-none" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10 relative z-10">
+                <motion.div variants={itemVariants} className="group">
+                  <label className={labelCls}>Identity_String</label>
+                  <input 
+                    className={inputCls} 
+                    placeholder="FULL_LEGAL_NAME" 
+                    value={fields.fullName}
+                    onChange={e => setFields({...fields, fullName: e.target.value})}
+                    required 
+                  />
+                </motion.div>
+                <motion.div variants={itemVariants} className="group">
+                  <label className={labelCls}>Comm_Address</label>
+                  <input 
+                    type="email" 
+                    className={inputCls} 
+                    placeholder="EMAIL@DOMAIN.COM" 
+                    value={fields.email}
+                    onChange={e => setFields({...fields, email: e.target.value})}
+                    required 
+                  />
+                </motion.div>
+                <motion.div variants={itemVariants} className="group">
+                  <label className={labelCls}>Contact_Protocol</label>
+                  <input 
+                    className={inputCls} 
+                    placeholder="+XX XXXXXXXXXX" 
+                    value={fields.phone}
+                    onChange={e => setFields({...fields, phone: e.target.value})}
+                  />
+                </motion.div>
+                <motion.div variants={itemVariants} className="group">
+                  <label className={labelCls}>Verified_Skillset</label>
+                  <input 
+                    className={inputCls} 
+                    placeholder="REACT, NODE.JS, NEURAL_NETS..." 
+                    value={fields.skills}
+                    onChange={e => setFields({...fields, skills: e.target.value})}
+                    required
+                  />
+                </motion.div>
+              </div>
+
+              <motion.div variants={containerVariants} className="space-y-10 relative z-10">
+                <motion.div variants={itemVariants} className="group">
+                  <label className={labelCls}>Academic_Ledger</label>
+                  <textarea 
+                    className={`${inputCls} h-28 resize-none`} 
+                    placeholder="INSTITUTION // DEGREE // GPA"
+                    value={fields.education}
+                    onChange={e => setFields({...fields, education: e.target.value})}
+                  />
+                </motion.div>
+                <motion.div variants={itemVariants} className="group">
+                  <label className={labelCls}>Practical_Experience</label>
+                  <textarea 
+                    className={`${inputCls} h-36 resize-none`} 
+                    placeholder="ROLE @ ORGANIZATION // CONTRIBUTIONS"
+                    value={fields.experience}
+                    onChange={e => setFields({...fields, experience: e.target.value})}
+                  />
+                </motion.div>
+                <motion.div variants={itemVariants} className="group">
+                  <label className={labelCls}>Professional_Manifesto</label>
+                  <textarea 
+                    className={`${inputCls} h-36 resize-none`} 
+                    placeholder="STATE_YOUR_MISSION_OBJECTIVE..."
+                    value={fields.manifesto}
+                    onChange={e => setFields({...fields, manifesto: e.target.value})}
+                  />
+                </motion.div>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="pt-10 mb-2 border-t border-[var(--color-border)] flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                <div className="flex items-center gap-4 text-xs font-mono opacity-40 uppercase tracking-widest">
+                  <ShieldCheck className="w-5 h-5 text-[var(--color-accent)]" />
+                  <span>Verified_By_Trust_Protocol</span>
+                </div>
+                
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="group relative overflow-hidden px-10 py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-black tracking-[0.3em] uppercase text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all flex items-center gap-4 rounded-sm shadow-xl w-full md:w-auto justify-center"
+                >
+                  <div className="absolute inset-0 bg-white/20 w-0 group-hover:w-full transition-all duration-300 pointer-events-none" />
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-5 h-5 group-hover:rotate-12 group-hover:scale-110 transition-transform" />
+                  )}
+                  <span className="relative z-10">{loading ? "MANIFESTING..." : "MANIFEST_RESUME"}</span>
+                </button>
+              </motion.div>
+            </motion.form>
+
+            {/* Right: Sidebar Metrics & Output */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="xl:col-span-4 space-y-6"
+            >
+              {/* The Matrix Readout */}
+              <div className="p-8 border border-[var(--color-border)] bg-black/5 dark:bg-white/5 backdrop-blur-xl relative group overflow-hidden rounded-xl shadow-xl">
+                
+                {/* Cybernetic Scanning Line */}
+                <AnimatePresence>
+                  {loading && (
+                    <motion.div 
+                      initial={{ top: "-10%" }}
+                      animate={{ top: "110%" }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                      className="absolute left-0 right-0 h-1 bg-[var(--color-accent)]/80 blur-sm z-20 shadow-[0_0_20px_var(--color-accent)]"
+                    />
+                  )}
+                </AnimatePresence>
+
+                <h3 className="text-xs font-mono uppercase tracking-[0.3em] mb-8 opacity-50 flex items-center gap-2">
+                  <Activity className="w-4 h-4" /> Real_Time_Metrics
+                </h3>
+                
+                <div className="space-y-8 relative z-10">
+                  {[
+                    { label: "ATS_Visibility", val: `${metrics.atsScore}%`, detail: metrics.atsScore > 80 ? "Optimized" : "Calibrating" },
+                    { label: "Authenticity", val: `${metrics.truthIndex}%`, detail: "Verified" },
+                    { label: "Density", val: metrics.complexity, detail: "Dynamic" }
+                  ].map((stat, i) => (
+                    <div key={i} className="flex justify-between items-end border-b border-[var(--color-border)]/50 pb-4 last:border-0 last:pb-0">
+                      <div>
+                        <p className="text-xs font-mono opacity-40 uppercase mb-2 tracking-wider">{stat.label}</p>
+                        <p className={`text-3xl font-black italic tracking-tighter transition-colors duration-500 ${loading ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'}`}>
+                          {stat.val}
+                        </p>
+                      </div>
+                      <div className="text-[10px] font-mono text-[var(--color-accent)] border border-[var(--color-accent)]/30 px-3 py-1 bg-[var(--color-accent)]/5 rounded-full uppercase tracking-widest">
+                        {stat.detail}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Secure Notice */}
+              <div className="p-6 border border-dashed border-[var(--color-border)] bg-transparent rounded-xl flex items-start gap-4">
+                <ShieldCheck className="w-6 h-6 opacity-40 mt-1 shrink-0 text-[var(--color-accent)]" />
+                <div>
+                  <h3 className="text-[10px] font-mono uppercase tracking-[0.3em] mb-2 opacity-50">System_Directive</h3>
+                  <p className="text-xs leading-relaxed uppercase tracking-widest opacity-70">
+                    Outputs are cross-referenced with your ledger. Fraudulent metadata will trigger immediate structural lockout.
+                  </p>
+                </div>
+              </div>
+
+              {/* Ready Indicator */}
+              <button 
+                onClick={e => { if(!loading) handleGenerate(e); }}
+                className={`w-full flex items-center justify-between p-6 border transition-all group rounded-xl shadow-lg backdrop-blur-md ${
+                loading ? "border-[var(--color-accent)]/50 bg-[var(--color-accent)]/10 cursor-not-allowed" : "border-[var(--color-border)] bg-white/5 dark:bg-black/20 hover:border-[var(--color-accent)]"
+              }`}>
+                <div className="flex flex-col items-start focus:outline-none">
+                  <span className="text-[10px] font-mono opacity-50 uppercase mb-2 tracking-[0.2em]">Output_Format</span>
+                  <span className={`text-sm font-black uppercase tracking-widest flex items-center gap-2 ${loading ? 'opacity-50' : ''}`}>
+                    PDF_Architecture <span className="bg-[var(--color-text)] text-[var(--color-bg)] w-1 h-3 animate-pulse inline-block" />
+                  </span>
+                </div>
+                <Download className={`w-6 h-6 transition-all duration-300 ${loading ? "opacity-20 translate-y-1" : "opacity-40 group-hover:opacity-100 group-hover:text-[var(--color-accent)]"}`} />
+              </button>
+            </motion.div>
+
           </div>
         </div>
       </div>

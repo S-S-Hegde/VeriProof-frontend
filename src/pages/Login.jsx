@@ -37,6 +37,7 @@ const Login = () => {
       // Determine first name or handle for the cinematic display
       const firstName = data.name ? data.name.split(" ")[0].toUpperCase() : "GUEST";
       setLoggedName(firstName);
+      window.scrollTo(0, 0); // Snap viewport to top to prevent the cinematic overlay from being hidden
       setShowWelcome(true);
       
       // Delay navigation to let the cinematic welcome play out
@@ -59,12 +60,12 @@ const Login = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[9999] bg-[var(--color-bg)] flex items-center justify-center overflow-hidden"
+            className="fixed inset-0 z-[9999] bg-[var(--color-bg)] flex items-start justify-center pt-32 md:pt-40 overflow-hidden"
           >
              <div className="absolute inset-0 bg-black/50 pointer-events-none" />
              
              <motion.div 
-                initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
                 className="relative z-10 flex flex-col items-center"
@@ -221,6 +222,11 @@ const Login = () => {
                     placeholder="••••••••"
                     className="bg-transparent border-none outline-none w-full text-sm font-mono placeholder:opacity-30"
                   />
+                </div>
+                <div className="flex justify-end mt-2">
+                  <Link to="/forgot-password" className="text-[10px] font-mono tracking-widest uppercase opacity-40 hover:opacity-100 transition-colors">
+                    Forgot Passphrase?
+                  </Link>
                 </div>
               </div>
 

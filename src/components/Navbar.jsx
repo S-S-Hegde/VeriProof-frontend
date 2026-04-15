@@ -14,9 +14,14 @@ import {
   Menu,
   X,
   Activity,
-  Wand2
+  Wand2,
+  FileText,
+  Info,
+  Mail,
+  User as UserIcon
 } from "lucide-react";
 import OutroScreen from "./OutroScreen";
+import { cldAvatar } from "../utils/cloudinaryImage";
 
 const Navbar = () => {
   const { user, logout, setIsExiting, isExiting } = useAuth();
@@ -53,12 +58,25 @@ const Navbar = () => {
     }
   };
 
-  const navLinks = [
-    { name: "Terminal", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Evidence", path: "/discover", icon: Search },
-    { name: "Verify", path: "/verification-requests", icon: ShieldCheck },
-    { name: "AI Builder", path: "/ai-resume-builder", icon: Wand2 },
-  ];
+  const getNavLinks = () => {
+    const isRecruiter = user?.role === "recruiter";
+    if (isRecruiter) {
+      return [
+        { name: "Forensics", path: "/dashboard", icon: LayoutDashboard },
+        { name: "Discover", path: "/discover", icon: Search },
+        { name: "Jobs", path: "/recruiter-jobs", icon: ShieldCheck },
+        { name: "Intel", path: "/recruiter-resumes", icon: Activity },
+      ];
+    }
+    return [
+      { name: "Terminal", path: "/dashboard", icon: LayoutDashboard },
+      { name: "Evidence", path: "/discover", icon: Search },
+      { name: "Exams", path: "/exams", icon: FileText },
+      { name: "AI Builder", path: "/ai-resume-builder", icon: Wand2 },
+    ];
+  };
+
+  const navLinks = getNavLinks();
 
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -136,7 +154,7 @@ const Navbar = () => {
                     <div className="w-10 h-10 border border-[var(--color-accent)] flex items-center justify-center bg-[var(--color-accent)]/5 group-hover:bg-[var(--color-accent)] transition-all cursor-pointer overflow-hidden group-hover:text-white">
                         {user.profileImage ? (
                           <img 
-                            src={user.profileImage} 
+                            src={cldAvatar(user.profileImage)} 
                             alt={user.name} 
                             className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                           />
@@ -161,10 +179,27 @@ const Navbar = () => {
                                 <div className="space-y-1">
                                     <Link 
                                         to="/settings" 
+                                        onClick={() => setProfileOpen(false)}
                                         className="flex items-center space-x-3 p-2 text-sm uppercase tracking-widest hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-all font-bold"
                                     >
                                         <Settings className="w-3 h-3" />
                                         <span>Protocols</span>
+                                    </Link>
+                                    <Link 
+                                        to="/about" 
+                                        onClick={() => setProfileOpen(false)}
+                                        className="flex items-center space-x-3 p-2 text-sm uppercase tracking-widest hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-all font-bold"
+                                    >
+                                        <Info className="w-3 h-3" />
+                                        <span>About_Us</span>
+                                    </Link>
+                                    <Link 
+                                        to="/contact" 
+                                        onClick={() => setProfileOpen(false)}
+                                        className="flex items-center space-x-3 p-2 text-sm uppercase tracking-widest hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-all font-bold"
+                                    >
+                                        <Mail className="w-3 h-3" />
+                                        <span>Contact_Us</span>
                                     </Link>
                                     <button 
                                         onClick={handleLogout}
@@ -228,8 +263,10 @@ const Navbar = () => {
               ))}
             </div>
             
-            <div className="mt-auto pt-12 border-t border-[var(--color-border)]">
-                <p className="text-sm font-mono opacity-40 uppercase tracking-[0.5em]">SYSTEM_VERSION_4.0.0_STABLE</p>
+            <div className="mt-auto pt-12 border-t border-[var(--color-border)] flex flex-col gap-4">
+                <Link to="/about" onClick={() => setMenuOpen(false)} className="text-sm font-mono uppercase tracking-[0.4em] opacity-40 hover:opacity-100 hover:text-[var(--color-accent)] transition-all">About Us</Link>
+                <Link to="/contact" onClick={() => setMenuOpen(false)} className="text-sm font-mono uppercase tracking-[0.4em] opacity-40 hover:opacity-100 hover:text-[var(--color-accent)] transition-all">Contact Us</Link>
+                <p className="text-sm font-mono opacity-20 uppercase tracking-[0.5em]">SYSTEM_VERSION_4.0.0_STABLE</p>
             </div>
           </motion.div>
         )}

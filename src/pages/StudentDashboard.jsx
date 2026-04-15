@@ -45,11 +45,11 @@ const StudentDashboard = () => {
               <div className="flex items-center gap-4 mb-6">
                   <span className="w-8 h-[1px] bg-[var(--color-accent)]" />
                   <p className="text-sm font-mono tracking-[0.5em] uppercase text-[var(--color-accent)] font-bold">
-                    Archive_Authorized // {user.name?.replace(" ", "_").toUpperCase()}
+                    Terminal_Authorized // {user.name?.replace(" ", "_").toUpperCase()}
                   </p>
               </div>
               <h2 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none mb-4">
-                CORE <span className="text-[var(--color-accent)] not-italic">ARCHIVE.</span>
+                CANDIDATE <span className="text-[var(--color-accent)] not-italic">TERMINAL.</span>
               </h2>
               <p className="text-sm font-medium opacity-40 uppercase tracking-widest flex items-center gap-3">
                   <Activity className="w-4 h-4" /> System_Status: Syncing_Global_Nodes...

@@ -10,6 +10,7 @@ import {
   Terminal as TerminalIcon, Cpu, Activity, Zap, HardDrive,
   Fingerprint, Camera, Loader2, UploadCloud, FileText, FileUp
 } from "lucide-react";
+import { cldProfilePhoto } from "../utils/cloudinaryImage";
 
 // Redesigned styling constants
 const inputCls = "block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text)] placeholder-[var(--color-muted)]/40 transition-all duration-500 font-mono text-xs tracking-wider";
@@ -318,7 +319,7 @@ const Settings = () => {
                             {uploading ? (
                               <Loader2 className="w-8 h-8 animate-spin text-[var(--color-accent)]" />
                             ) : form.profileImage ? (
-                              <img src={form.profileImage} alt="Profile" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                              <img src={cldProfilePhoto(form.profileImage)} alt="Profile" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                             ) : (
                               <Camera className="w-8 h-8 text-[var(--color-accent)] opacity-40" />
                             )}

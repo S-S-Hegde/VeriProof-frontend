@@ -21,6 +21,8 @@ import Lenis from '@studio-freight/lenis';
 // Lazy load heavy page components
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const AddProject = lazy(() => import("./pages/AddProject"));
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
@@ -29,6 +31,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Talent = lazy(() => import("./pages/Talent"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Home = lazy(() => import("./pages/Home"));
+const Demo = lazy(() => import("./pages/Demo"));
 const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
 const AIResumeBuilder = lazy(() => import("./pages/AIResumeBuilder"));
 const RecruiterResumes = lazy(() => import("./pages/RecruiterResumes"));
@@ -38,10 +41,13 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Opportunities = lazy(() => import("./pages/Opportunities"));
 const Support = lazy(() => import("./pages/Support"));
 const DevelopmentStatus = lazy(() => import("./pages/DevelopmentStatus"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
 
 // Import individual dashboard components
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const RecruiterDashboard = lazy(() => import("./pages/RecruiterDashboard"));
+const Exams = lazy(() => import("./pages/Exams"));
 
 const VerificationRequests = lazy(() => import("./pages/VerificationRequests"));
 const VerificationPanel = lazy(() => import("./pages/VerificationPanel"));
@@ -76,6 +82,16 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/demo"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Demo />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
           path="/login"
           element={
             <Suspense fallback={<LoadingScreen />}>
@@ -91,6 +107,26 @@ const AnimatedRoutes = () => {
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
                 <Register />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <ForgotPassword />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reset-password/:resettoken"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <ResetPassword />
               </PageTransition>
             </Suspense>
           }
@@ -141,6 +177,16 @@ const AnimatedRoutes = () => {
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
                 <ProjectDetails />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/exams"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Exams />
               </PageTransition>
             </Suspense>
           }
@@ -283,6 +329,26 @@ const AnimatedRoutes = () => {
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
                 <VerificationPanel />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <About />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <Contact />
               </PageTransition>
             </Suspense>
           }
