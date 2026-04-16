@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import PageTransition from "../components/PageTransition";
-import { ShieldCheck, Plus, Upload, CheckCircle, Clock, XCircle, Search } from "lucide-react";
-import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+import { Plus, Upload, CheckCircle, Clock, XCircle, Search } from "lucide-react";
+import api from "../utils/api";
 
 const VerificationPanel = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("builder"); // 'builder' or 'results'
   const [jobs, setJobs] = useState([]);
   const [results, setResults] = useState([]);
+  const [candidates, setCandidates] = useState([]);
   
   // Job Form Data
   const [jobTitle, setJobTitle] = useState("");
@@ -16,14 +19,12 @@ const VerificationPanel = () => {
   // Parse Form Data
   const [selectedJob, setSelectedJob] = useState("");
   const [resumeText, setResumeText] = useState("");
-  const [candidateId, setCandidateId] = useState("65f1a2b3c4d5e6f7a8b9c0d1"); // Mock candidate ID for UI demo purposes
+  const [candidateId, setCandidateId] = useState("");
 
   const fetchJobs = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if(!token) return;
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get("http://localhost:5000/api/verify/my-jobs", config);
+      if(!user?.token) return;
+      const { data } = await api.get("/api/verify/my-jobs");
       setJobs(data);
       if (data.length > 0) setSelectedJob(data[0]._id);
     } catch (error) {
@@ -33,10 +34,8 @@ const VerificationPanel = () => {
 
   const fetchResults = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if(!token) return;
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get("http://localhost:5000/api/verify/results", config);
+      if(!user?.token) return;
+      const { data } = await api.get("/api/verify/results");
       setResults(data);
     } catch (error) {
       console.error("Failed to fetch results", error);
@@ -44,21 +43,50 @@ const VerificationPanel = () => {
   };
 
   useEffect(() => {
-    fetchJobs();
-    fetchResults();
-  }, []);
+    if (!user?.token) return;
+
+    let isMounted = true;
+
+    const loadPanelData = async () => {
+      try {
+        const [jobsResponse, resultsResponse, candidatesResponse] = await Promise.all([
+          api.get("/api/verify/my-jobs"),
+          api.get("/api/verify/results"),
+          api.get("/api/users/resumes/pending"),
+        ]);
+
+        if (!isMounted) return;
+
+        const jobsData = jobsResponse.data || [];
+        const candidatesData = candidatesResponse.data || [];
+
+        setJobs(jobsData);
+        setResults(resultsResponse.data || []);
+        setCandidates(candidatesData);
+
+        if (jobsData.length > 0) setSelectedJob(jobsData[0]._id);
+        if (candidatesData.length > 0) setCandidateId(candidatesData[0]._id);
+      } catch (error) {
+        console.error("Failed to initialize verification panel", error);
+      }
+    };
+
+    loadPanelData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.token]);
 
   const handleCreateJob = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const skillsArray = jobSkills.split(",").map(s => s.trim());
-      await axios.post("http://localhost:5000/api/verify/job", {
+      const skillsArray = jobSkills.split(",").map(s => s.trim()).filter(Boolean);
+      await api.post("/api/verify/job", {
         title: jobTitle,
         description: jobDesc,
         targetSkills: skillsArray
-      }, config);
+      });
       setJobTitle("");
       setJobDesc("");
       setJobSkills("");
@@ -71,16 +99,13 @@ const VerificationPanel = () => {
 
   const handleParseResume = async (e) => {
     e.preventDefault();
-    if (!selectedJob || !resumeText) return;
+    if (!selectedJob || !resumeText || !candidateId) return;
     try {
-      const token = localStorage.getItem("token");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      
-      await axios.post("http://localhost:5000/api/verify/parse", {
+      await api.post("/api/verify/parse", {
         jobId: selectedJob,
-        candidateId, // Sending mock ID or auth user ID for demo
+        candidateId,
         resumeText
-      }, config);
+      });
       
       setResumeText("");
       fetchResults();
@@ -113,7 +138,7 @@ const VerificationPanel = () => {
               onClick={() => setActiveTab('results')}
               className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-md text-xs uppercase tracking-widest transition-all ${activeTab === 'results' ? 'bg-ibex-gold text-vp-teal shadow-md font-bold' : 'text-ibex-muted hover:text-ibex-text'}`}
             >
-              NLP Results
+              Verification Flow
             </button>
           </div>
         </div>
@@ -186,7 +211,23 @@ const VerificationPanel = () => {
                     ))}
                   </select>
                 </div>
-                <div className="md:col-span-6">
+                <div className="md:col-span-4">
+                  <label className="block text-xs uppercase tracking-widest text-ibex-muted mb-2">Candidate</label>
+                  <select
+                    value={candidateId}
+                    onChange={(e) => setCandidateId(e.target.value)}
+                    className="w-full bg-ibex-surface/5 border border-ibex-surface/20 rounded-lg p-3 text-sm text-ibex-text focus:outline-none focus:border-ibex-gold"
+                    required
+                  >
+                    {candidates.length === 0 && <option value="">No candidates with resumes</option>}
+                    {candidates.map((candidate) => (
+                      <option key={candidate._id} value={candidate._id}>
+                        {candidate.name}{candidate.githubUsername ? ` (@${candidate.githubUsername})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-4">
                   <label className="block text-xs uppercase tracking-widest text-ibex-muted mb-2">Paste Candidate Resume</label>
                   <input 
                     type="text" 
@@ -197,7 +238,7 @@ const VerificationPanel = () => {
                     required
                   />
                 </div>
-                <div className="md:col-span-2 flex items-end">
+                <div className="md:col-span-12 flex items-end justify-end">
                   <button type="submit" className="w-full py-3 bg-ibex-gold text-vp-teal rounded-lg font-bold uppercase tracking-widest text-xs hover:shadow-lg transition-all">
                     Run NLP
                   </button>
@@ -230,7 +271,7 @@ const VerificationPanel = () => {
                     {results.length === 0 ? (
                       <tr>
                         <td colSpan="5" className="p-8 text-center text-ibex-muted tracking-wide text-sm">
-                          No resumes processed yet. Upload a resume to trigger the NLP engine.
+                          No resumes processed yet. Select a candidate with an uploaded resume to trigger verification.
                         </td>
                       </tr>
                     ) : (
@@ -259,7 +300,7 @@ const VerificationPanel = () => {
                             ) : result.status === "Pending Exam" ? (
                               <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-xs tracking-widest uppercase border border-yellow-500/20">
                                 <Clock className="w-3 h-3" />
-                                <span>Snt Exam</span>
+                                <span>Exam Sent</span>
                               </span>
                             ) : result.status === "Failed" ? (
                               <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-xs tracking-widest uppercase border border-red-500/20">

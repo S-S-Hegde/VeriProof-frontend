@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PageTransition from "../components/PageTransition";
 import { useAuth } from "../context/AuthContext";
@@ -15,9 +15,8 @@ import {
   Fingerprint,
   Lock,
   UploadCloud,
-  Loader2
 } from "lucide-react";
-import axios from "axios";
+import api from "../utils/api";
 
 const Exams = () => {
   const { user } = useAuth();
@@ -37,6 +36,7 @@ const Exams = () => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes in seconds
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
 
   useEffect(() => {
     // Fake the scanning sequence based on Awwwards matrix
@@ -54,18 +54,6 @@ const Exams = () => {
       return () => clearInterval(interval);
     }
   }, [isScanning]);
-
-  useEffect(() => {
-    // Exam timer
-    if (hasInitiated && !isScanning && !isSubmitted && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-      return () => clearInterval(timer);
-    } else if (timeLeft <= 0 && !isSubmitted) {
-      handleSubmitExam();
-    }
-  }, [hasInitiated, isScanning, isSubmitted, timeLeft]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -109,17 +97,45 @@ const Exams = () => {
     setCurrentIdx(idx);
   };
 
-  const handleSubmitExam = () => {
-    setIsSubmitted(true);
-  };
+  async function handleSubmitExam() {
+    try {
+      const payload = questions.map((question) => ({
+        questionId: question._id,
+        answerIndex: answers[question._id],
+      }));
+
+      const { data } = await api.post("/api/exams/submit", {
+        answers: payload,
+      });
+
+      setSubmissionResult(data);
+      setIsSubmitted(true);
+    } catch (error) {
+      setExamError(error.response?.data?.message || "Failed to submit exam.");
+    }
+  }
+
+  useEffect(() => {
+    // Exam timer
+    if (hasInitiated && !isScanning && !isSubmitted && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft <= 0 && !isSubmitted) {
+      const submitTimeout = setTimeout(() => {
+        handleSubmitExam();
+      }, 0);
+      return () => clearTimeout(submitTimeout);
+    }
+  }, [hasInitiated, isScanning, isSubmitted, timeLeft]);
 
   const handleStartSequence = async () => {
     setHasInitiated(true);
     setIsScanning(true);
     
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get("/api/exams/start", config);
+      const { data } = await api.get("/api/exams/start");
       setQuestions(data);
       if (data.length > 0) {
         setVisited({ [data[0]._id]: true });
@@ -227,11 +243,7 @@ const Exams = () => {
 
   if (isSubmitted && questions.length > 0) {
     const answeredCount = Object.keys(answers).length;
-    const score = Object.entries(answers).reduce((acc, [qId, optIdx]) => {
-      const q = questions.find(x => x._id === qId);
-      if (q && q.correctIndex === optIdx) return acc + 1;
-      return acc;
-    }, 0);
+    const score = submissionResult?.score || 0;
 
     return (
       <PageTransition className="min-h-screen flex items-center justify-center pt-24 px-4 bg-[var(--color-bg)]">
@@ -249,10 +261,10 @@ const Exams = () => {
                    <span>Questions Attempted:</span> <span className="text-white">{answeredCount} / {questions.length}</span>
                 </div>
                 <div className="flex justify-between border-b border-[var(--color-border)] pb-2">
-                   <span>Integrity Score:</span> <span className="text-[var(--color-accent)] font-bold">{score * 10}%</span>
+                   <span>Integrity Score:</span> <span className="text-[var(--color-accent)] font-bold">{score}%</span>
                 </div>
                 <div className="flex justify-between">
-                   <span>Status:</span> <span className="text-green-500">AUTHENTICATED</span>
+                   <span>Status:</span> <span className={score >= 70 ? "text-green-500" : "text-orange-400"}>{submissionResult?.status || "SUBMITTED"}</span>
                 </div>
              </div>
              <button onClick={() => navigate("/dashboard")} className="px-12 py-4 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.3em] uppercase text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all shadow-xl">
@@ -308,6 +320,11 @@ const Exams = () => {
 
           {/* Question Body */}
           <div className="p-8 lg:p-12 flex-1">
+             {examError && (
+               <div className="mb-6 border border-red-500/40 bg-red-500/10 p-4 text-sm uppercase tracking-[0.2em] text-red-400">
+                 {examError}
+               </div>
+             )}
              <div className="text-xl md:text-2xl font-light leading-relaxed mb-12 tracking-wide">
                {currentQ.text}
              </div>

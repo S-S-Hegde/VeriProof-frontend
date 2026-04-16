@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../utils/api";
+import { persistUserSession } from "../utils/authStorage";
 import {
   User, Mail, Phone, MapPin, Globe, Linkedin, Twitter,
   Instagram, Github, Shield, Bell, Eye, Lock,
@@ -15,7 +16,6 @@ import { cldProfilePhoto } from "../utils/cloudinaryImage";
 // Redesigned styling constants
 const inputCls = "block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text)] placeholder-[var(--color-muted)]/40 transition-all duration-500 font-mono text-xs tracking-wider";
 const labelCls = "block text-sm uppercase tracking-[0.3em] font-bold text-[var(--color-muted)] mb-3 flex items-center gap-2";
-const sectionCls = "relative overflow-hidden p-1 bg-gradient-to-br from-[var(--color-border)]/10 to-transparent";
 
 const TABS = [
   { id: "Identity", icon: User, label: "User_Identity" },
@@ -54,8 +54,7 @@ const Settings = () => {
     const fetchProfile = async () => {
       setSystemStatus("Fetching_Data...");
       try {
-        const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
-        const { data } = await axios.get("/api/users/profile", cfg);
+        const { data } = await api.get("/api/users/profile");
         setForm({
           name:               data.name           || "",
           email:              data.email          || "",
@@ -82,7 +81,7 @@ const Settings = () => {
           resumeStatus:       data.resumeStatus    || "Not_Found",
         });
         setSystemStatus("Sync_Complete");
-      } catch (err) {
+      } catch {
         setSystemStatus("Sync_Error");
       }
     };
@@ -101,22 +100,20 @@ const Settings = () => {
 
     try {
       const cfg = {
-        headers: { 
+        headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${user.token}` 
         }
       };
       
-      const { data } = await axios.post("/api/users/profile/image", formData, cfg);
+      const { data } = await api.post("/api/users/profile/image", formData, cfg);
       const fileUrl = data.profileImage;
       
-      const updateCfg = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put("/api/users/profile/resume", { resumeUrl: fileUrl }, updateCfg);
+      await api.put("/api/users/profile/resume", { resumeUrl: fileUrl });
       
       setForm(p => ({ ...p, resumeUrl: fileUrl, resumeStatus: "Pending Evaluation" }));
       setToast({ type: "success", msg: "Evidence: Uplink Secured" });
       setSystemStatus("Sync_Success");
-    } catch (err) {
+    } catch {
       setToast({ type: "error", msg: "Evidence: Protocol Fail" });
       setSystemStatus("Fatal_Error");
     } finally {
@@ -137,17 +134,16 @@ const Settings = () => {
 
     try {
       const cfg = {
-        headers: { 
+        headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${user.token}` 
         }
       };
-      const { data } = await axios.post("/api/users/profile/image", formData, cfg);
+      const { data } = await api.post("/api/users/profile/image", formData, cfg);
       setForm(p => ({ ...p, profileImage: data.profileImage }));
       setUser({ ...user, profileImage: data.profileImage });
       setToast({ type: "success", msg: "Image: Protocol Secured" });
       setSystemStatus("Sync_Success");
-    } catch (err) {
+    } catch {
       setToast({ type: "error", msg: "Image: Uplink Failed" });
       setSystemStatus("Fatal_Error");
     } finally {
@@ -170,7 +166,6 @@ const Settings = () => {
     setSaving(true);
     setSystemStatus("Injecting_Data...");
     try {
-      const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
       const payload = {
         name: form.name, bio: form.bio, phone: form.phone,
         location: form.location, website: form.website,
@@ -183,10 +178,10 @@ const Settings = () => {
         notifications: { email: form.notifEmail, platform: form.notifPlatform },
         ...(form.newPassword ? { password: form.newPassword } : {}),
       };
-      const { data } = await axios.put("/api/users/profile", payload, cfg);
+      const { data } = await api.put("/api/users/profile", payload);
       const updated = { ...user, ...data };
       setUser(updated);
-      localStorage.setItem("userInfo", JSON.stringify(updated));
+      persistUserSession(updated);
       setToast({ type: "success", msg: "Success: Protocols Updated" });
       setSystemStatus("Protocol_Secured");
       setForm((p) => ({ ...p, newPassword: "", confirmPassword: "" }));

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import PageTransition from "../components/PageTransition";
 import { useAuth } from "../context/AuthContext";
 import { BarChart2, Activity, PieChart, Info } from "lucide-react";
-import axios from "axios";
+import api from "../utils/api";
 
 /* ──────────────────────────────────────────────────────────
    SVG Pie Chart — pure, no external lib needed
@@ -19,12 +19,13 @@ const SVGPieChart = ({ slices }) => {
 
   // Convert values to angles
   const total = slices.reduce((s, d) => s + d.value, 0) || 1;
-  let cumulative = 0;
-
-  const arcs = slices.map((slice) => {
-    const startAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
-    cumulative += slice.value;
-    const endAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
+  const arcs = slices.map((slice, index) => {
+    const previousValue = slices
+      .slice(0, index)
+      .reduce((sum, currentSlice) => sum + currentSlice.value, 0);
+    const nextValue = previousValue + slice.value;
+    const startAngle = (previousValue / total) * 2 * Math.PI - Math.PI / 2;
+    const endAngle = (nextValue / total) * 2 * Math.PI - Math.PI / 2;
 
     const x1 = cx + r * Math.cos(startAngle);
     const y1 = cy + r * Math.sin(startAngle);
@@ -92,55 +93,38 @@ const cardCls = "bg-black/70 backdrop-blur-xl border border-orange-500/12 rounde
 
 const Analytics = () => {
   const { user } = useAuth();
-  const [projects, setProjects] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchAnalytics = async () => {
       try {
-        const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
-        const { data } = await axios.get("/api/projects/myprojects", cfg);
-        setProjects(data || []);
+        const { data } = await api.get("/api/projects/analytics");
+        setAnalytics(data);
       } catch {
-        setProjects([]);
+        setAnalytics(null);
       } finally {
         setLoading(false);
       }
     };
-    if (user?.token) fetchProjects();
+
+    if (user?.token) fetchAnalytics();
   }, [user]);
 
-  // Derive skill tallies from real project data
-  const skillTally = {};
-  projects.forEach((p) => {
-    (p.technologies || []).forEach((tech) => {
-      skillTally[tech] = (skillTally[tech] || 0) + 1;
-    });
-  });
+  const skillBarData = analytics?.skillData?.slice(0, 7) || [];
+  const maxSkillVal = Math.max(...skillBarData.map((skill) => skill.value), 1);
 
-  const skillBarData = Object.entries(skillTally)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 7)
-    .map(([label, count]) => ({ label, value: count }));
-
-  const maxSkillVal = Math.max(...skillBarData.map((s) => s.value), 1);
-
-  // Pie chart: project status distribution
   const statusColors = {
-    Published:  "#f97316",
-    Verified:   "#22c55e",
-    Pending:    "#eab308",
-    Draft:      "#6b7280",
+    Published: "#f97316",
+    Verified: "#22c55e",
+    Pending: "#eab308",
+    Draft: "#6b7280",
   };
-  const statusTally = { Published: 0, Verified: 0, Pending: 0, Draft: 0 };
-  projects.forEach((p) => {
-    const s = p.status || "Published";
-    if (statusTally[s] !== undefined) statusTally[s]++;
-    else statusTally["Published"]++;
-  });
-  const pieSlices = Object.entries(statusTally)
-    .filter(([, v]) => v > 0)
-    .map(([label, value]) => ({ label, value, color: statusColors[label] }));
+  const pieSlices = (analytics?.statusData || []).map(({ label, value }) => ({
+    label,
+    value,
+    color: statusColors[label] || "#6b7280",
+  }));
 
   return (
     <PageTransition>
@@ -151,7 +135,7 @@ const Analytics = () => {
           </h1>
           <div className="h-[2px] w-20 bg-orange-600 mt-4" />
           <p className="mt-4 text-gray-500 text-sm">
-            All charts are generated from your actual project and skill data — no sample numbers.
+            This dashboard now uses the backend analytics pipeline as its single source of truth.
           </p>
         </header>
 
@@ -163,7 +147,7 @@ const Analytics = () => {
             <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
               <BarChart2 className="w-5 h-5 text-orange-500" />
               <h3 className="font-black uppercase tracking-widest text-sm text-white">Skill Frequency</h3>
-              <span className="ml-auto text-gray-600 text-xs">from your projects</span>
+              <span className="ml-auto text-gray-600 text-xs">from verified analytics</span>
             </div>
 
             {loading ? (
@@ -219,19 +203,16 @@ const Analytics = () => {
             <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
               <Activity className="w-5 h-5 text-orange-500" />
               <h3 className="font-black uppercase tracking-widest text-sm text-white">Project Activity Timeline</h3>
-              <span className="ml-auto text-gray-600 text-xs">{projects.length} project{projects.length !== 1 ? "s" : ""} recorded</span>
+              <span className="ml-auto text-gray-600 text-xs">{analytics?.totalProjects || 0} project{(analytics?.totalProjects || 0) !== 1 ? "s" : ""} recorded</span>
             </div>
 
             {loading ? (
               <div className="h-24 flex items-center justify-center">
                 <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
               </div>
-            ) : projects.length === 0 ? EMPTY_STATE : (
+            ) : !analytics?.timeline?.length ? EMPTY_STATE : (
               <div className="space-y-3">
-                {[...projects]
-                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  .slice(0, 6)
-                  .map((p, i) => (
+                {analytics.timeline.slice(0, 6).map((p, i) => (
                     <motion.div
                       key={p._id}
                       initial={{ opacity: 0, x: -16 }}

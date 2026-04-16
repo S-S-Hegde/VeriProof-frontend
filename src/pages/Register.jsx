@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import { useTheme } from "../context/ThemeContext";
 import { UserPlus, Mail, Lock, Github, UserCircle, Target, ShieldCheck, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../utils/api";
+import { persistUserSession } from "../utils/authStorage";
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -15,7 +16,7 @@ const Register = () => {
   const [role, setRole] = useState("student");
   const [githubUsername, setGithubUsername] = useState("");
   const { setUser } = useAuth();
-  const { theme } = useTheme();
+  useTheme();
   const navigate = useNavigate();
 
   const handleRoleSelection = (selectedRole) => {
@@ -26,7 +27,7 @@ const Register = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("/api/users", {
+      const { data } = await api.post("/api/users", {
         name,
         email,
         password,
@@ -34,9 +35,9 @@ const Register = () => {
         githubUsername,
       });
       setUser(data);
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      persistUserSession(data);
       navigate("/dashboard");
-    } catch (error) {
+    } catch {
       alert("Error registering");
     }
   };

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import { motion } from "framer-motion";
 import { Search, Users, ShieldCheck, Activity, ExternalLink, CheckCircle } from "lucide-react";
+import api from "../utils/api";
+import ProjectCard3D from "../components/ProjectCard3D";
 
 // Framer motion variants
 const containerVariants = {
@@ -19,21 +20,22 @@ const itemVariants = {
 const RecruiterDashboard = () => {
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
+  const [savedProjects, setSavedProjects] = useState([]);
   const [pendingResumes, setPendingResumes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-        
-        const [projectsRes, resumesRes] = await Promise.all([
-          axios.get("/api/projects", config),
-          axios.get("/api/users/resumes/pending", config)
+        const [projectsRes, resumesRes, savedRes] = await Promise.all([
+          api.get("/api/projects", { params: { sort: "verified", limit: 24 } }),
+          api.get("/api/users/resumes/pending"),
+          api.get("/api/users/profile/saved-projects"),
         ]);
 
-        setProjects(projectsRes.data);
+        setProjects(projectsRes.data.projects || []);
         setPendingResumes(resumesRes.data);
+        setSavedProjects(savedRes.data || []);
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch data", error);
@@ -47,11 +49,23 @@ const RecruiterDashboard = () => {
 
   const handleVerifyResume = async (studentId) => {
     try {
-      const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`/api/users/${studentId}/verify-resume`, { status: "Verified" }, config);
+      await api.put(`/api/users/${studentId}/verify-resume`, { status: "Verified" });
       setPendingResumes(pendingResumes.filter(r => r._id !== studentId));
-    } catch (error) {
+    } catch {
       alert("Failed to verify resume");
+    }
+  };
+
+  const toggleSavedProject = async (projectId) => {
+    try {
+      const { data } = await api.put(`/api/users/profile/saved-projects/${projectId}`);
+      setSavedProjects((current) =>
+        data.saved
+          ? [...current, projects.find((project) => project._id === projectId)].filter(Boolean)
+          : current.filter((project) => project._id !== projectId),
+      );
+    } catch {
+      alert("Failed to update shortlist");
     }
   };
 
@@ -151,6 +165,25 @@ const RecruiterDashboard = () => {
           <Users className="w-6 h-6 text-[var(--color-accent)]" />
           <h3 className="text-2xl font-black italic uppercase tracking-tighter">Verified Artifacts Library</h3>
         </div>
+
+        {savedProjects.length > 0 && (
+          <div className="mb-16">
+            <div className="mb-8 flex items-center gap-4">
+              <ShieldCheck className="w-6 h-6 text-[var(--color-accent)]" />
+              <h3 className="text-2xl font-black italic uppercase tracking-tighter">Shortlisted Projects</h3>
+            </div>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+              {savedProjects.slice(0, 3).map((project) => (
+                <ProjectCard3D
+                  key={`saved-${project._id}`}
+                  project={project}
+                  isSaved
+                  onToggleSaved={() => toggleSavedProject(project._id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
         
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 border border-dashed border-[var(--color-border)] bg-black/5 dark:bg-white/5">
@@ -230,6 +263,13 @@ const RecruiterDashboard = () => {
                   <span className={`inline-flex items-center px-3 py-1 text-[10px] tracking-[0.2em] uppercase font-bold border ${project.isVerified ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)] opacity-40 bg-[var(--color-text)]/[0.02]"}`}>
                     {project.isVerified ? "AUTHENTICATED" : "PENDING_REVIEW"}
                   </span>
+                </div>
+                <div className="px-8 pb-6">
+                  <ProjectCard3D
+                    project={project}
+                    isSaved={savedProjects.some((savedProject) => savedProject._id === project._id)}
+                    onToggleSaved={() => toggleSavedProject(project._id)}
+                  />
                 </div>
               </motion.div>
             ))}

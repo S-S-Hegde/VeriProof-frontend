@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import PageTransition from "../components/PageTransition";
+import { useAuth } from "../context/AuthContext";
 import { ShieldCheck, Clock, CheckCircle, XCircle, ChevronRight, AlertTriangle } from "lucide-react";
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../utils/api";
 
 const VerificationRequests = () => {
+  const { user } = useAuth();
   const [results, setResults] = useState([]);
   const [takingExam, setTakingExam] = useState(null); // Will hold the result object if taking an exam
   const [examData, setExamData] = useState(null);
@@ -15,10 +17,8 @@ const VerificationRequests = () => {
 
   const fetchResults = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if(!token) return;
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get("http://localhost:5000/api/verify/my-results", config);
+      if(!user?.token) return;
+      const { data } = await api.get("/api/verify/my-results");
       setResults(data);
     } catch (error) {
       console.error("Failed to fetch my results", error);
@@ -26,28 +26,18 @@ const VerificationRequests = () => {
   };
 
   useEffect(() => {
-    fetchResults();
-  }, []);
+    if (!user?.token) return;
 
-  // Timer Effect for Exams
-  useEffect(() => {
-    let timer;
-    if (takingExam && !examSubmitted && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && takingExam && !examSubmitted) {
-      submitExam(); // Auto submit if time runs out
-    }
-    return () => clearInterval(timer);
-  }, [takingExam, timeLeft, examSubmitted]);
+    const loadResults = async () => {
+      await fetchResults();
+    };
+
+    loadResults();
+  }, [user?.token]);
 
   const startExam = async (result) => {
     try {
-      const token = localStorage.getItem("token");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      
-      const { data } = await axios.get(`http://localhost:5000/api/verify/exam/${result.jobId?._id}`, config);
+      const { data } = await api.get(`/api/verify/exam/${result.jobId?._id}`);
       
       setExamData(data);
       setAnswers(new Array(data.questions.length).fill(null));
@@ -65,15 +55,12 @@ const VerificationRequests = () => {
     setAnswers(newAnswers);
   };
 
-  const submitExam = async () => {
+  async function submitExam() {
     try {
-      const token = localStorage.getItem("token");
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      
-      const { data } = await axios.post(`http://localhost:5000/api/verify/exam/${takingExam._id}`, {
+      const { data } = await api.post(`/api/verify/exam/${takingExam._id}`, {
         examId: examData._id,
         answers
-      }, config);
+      });
       
       setFinalScore(data);
       setExamSubmitted(true);
@@ -81,7 +68,22 @@ const VerificationRequests = () => {
     } catch (error) {
       console.error("Failed to submit exam", error);
     }
-  };
+  }
+
+  // Timer Effect for Exams
+  useEffect(() => {
+    let timer;
+    if (takingExam && !examSubmitted && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && takingExam && !examSubmitted) {
+      timer = setTimeout(() => {
+        submitExam();
+      }, 0);
+    }
+    return () => clearInterval(timer);
+  }, [takingExam, timeLeft, examSubmitted]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -233,9 +235,7 @@ const VerificationRequests = () => {
                     <div className="p-6 border-t border-ibex-surface/20 bg-ibex-surface/5 flex justify-between items-center shrink-0">
                       <button 
                         onClick={() => {
-                          if(window.confirm("Are you sure you want to abandon this exam? It will be marked as failed.")) {
-                            setTakingExam(null); // Simple cancel for now, robust systems would explicitly fail
-                          }
+                          setTakingExam(null);
                         }}
                         className="text-xs font-bold uppercase tracking-widest text-ibex-muted hover:text-red-500 transition-colors"
                       >
@@ -268,7 +268,7 @@ const VerificationRequests = () => {
                         <h2 className="text-4xl font-serif text-ibex-text mb-2">VALIDATION FAILED</h2>
                         <p className="text-red-500 font-medium text-xl mb-8">Score: {finalScore.examScore}%</p>
                         <p className="text-ibex-muted mb-8 max-w-sm">
-                          Your examination algorithms did not meet the required threshold requested by the Recruiter.
+                          Your examination algorithms did not meet the required threshold requested by the recruiter.
                         </p>
                       </>
                     )}

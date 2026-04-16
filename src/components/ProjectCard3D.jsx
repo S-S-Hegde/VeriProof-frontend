@@ -1,11 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useTheme, THEMES } from "../context/ThemeContext";
 import { Github, ShieldCheck, ExternalLink, Plus } from "lucide-react";
+import SaveProjectButton from "./SaveProjectButton";
 
-const ProjectCard3D = ({ project }) => {
-  const { theme } = useTheme();
+const ProjectCard3D = ({ project, isSaved = false, onToggleSaved, saveBusy = false }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -81,6 +80,16 @@ const ProjectCard3D = ({ project }) => {
             </span>
           ))}
         </div>
+
+        {onToggleSaved && (
+          <div className="mt-6">
+            <SaveProjectButton
+              isSaved={isSaved}
+              onToggle={onToggleSaved}
+              busy={saveBusy}
+            />
+          </div>
+        )}
       </div>
 
       <div 
@@ -91,8 +100,8 @@ const ProjectCard3D = ({ project }) => {
           <a href={project.repositoryUrl} target="_blank" rel="noreferrer" className="text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors duration-500">
             <Github className="w-4 h-4" />
           </a>
-          {project.demoUrl && (
-            <a href={project.demoUrl} target="_blank" rel="noreferrer" className="text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors duration-500">
+          {project.liveUrl && (
+            <a href={project.liveUrl} target="_blank" rel="noreferrer" className="text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors duration-500">
               <ExternalLink className="w-4 h-4" />
             </a>
           )}
