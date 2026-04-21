@@ -72,7 +72,6 @@ const Navbar = () => {
       { name: "Terminal", path: "/dashboard", icon: LayoutDashboard },
       { name: "Evidence", path: "/discover", icon: Search },
       { name: "Exams", path: "/exams", icon: FileText },
-      { name: "AI Builder", path: "/ai-resume-builder", icon: Wand2 },
     ];
   };
 

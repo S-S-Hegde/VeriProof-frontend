@@ -18,12 +18,12 @@ const inputCls = "block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-[
 const labelCls = "block text-sm uppercase tracking-[0.3em] font-bold text-[var(--color-muted)] mb-3 flex items-center gap-2";
 
 const TABS = [
-  { id: "Identity", icon: User, label: "User_Identity" },
-  { id: "Records", icon: GraduationCap, label: "Academic_Records" },
-  { id: "Evidence", icon: FileText, label: "Architectural_Evidence" },
-  { id: "Nodes", icon: Globe, label: "Network_Nodes" },
-  { id: "Privacy", icon: Eye, label: "Privacy_Sync" },
-  { id: "Shield", icon: Lock, label: "Security_Shield" },
+  { id: "Identity", icon: User, label: "User Identity" },
+  { id: "Records", icon: GraduationCap, label: "Academic Records" },
+  { id: "Evidence", icon: FileText, label: "Architectural Evidence" },
+  { id: "Nodes", icon: Globe, label: "Network Nodes" },
+  { id: "Privacy", icon: Eye, label: "Privacy Sync" },
+  { id: "Shield", icon: Lock, label: "Security Shield" },
 ];
 
 const Settings = () => {
@@ -242,8 +242,8 @@ const Settings = () => {
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <Icon className={`w-4 h-4 ${isActive ? "opacity-100" : "opacity-40"}`} />
-                    <span className="text-sm font-bold uppercase tracking-[0.3em]">{tab.label}</span>
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "opacity-100" : "opacity-40"}`} />
+                    <span className="text-sm font-bold uppercase tracking-[0.2em] text-left leading-tight">{tab.label.replace('_', ' ')}</span>
                   </div>
                   {isActive && (
                     <motion.div layoutId="tab-indicator" className="absolute left-0 top-0 bottom-0 w-1 bg-white" />
@@ -295,7 +295,7 @@ const Settings = () => {
                     <div className="md:col-span-2 flex items-center justify-between mb-8 border-b border-[var(--color-border)] pb-8">
                         <div className="flex items-center gap-4">
                             <Fingerprint className="w-6 h-6 text-[var(--color-accent)]" />
-                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Core_Identity</h3>
+                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Core Identity</h3>
                         </div>
 
                         {/* MODERN IMAGE UPLOADER */}
@@ -368,7 +368,7 @@ const Settings = () => {
                   >
                     <div className="flex items-center gap-4">
                         <FileText className="w-6 h-6 text-[var(--color-accent)]" />
-                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Architectural_Evidence</h3>
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Architectural Evidence</h3>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -446,7 +446,7 @@ const Settings = () => {
                   >
                     <div className="md:col-span-2 flex items-center gap-4 mb-4">
                         <GraduationCap className="w-6 h-6 text-[var(--color-accent)]" />
-                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Academic_Ledger</h3>
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Academic Ledger</h3>
                     </div>
 
                     <div className="md:col-span-2">
@@ -485,7 +485,7 @@ const Settings = () => {
                   >
                     <div className="md:col-span-2 flex items-center gap-4 mb-4">
                         <Globe className="w-6 h-6 text-[var(--color-accent)]" />
-                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">External_Links</h3>
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">External Links</h3>
                     </div>
                     
                     {[
@@ -513,7 +513,7 @@ const Settings = () => {
                     <div>
                         <div className="flex items-center gap-4 mb-10">
                             <Bell className="w-6 h-6 text-[var(--color-accent)]" />
-                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Transmission_Protocols</h3>
+                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Transmission Protocols</h3>
                         </div>
                         <div className="space-y-6 max-w-2xl">
                             {[
@@ -537,7 +537,7 @@ const Settings = () => {
                     <div>
                         <div className="flex items-center gap-4 mb-10">
                             <Eye className="w-6 h-6 text-[var(--color-accent)]" />
-                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Visibility_Shield</h3>
+                            <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Visibility Shield</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {[
@@ -566,7 +566,7 @@ const Settings = () => {
                   >
                     <div className="md:col-span-2 flex items-center gap-4 mb-4">
                         <Lock className="w-6 h-6 text-[var(--color-accent)]" />
-                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Authentication_Re-Key</h3>
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">Authentication Re-Key</h3>
                     </div>
                     
                     <div className="md:col-span-2 text-sm opacity-40 font-mono uppercase tracking-[0.2em]">

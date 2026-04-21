@@ -8,7 +8,6 @@ import { Upload, Link2, Wand2, CheckCircle, FileText, FolderOpen, Download, Load
 const TABS = [
   { id: "file",    label: "File Upload",    icon: FolderOpen },
   { id: "link",    label: "Paste Link",     icon: Link2      },
-  { id: "builder", label: "AI Builder",     icon: Wand2      },
 ];
 
 const inputCls = "block w-full px-4 py-3 bg-black/50 border border-orange-500/25 rounded-lg focus:outline-none focus:border-orange-500 text-white placeholder-gray-600 transition-colors text-sm";
@@ -28,15 +27,6 @@ const ResumeBuilder = () => {
   // ── Link/URL
   const [resumeUrl, setResumeUrl] = useState("");
   const [urlStatus, setUrlStatus] = useState(user?.resumeStatus || "Not Submitted");
-
-  // ── AI Builder fields
-  const [builderFields, setBuilderFields] = useState({
-    fullName: "", email: "", phone: "",
-    skills: "", education: "", experience: "",
-    cgpa: "",
-  });
-  const [builderStatus, setBuilderStatus] = useState("");
-  const [pdfLoading, setPdfLoading] = useState(false);
 
   /* ── Handlers ─────────────────────────────────────────── */
   const handleUrlSubmit = async (e) => {
@@ -61,52 +51,6 @@ const ResumeBuilder = () => {
       setFileStatus("Uploaded — Pending Evaluation");
     } catch {
       setFileStatus("Upload failed — check file format (PDF/DOCX)");
-    }
-  };
-
-  const handleBuilderSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post("/api/users/profile/resume-build", builderFields, cfg);
-      setBuilderStatus("Resume generated and queued for evaluation");
-    } catch {
-      setBuilderStatus("Generation failed — try again");
-    }
-  };
-
-  /* ── PDF Download ──────────────────────────────────────── */
-  const handleDownloadPDF = async (e) => {
-    e.preventDefault();
-    setPdfLoading(true);
-    try {
-      const cfg = {
-        headers: { Authorization: `Bearer ${user.token}` },
-        responseType: "blob",
-      };
-      const payload = {
-        fullName:   builderFields.fullName,
-        email:      builderFields.email,
-        phone:      builderFields.phone,
-        skills:     builderFields.skills,
-        education:  builderFields.education,
-        experience: builderFields.experience,
-        summary:    "",
-      };
-      const response = await axios.post("/api/resume/generate", payload, cfg);
-      const url  = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
-      const link = document.createElement("a");
-      link.href  = url;
-      link.setAttribute("download", `${builderFields.fullName || user?.name || "resume"}_resume.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      setBuilderStatus("PDF downloaded!");
-    } catch {
-      setBuilderStatus("PDF generation failed — check your profile data");
-    } finally {
-      setPdfLoading(false);
     }
   };
 
@@ -218,84 +162,6 @@ const ResumeBuilder = () => {
                   Submit URL
                 </button>
               </div>
-            </form>
-          </motion.div>
-        )}
-
-        {/* ── TAB: AI BUILDER ── */}
-        {activeTab === "builder" && (
-          <motion.div key="builder" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className={cardCls}>
-            <div className="absolute -top-8 -right-8 w-40 h-40 bg-orange-600/8 rounded-full blur-3xl pointer-events-none" />
-            <div className="flex items-center gap-3 mb-2">
-              <Wand2 className="w-6 h-6 text-orange-500" />
-              <h3 className="font-black uppercase tracking-widest text-white">AI Resume Builder</h3>
-            </div>
-            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-              Fill in the form below. The platform will generate a structured, ATS-friendly resume aligned with verified projects already on your profile.
-            </p>
-
-            <form onSubmit={handleBuilderSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className={labelCls}>Full Name</label>
-                <input className={inputCls} required placeholder="Your full name"
-                  value={builderFields.fullName} onChange={(e) => setBuilderFields(p => ({ ...p, fullName: e.target.value }))} />
-              </div>
-              <div>
-                <label className={labelCls}>Email</label>
-                <input type="email" className={inputCls} required placeholder="you@email.com"
-                  value={builderFields.email} onChange={(e) => setBuilderFields(p => ({ ...p, email: e.target.value }))} />
-              </div>
-              <div>
-                <label className={labelCls}>Phone</label>
-                <input className={inputCls} placeholder="+91 XXXXX XXXXX"
-                  value={builderFields.phone} onChange={(e) => setBuilderFields(p => ({ ...p, phone: e.target.value }))} />
-              </div>
-              <div>
-                <label className={labelCls}>CGPA <span className="text-gray-600 normal-case tracking-normal">(minimal factor in recruiter view)</span></label>
-                <input className={inputCls} placeholder="e.g. 7.8 / 10"
-                  value={builderFields.cgpa} onChange={(e) => setBuilderFields(p => ({ ...p, cgpa: e.target.value }))} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className={labelCls}>Core Skills (comma separated)</label>
-                <input className={inputCls} required placeholder="React, Node.js, Python, SQL"
-                  value={builderFields.skills} onChange={(e) => setBuilderFields(p => ({ ...p, skills: e.target.value }))} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className={labelCls}>Education</label>
-                <textarea rows={2} className={inputCls} placeholder="B.E. Computer Science — XYZ University, 2024"
-                  value={builderFields.education} onChange={(e) => setBuilderFields(p => ({ ...p, education: e.target.value }))} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className={labelCls}>Experience / Internships</label>
-                <textarea rows={3} className={inputCls} placeholder="Frontend Intern at ABC Corp — 3 months..."
-                  value={builderFields.experience} onChange={(e) => setBuilderFields(p => ({ ...p, experience: e.target.value }))} />
-              </div>
-
-              <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
-                {builderStatus && (
-                  <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${builderStatus.includes("failed") ? "text-red-400" : builderStatus === "PDF downloaded!" ? "text-green-400" : "text-orange-400"}`}>
-                    {(!builderStatus.includes("failed")) && <CheckCircle className="w-3.5 h-3.5" />} {builderStatus}
-                  </span>
-                )}
-                <div className="flex gap-3 ml-auto flex-wrap">
-                  {/* Save to platform */}
-                  <button type="submit" className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-orange-500/35 hover:border-orange-500 text-orange-400 hover:text-orange-300 font-black tracking-widest uppercase text-xs transition-all">
-                    <FileText className="w-4 h-4" /> Save Profile
-                  </button>
-                  {/* Download PDF */}
-                  <button
-                    type="button"
-                    onClick={handleDownloadPDF}
-                    disabled={pdfLoading}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-black tracking-widest uppercase text-xs shadow-[0_0_15px_rgba(255,69,0,0.5)] transition-all disabled:opacity-50"
-                  >
-                    {pdfLoading
-                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
-                      : <><Download className="w-4 h-4" /> Download PDF</>}
-                  </button>
-                </div>
-              </div>
-
             </form>
           </motion.div>
         )}

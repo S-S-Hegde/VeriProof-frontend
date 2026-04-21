@@ -4,11 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "../components/PageTransition";
 import ProjectCard3D from "../components/ProjectCard3D";
-import { Plus, Database, Shield, Award, Activity } from "lucide-react";
+import { Plus, Database, Shield, Award, Activity, CheckCircle, ExternalLink } from "lucide-react";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
+  const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resumeStatus, setResumeStatus] = useState(user?.resumeStatus || "Not Submitted");
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const StudentDashboard = () => {
         if (profileRes.data.resumeUrl) {
            setResumeStatus(profileRes.data.resumeStatus || "Pending Evaluation");
         }
+        setCertificates(profileRes.data.certificates || []);
         const { data } = await axios.get("/api/projects/myprojects", config);
         setProjects(data);
         setLoading(false);
@@ -84,6 +86,52 @@ const StudentDashboard = () => {
                 </div>
             ))}
         </div>
+
+        {/* VERIFIED CREDENTIALS SECTION */}
+        {certificates.length > 0 && (
+          <div className="mb-24">
+            <div className="flex items-center gap-4 mb-10">
+              <Award className="w-6 h-6 text-[var(--color-accent)]" />
+              <h3 className="text-2xl font-black italic uppercase tracking-tighter">Verified_Credentials</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              {certificates.map((cert, idx) => (
+                <div key={idx} className="p-10 border border-[var(--color-border)] bg-black/5 dark:bg-white/5 backdrop-blur-xl relative group overflow-hidden flex flex-col justify-between">
+                  <div className="absolute -top-12 -right-12 w-24 h-24 bg-[var(--color-accent)] opacity-[0.03] rotate-45 pointer-events-none" />
+                  
+                  <div>
+                    <div className="flex justify-between items-start mb-10">
+                      <div className="p-3 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 rounded-sm">
+                        <CheckCircle className="w-6 h-6 text-[var(--color-accent)]" />
+                      </div>
+                      <span className="text-[10px] font-mono opacity-20 uppercase tracking-[0.3em]">Issue_Date: {new Date(cert.issuedAt).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <h4 className="text-2xl font-black italic uppercase tracking-tighter mb-4 group-hover:text-[var(--color-accent)] transition-colors">
+                      {cert.title}
+                    </h4>
+                    <p className="text-xs font-mono uppercase tracking-widest opacity-40 mb-8">{cert.issuer}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-10">
+                      {cert.techStack?.map((tech, i) => (
+                        <span key={i} className="text-[10px] font-mono px-3 py-1.5 border border-[var(--color-border)] opacity-60 uppercase">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-8 border-t border-[var(--color-border)]/30">
+                    <span className="text-[10px] font-mono opacity-40 uppercase tracking-tighter">ID: {cert.credentialId}</span>
+                    <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent)] hover:opacity-70 transition-opacity">
+                      Verify_Proof <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* CONTENT GRID */}
         {loading ? (

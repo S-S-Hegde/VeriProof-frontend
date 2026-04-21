@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Search, Users, ShieldCheck, Activity, ExternalLink, CheckCircle } from "lucide-react";
 import api from "../utils/api";
 import ProjectCard3D from "../components/ProjectCard3D";
+import SaveProjectButton from "../components/SaveProjectButton";
 
 // Framer motion variants
 const containerVariants = {
@@ -22,6 +23,7 @@ const RecruiterDashboard = () => {
   const [projects, setProjects] = useState([]);
   const [savedProjects, setSavedProjects] = useState([]);
   const [pendingResumes, setPendingResumes] = useState([]);
+  const [savingProjectId, setSavingProjectId] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,6 +60,7 @@ const RecruiterDashboard = () => {
 
   const toggleSavedProject = async (projectId) => {
     try {
+      setSavingProjectId(projectId);
       const { data } = await api.put(`/api/users/profile/saved-projects/${projectId}`);
       setSavedProjects((current) =>
         data.saved
@@ -66,6 +69,8 @@ const RecruiterDashboard = () => {
       );
     } catch {
       alert("Failed to update shortlist");
+    } finally {
+      setSavingProjectId("");
     }
   };
 
@@ -252,23 +257,23 @@ const RecruiterDashboard = () => {
                 
                 {/* Footer Bar */}
                 <div className="px-8 py-5 flex items-center justify-between border-t border-[var(--color-border)] bg-[var(--color-text)]/[0.02]">
-                  <a
-                    href={project.repositoryUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] font-mono tracking-[0.3em] font-bold group/link flex items-center gap-2 text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors"
-                  >
-                    REPOSITORY_LINK
-                  </a>
-                  <span className={`inline-flex items-center px-3 py-1 text-[10px] tracking-[0.2em] uppercase font-bold border ${project.isVerified ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)] opacity-40 bg-[var(--color-text)]/[0.02]"}`}>
-                    {project.isVerified ? "AUTHENTICATED" : "PENDING_REVIEW"}
-                  </span>
-                </div>
-                <div className="px-8 pb-6">
-                  <ProjectCard3D
-                    project={project}
+                  <div className="flex items-center gap-4">
+                    <a
+                      href={project.repositoryUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] font-mono tracking-[0.3em] font-bold group/link flex items-center gap-2 text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors"
+                    >
+                      REPOSITORY_LINK
+                    </a>
+                    <span className={`inline-flex items-center px-3 py-1 text-[10px] tracking-[0.2em] uppercase font-bold border ${project.isVerified ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)] opacity-40 bg-[var(--color-text)]/[0.02]"}`}>
+                      {project.isVerified ? "AUTHENTICATED" : "PENDING_REVIEW"}
+                    </span>
+                  </div>
+                  <SaveProjectButton
                     isSaved={savedProjects.some((savedProject) => savedProject._id === project._id)}
-                    onToggleSaved={() => toggleSavedProject(project._id)}
+                    onToggle={() => toggleSavedProject(project._id)}
+                    busy={savingProjectId === project._id}
                   />
                 </div>
               </motion.div>

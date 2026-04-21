@@ -43,8 +43,8 @@ const Register = () => {
   };
 
   return (
-    <PageTransition className="flex items-center justify-center pt-24 pb-20 px-4">
-      <div className="w-full max-w-4xl relative overflow-hidden" style={{ minHeight: '600px' }}>
+    <div className="min-h-[90vh] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-4xl relative">
         
         {/* Step 1: The Choice */}
         <AnimatePresence mode="wait">
@@ -55,30 +55,30 @@ const Register = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, y: -40, filter: "blur(10px)" }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="absolute inset-0 flex flex-col md:flex-row gap-6 md:gap-0 h-full w-full"
+              className="flex flex-col md:flex-row gap-6 md:gap-0 w-full"
             >
-              <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 bg-[var(--color-bg)] border border-[var(--color-border)] hover:bg-[var(--color-text)] transition-colors group cursor-pointer" onClick={() => handleRoleSelection("student")}>
-                <Target className="w-20 h-20 mb-6 text-[var(--color-text)] group-hover:text-[var(--color-bg)] transition-colors opacity-40 group-hover:opacity-100" />
-                <h2 className="text-4xl lg:text-5xl font-black italic uppercase tracking-tighter text-[var(--color-text)] group-hover:text-[var(--color-bg)] transition-colors text-center">
+              <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 md:p-12 bg-[var(--color-bg)] border border-[var(--color-border)] hover:bg-[var(--color-text)] transition-colors group cursor-pointer min-h-[350px] md:min-h-[500px]" onClick={() => handleRoleSelection("student")}>
+                <Target className="w-16 h-16 md:w-20 md:h-20 mb-6 text-[var(--color-text)] group-hover:text-[var(--color-bg)] transition-colors opacity-40 group-hover:opacity-100" />
+                <h2 className="text-3xl lg:text-5xl font-black italic uppercase tracking-tighter text-[var(--color-text)] group-hover:text-[var(--color-bg)] transition-colors text-center leading-none">
                   CANDIDATE
                 </h2>
-                <p className="mt-4 text-sm font-mono tracking-widest text-[var(--color-text)] group-hover:text-[var(--color-bg)] transition-colors opacity-60 text-center">
+                <p className="mt-4 md:mt-6 text-xs md:text-sm font-mono tracking-widest text-[var(--color-text)] group-hover:text-[var(--color-bg)] transition-colors opacity-60 text-center max-w-[250px]">
                   Submit your architectural evidence.
                 </p>
-                <div className="mt-8 px-6 py-2 border border-current text-[var(--color-text)] group-hover:text-[var(--color-bg)] text-xs font-bold uppercase tracking-widest">
+                <div className="mt-8 md:mt-10 px-6 py-2 border border-current text-[var(--color-text)] group-hover:text-[var(--color-bg)] text-[10px] md:text-xs font-bold uppercase tracking-widest">
                    Select Origin
                 </div>
               </div>
 
-              <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 bg-[var(--color-accent)] border border-[var(--color-accent)] hover:opacity-90 transition-all group cursor-pointer" onClick={() => handleRoleSelection("recruiter")}>
-                <ShieldCheck className="w-20 h-20 mb-6 text-[var(--color-bg)] opacity-60 group-hover:opacity-100 transition-opacity" />
-                <h2 className="text-4xl lg:text-5xl font-black italic uppercase tracking-tighter text-[var(--color-bg)] text-center">
+              <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 md:p-12 bg-[var(--color-accent)] border border-[var(--color-accent)] hover:opacity-95 transition-all group cursor-pointer min-h-[350px] md:min-h-[500px]" onClick={() => handleRoleSelection("recruiter")}>
+                <ShieldCheck className="w-16 h-16 md:w-20 md:h-20 mb-6 text-[var(--color-bg)] opacity-60 group-hover:opacity-100 transition-opacity" />
+                <h2 className="text-3xl lg:text-5xl font-black italic uppercase tracking-tighter text-[var(--color-bg)] text-center leading-none">
                   INVESTIGATOR
                 </h2>
-                <p className="mt-4 text-sm font-mono tracking-widest text-[var(--color-bg)] opacity-80 text-center">
+                <p className="mt-4 md:mt-6 text-xs md:text-sm font-mono tracking-widest text-[var(--color-bg)] opacity-80 text-center max-w-[250px]">
                   Audit portfolios and source truth.
                 </p>
-                <div className="mt-8 px-6 py-2 bg-[var(--color-bg)] text-[var(--color-accent)] text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform">
+                <div className="mt-8 md:mt-10 px-6 py-2 bg-[var(--color-bg)] text-[var(--color-accent)] text-[10px] md:text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform">
                    Grant Access
                 </div>
               </div>
@@ -93,7 +93,7 @@ const Register = () => {
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full max-w-xl mx-auto glass-card p-12 relative overflow-hidden"
+              className="w-full max-w-xl mx-auto glass-card p-8 md:p-12 relative overflow-hidden"
             >
               <button 
                 onClick={() => setStep(1)} 
@@ -197,7 +197,7 @@ const Register = () => {
         </AnimatePresence>
 
       </div>
-    </PageTransition>
+    </div>
   );
 };
 

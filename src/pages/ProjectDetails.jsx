@@ -5,6 +5,9 @@ import PageTransition from "../components/PageTransition";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import PlagiarismChecker from "../components/PlagiarismChecker";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { Code, Info } from "lucide-react";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -234,6 +237,54 @@ const ProjectDetails = () => {
               )}
             </div>
           </div>
+
+          {/* Featured Code Snippets - Full Width Section */}
+          {project.featuredSnippets && project.featuredSnippets.length > 0 && (
+            <section className="mt-20 pt-20 border-t border-ibex-gold/20">
+              <h3 className="text-xs font-semibold text-ibex-gold mb-10 uppercase tracking-[0.2em] flex items-center gap-3">
+                <Code className="w-5 h-5" /> Technical Artifacts (Featured Code)
+              </h3>
+              <div className="space-y-16">
+                {project.featuredSnippets.map((snippet, idx) => (
+                  <div key={idx} className="group">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-bold text-vp-teal uppercase tracking-[0.2em]">
+                        {snippet.title}
+                      </h4>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono text-ibex-gold border border-ibex-gold/30 px-3 py-1 rounded-sm uppercase bg-ibex-gold/5">
+                          {snippet.language}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="rounded-sm overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white/5 bg-[#0d0d0d]">
+                      <SyntaxHighlighter
+                        language={snippet.language}
+                        style={atomDark}
+                        customStyle={{
+                          margin: 0,
+                          padding: "2.5rem",
+                          fontSize: "0.95rem",
+                          lineHeight: "1.7",
+                          backgroundColor: "#0d0d0d",
+                        }}
+                      >
+                        {snippet.code}
+                      </SyntaxHighlighter>
+                    </div>
+                    {snippet.explanation && (
+                      <div className="mt-6 flex items-start gap-4 bg-vp-teal/5 p-6 border-l-2 border-ibex-gold/40 max-w-4xl">
+                        <Info className="w-5 h-5 text-ibex-gold mt-1 shrink-0" />
+                        <p className="text-base text-vp-teal/90 font-light italic leading-relaxed">
+                          {snippet.explanation}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </motion.article>
       </div>
     </PageTransition>

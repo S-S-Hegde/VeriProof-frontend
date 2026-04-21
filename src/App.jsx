@@ -6,6 +6,8 @@ import {
 } from "react-router-dom";
 import { useState, Suspense, lazy, useEffect } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import Navbar from "./components/Navbar";
@@ -17,6 +19,8 @@ import CursorTracker from "./components/CursorTracker";
 import PageTransition from "./components/PageTransition";
 import ScrollToTop from "./components/ScrollToTop";
 import Lenis from '@studio-freight/lenis';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // Lazy load heavy page components
 const Login = lazy(() => import("./pages/Login"));
@@ -33,7 +37,6 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Home = lazy(() => import("./pages/Home"));
 const Demo = lazy(() => import("./pages/Demo"));
 const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
-const AIResumeBuilder = lazy(() => import("./pages/AIResumeBuilder"));
 const RecruiterResumes = lazy(() => import("./pages/RecruiterResumes"));
 const RecruiterJobs = lazy(() => import("./pages/RecruiterJobs"));
 
@@ -242,16 +245,6 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/ai-resume-builder"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <AIResumeBuilder />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-        <Route
           path="/recruiter-resumes"
           element={
             <Suspense fallback={<LoadingScreen />}>
@@ -384,18 +377,26 @@ const AppContent = () => {
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
+      duration: 1.1,
+      lerp: 0.085,
+      smoothWheel: true,
+      syncTouch: false,
+      easing: (t) => 1 - Math.pow(1 - t, 4),
     });
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
+    lenis.on("scroll", ScrollTrigger.update);
 
-    return () => lenis.destroy();
+    const update = (time) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(update);
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      gsap.ticker.remove(update);
+      lenis.destroy();
+    };
   }, []);
 
   return (

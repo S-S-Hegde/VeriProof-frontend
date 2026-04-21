@@ -24,10 +24,12 @@
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0",
+    "react-syntax-highlighter": "^16.1.1",
     "sweetalert2": "^11.26.24"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tailwindcss/oxide-win32-x64-msvc": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
@@ -36,12 +38,13 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "lightningcss-win32-x64-msvc": "^1.31.1",
     "tailwindcss": "^4.2.1",
     "terser": "^5.46.0",
-    "vite": "^8.0.0-beta.13"
+    "vite": "^7.1.0"
   },
   "overrides": {
-    "vite": "^8.0.0-beta.13",
+    "vite": "^7.1.0",
     "eslint-plugin-react-hooks": {
       "eslint": "^10.1.0"
     }

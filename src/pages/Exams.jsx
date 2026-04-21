@@ -152,7 +152,7 @@ const Exams = () => {
     const hasResume = !!user?.resumeUrl;
     
     return (
-      <PageTransition className="min-h-screen flex items-center justify-center pt-20 px-4">
+      <div className="min-h-[90vh] flex items-center justify-center px-4">
         <div className="absolute inset-0 bg-[var(--color-bg)] z-0" />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 z-0" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--color-accent)] opacity-[0.03] blur-[100px] pointer-events-none" />
@@ -196,13 +196,13 @@ const Exams = () => {
             )}
           </div>
         </div>
-      </PageTransition>
+      </div>
     );
   }
 
   if (isScanning) {
     return (
-      <PageTransition className="min-h-screen flex items-center justify-center pt-20 px-4">
+      <div className="min-h-[90vh] flex items-center justify-center px-4">
         <div className="absolute inset-0 bg-[var(--color-bg)] z-0" />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 z-0" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--color-accent)] opacity-[0.03] blur-[100px] pointer-events-none" />
@@ -237,7 +237,7 @@ const Exams = () => {
             </div>
           </div>
         </div>
-      </PageTransition>
+      </div>
     );
   }
 
@@ -246,7 +246,7 @@ const Exams = () => {
     const score = submissionResult?.score || 0;
 
     return (
-      <PageTransition className="min-h-screen flex items-center justify-center pt-24 px-4 bg-[var(--color-bg)]">
+      <div className="min-h-[90vh] flex items-center justify-center px-4 bg-[var(--color-bg)]">
          <div className="text-center max-w-2xl glass-card border border-[var(--color-border)] p-12 lg:p-24 shadow-2xl relative overflow-hidden">
              <div className="absolute top-0 inset-x-0 h-1 bg-[var(--color-accent)]" />
              <FileCheck className="w-20 h-20 text-[var(--color-accent)] mx-auto mb-8" />
@@ -271,7 +271,7 @@ const Exams = () => {
                Return_To_Archive
              </button>
          </div>
-      </PageTransition>
+      </div>
     );
   }
 
@@ -284,7 +284,7 @@ const Exams = () => {
   if (!currentQ) return null;
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] pt-[80px] flex flex-col font-sans">
+    <div className="flex-1 bg-[var(--color-bg)] flex flex-col font-sans">
       
       {/* Top Protocol Bar */}
       <div className="px-6 py-3 border-b border-[var(--color-border)] bg-black/20 backdrop-blur-md flex items-center justify-between sticky top-[80px] z-40">
