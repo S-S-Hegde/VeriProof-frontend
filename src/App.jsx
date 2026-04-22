@@ -51,6 +51,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const RecruiterDashboard = lazy(() => import("./pages/RecruiterDashboard"));
 const Exams = lazy(() => import("./pages/Exams"));
+const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
 
 const VerificationRequests = lazy(() => import("./pages/VerificationRequests"));
 const VerificationPanel = lazy(() => import("./pages/VerificationPanel"));
@@ -322,6 +323,16 @@ const AnimatedRoutes = () => {
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
                 <VerificationPanel />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/skill-tree"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <SkillTreePage />
               </PageTransition>
             </Suspense>
           }
