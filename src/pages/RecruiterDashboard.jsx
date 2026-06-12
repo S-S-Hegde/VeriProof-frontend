@@ -227,6 +227,19 @@ const RecruiterDashboard = () => {
                       </p>
                     </div>
                   </div>
+
+                  <div className="mb-8 grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Trust", value: `${project.user.skillProgress?.trustScore || 0}%` },
+                      { label: "Verified", value: project.user.skillProgress?.verifiedCount || 0 },
+                      { label: "Level", value: project.user.skillProgress?.level || 1 },
+                    ].map((metric) => (
+                      <div key={metric.label} className="border border-[var(--color-border)] bg-[var(--color-text)]/[0.02] p-3">
+                        <p className="font-mono text-[9px] uppercase tracking-[0.18em] opacity-35">{metric.label}</p>
+                        <p className="mt-1 text-lg font-black tracking-tighter">{metric.value}</p>
+                      </div>
+                    ))}
+                  </div>
                   
                   <Link to={`/project/${project._id}`} className="block hover:opacity-70 transition-opacity">
                     <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-tight mb-4 line-clamp-2">
@@ -269,6 +282,12 @@ const RecruiterDashboard = () => {
                     <span className={`inline-flex items-center px-3 py-1 text-[10px] tracking-[0.2em] uppercase font-bold border ${project.isVerified ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/5" : "border-[var(--color-border)] opacity-40 bg-[var(--color-text)]/[0.02]"}`}>
                       {project.isVerified ? "AUTHENTICATED" : "PENDING_REVIEW"}
                     </span>
+                    <Link
+                      to={`/skill-tree?candidate=${project.user._id}`}
+                      className="text-[10px] font-mono tracking-[0.2em] font-bold text-[var(--color-accent)] hover:opacity-70"
+                    >
+                      SKILL_TREE
+                    </Link>
                   </div>
                   <SaveProjectButton
                     isSaved={savedProjects.some((savedProject) => savedProject._id === project._id)}

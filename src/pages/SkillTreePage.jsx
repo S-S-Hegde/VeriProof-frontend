@@ -1,421 +1,169 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
-import DynamicSkillTree from "../components/DynamicSkillTree";
-import api from "../utils/api";
+import { useState } from "react";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
-  Shield,
+  Award,
+  BadgeCheck,
+  Flame,
   GitBranch,
-  FileText,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
-  Lock,
-  CheckCircle2,
-  FlaskConical,
-  Lightbulb,
+  Trophy,
+  Zap,
 } from "lucide-react";
+import DynamicSkillTree from "../components/DynamicSkillTree";
+import { useSkillTree } from "../context/SkillTreeContext";
+import { useAuth } from "../context/AuthContext";
+import api from "../utils/api";
 
-// ─── Theme tokens ────────────────────────────────────────────────────────────
-const THEME = {
-  light: {
-    cardBg: "rgba(255,255,255,0.7)",
-    cardBorder: "#E2E8F0",
-    inputBg: "#FFFFFF",
-    inputBorder: "#CBD5E1",
-    inputText: "#0F172A",
-    buttonPrimary: "#2563EB",
-    buttonPrimaryHover: "#1D4ED8",
-    buttonText: "#FFFFFF",
-    accentText: "#2563EB",
-    mutedText: "#64748B",
-    text: "#0F172A",
-    dangerBg: "#FEF2F2",
-    dangerBorder: "#FECACA",
-    dangerText: "#991B1B",
-    statBg: "rgba(37,99,235,0.06)",
-    statBorder: "#DBEAFE",
-  },
-  dark: {
-    cardBg: "rgba(15,23,42,0.7)",
-    cardBorder: "#1E293B",
-    inputBg: "#1E293B",
-    inputBorder: "#334155",
-    inputText: "#F1F5F9",
-    buttonPrimary: "#F59E0B",
-    buttonPrimaryHover: "#D97706",
-    buttonText: "#0F172A",
-    accentText: "#F59E0B",
-    mutedText: "#94A3B8",
-    text: "#F1F5F9",
-    dangerBg: "rgba(127,29,29,0.2)",
-    dangerBorder: "#7F1D1D",
-    dangerText: "#FCA5A5",
-    statBg: "rgba(245,158,11,0.08)",
-    statBorder: "#78350F",
-  },
-};
+const StatTile = ({ icon: Icon, label, value, sub }) => (
+  <div className="border border-[var(--color-border)] bg-[var(--color-bg)]/65 p-5 backdrop-blur-xl">
+    <div className="mb-5 flex items-start justify-between gap-4">
+      <Icon className="h-5 w-5 text-[var(--color-accent)]" />
+      <span className="font-mono text-[10px] uppercase tracking-[0.24em] opacity-35">{label}</span>
+    </div>
+    <p className="text-3xl font-black uppercase tracking-tighter">{value}</p>
+    {sub && <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] opacity-45">{sub}</p>}
+  </div>
+);
+
+const AchievementStrip = ({ achievements = [] }) => (
+  <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+    {achievements.map((achievement) => (
+      <div
+        key={achievement.id}
+        className={`border p-4 transition-all ${achievement.unlocked ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10" : "border-[var(--color-border)] bg-[var(--color-bg)]/45 opacity-50"}`}
+      >
+        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-current">
+          {achievement.unlocked ? <Trophy className="h-5 w-5" /> : <Award className="h-5 w-5" />}
+        </div>
+        <p className="text-xs font-black uppercase tracking-tight">{achievement.title}</p>
+        <p className="mt-2 text-[11px] leading-relaxed opacity-55">{achievement.description}</p>
+      </div>
+    ))}
+  </div>
+);
 
 const SkillTreePage = () => {
   const { user } = useAuth();
-  const { isDarkMode } = useTheme();
-  const t = isDarkMode ? THEME.dark : THEME.light;
+  const { skillTree, progress, loading, error, refreshSkillTree, recordSkillEvent } = useSkillTree();
+  const [searchParams] = useSearchParams();
+  const candidateId = searchParams.get("candidate");
+  const [candidateView, setCandidateView] = useState(null);
+  const [candidateLoading, setCandidateLoading] = useState(false);
+  const [simulating, setSimulating] = useState(false);
 
-  // ── State ──
-  const [skillTree, setSkillTree] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState(null);
-  const [resumeText, setResumeText] = useState("");
-  const [githubData, setGithubData] = useState("");
-  const [showInputs, setShowInputs] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState(null);
-
-  // ── Fetch existing skill tree on mount ──
   useEffect(() => {
-    fetchSkillTree();
-  }, []);
-
-  const fetchSkillTree = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const { data } = await api.get("/api/skill-tree");
-      setSkillTree(data.skillTree);
-      setLastGenerated(data.skillTree.generatedAt);
-      setShowInputs(false);
-    } catch (err) {
-      if (err.response?.status === 404) {
-        setSkillTree(null);
-        setShowInputs(true);
-      } else {
-        setError(err.response?.data?.message || "Failed to fetch skill tree");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ── Generate skill tree via LLM ──
-  const handleGenerate = async () => {
-    if (!resumeText.trim() && !githubData.trim()) {
-      setError("Please provide at least your resume text or GitHub repository data.");
+    if (!candidateId) {
+      setCandidateView(null);
       return;
     }
 
-    let parsedGithubData = null;
-    if (githubData.trim()) {
+    const loadCandidate = async () => {
+      setCandidateLoading(true);
       try {
-        parsedGithubData = JSON.parse(githubData);
-      } catch {
-        setError("GitHub data must be valid JSON. Example: { \"repos\": [{ \"name\": \"my-app\", \"languages\": [\"JavaScript\", \"Python\"] }] }");
-        return;
+        const { data } = await api.get(`/api/skill-tree/candidate/${candidateId}`);
+        setCandidateView(data);
+      } finally {
+        setCandidateLoading(false);
       }
-    }
+    };
 
+    loadCandidate();
+  }, [candidateId]);
+
+  const visibleTree = candidateView?.skillTree || skillTree;
+  const visibleProgress = candidateView?.progress || progress;
+  const visibleName = candidateView?.candidate?.name || user?.name;
+
+  const simulateProof = async () => {
+    setSimulating(true);
     try {
-      setGenerating(true);
-      setError(null);
-      const { data } = await api.post("/api/skill-tree/generate", {
-        resumeText: resumeText.trim(),
-        githubData: parsedGithubData,
+      await recordSkillEvent({
+        type: "demo_assessment",
+        label: "React Exam Passed",
+        technologies: ["JavaScript", "React", "Frontend Testing"],
+        score: 91,
+        xp: 180,
+        completed: true,
+        source: "skill-tree-demo",
       });
-
-      setSkillTree(data.skillTree);
-      setLastGenerated(data.skillTree.generatedAt);
-      setShowInputs(false);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to generate skill tree. Please try again.");
     } finally {
-      setGenerating(false);
+      setSimulating(false);
     }
   };
 
-  // ── Stat counts ──
-  const stats = skillTree?.nodes
-    ? {
-        verified: skillTree.nodes.filter((n) => n.category === "verified").length,
-        foundational: skillTree.nodes.filter((n) => n.category === "foundational").length,
-        recommended: skillTree.nodes.filter((n) => n.category === "recommended").length,
-        total: skillTree.nodes.length,
-      }
-    : null;
-
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-6">
-      {/* ── Header ── */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <GitBranch size={28} style={{ color: t.accentText }} strokeWidth={2.5} />
-          <h1
-            className="text-3xl font-black tracking-tight"
-            style={{ color: t.accentText }}
-          >
-            Skill Topology
-          </h1>
-        </div>
-        <p
-          className="font-mono text-xs tracking-[0.15em] uppercase"
-          style={{ color: t.mutedText }}
-        >
-          Evidence-Based Verification Tree &mdash;{" "}
-          {user?.name || "Candidate"}
-        </p>
-      </div>
-
-      {/* ── Error Banner ── */}
-      {error && (
-        <div
-          className="flex items-start gap-3 rounded-lg p-4 mb-6 border"
-          style={{
-            background: t.dangerBg,
-            borderColor: t.dangerBorder,
-          }}
-        >
-          <AlertTriangle size={18} style={{ color: t.dangerText }} className="mt-0.5 shrink-0" />
+    <div className="mx-auto max-w-[1600px] px-4 py-8 md:px-8">
+      <section className="mb-10 border-b border-[var(--color-border)] pb-10">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-medium" style={{ color: t.dangerText }}>
-              {error}
-            </p>
-            <button
-              onClick={() => setError(null)}
-              className="text-xs underline mt-1 opacity-70 hover:opacity-100 transition-opacity"
-              style={{ color: t.dangerText }}
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Stats Bar ── */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          {[
-            { label: "Verified", value: stats.verified, icon: CheckCircle2, color: isDarkMode ? "#F59E0B" : "#2563EB" },
-            { label: "Foundational", value: stats.foundational, icon: FlaskConical, color: isDarkMode ? "#EAB308" : "#0EA5E9" },
-            { label: "Recommended", value: stats.recommended, icon: Lightbulb, color: isDarkMode ? "#475569" : "#94A3B8" },
-            { label: "Total Nodes", value: stats.total, icon: GitBranch, color: t.accentText },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-lg px-4 py-3 border backdrop-blur-sm"
-              style={{ background: t.statBg, borderColor: t.statBorder }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <stat.icon size={14} style={{ color: stat.color }} />
-                <span
-                  className="font-mono text-[10px] uppercase tracking-[0.15em]"
-                  style={{ color: t.mutedText }}
-                >
-                  {stat.label}
-                </span>
-              </div>
-              <p
-                className="text-2xl font-black tabular-nums"
-                style={{ color: stat.color }}
-              >
-                {stat.value}
+            <div className="mb-5 flex items-center gap-4">
+              <span className="h-px w-10 bg-[var(--color-accent)]" />
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.45em] text-[var(--color-accent)]">
+                Live_Proof_Graph // {visibleName?.replace(" ", "_") || "Candidate"}
               </p>
             </div>
-          ))}
-        </div>
-      )}
+            <h1 className="text-5xl font-black uppercase italic tracking-tighter md:text-7xl">
+              Dynamic Skill <span className="text-[var(--color-accent)] not-italic">Tree.</span>
+            </h1>
+            <p className="mt-5 max-w-3xl text-sm font-medium uppercase tracking-widest opacity-50">
+              Exams, verified projects, recruiter assessments, and GitHub signals unlock dependent technologies in real time.
+            </p>
+          </div>
 
-      {/* ── Controls Bar ── */}
-      {skillTree && (
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            {lastGenerated && (
-              <span
-                className="font-mono text-[10px] tracking-wider"
-                style={{ color: t.mutedText }}
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => refreshSkillTree()}
+              className="inline-flex items-center gap-3 border border-[var(--color-border)] px-5 py-3 text-xs font-black uppercase tracking-[0.24em] transition-all hover:border-[var(--color-accent)]"
+            >
+              <RefreshCw className="h-4 w-4" /> Refresh
+            </button>
+            {!candidateId && (
+              <button
+                onClick={simulateProof}
+                disabled={simulating}
+                className="inline-flex items-center gap-3 bg-[var(--color-text)] px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-[var(--color-bg)] transition-all hover:bg-[var(--color-accent)] disabled:opacity-50"
               >
-                Generated: {new Date(lastGenerated).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
+                <Sparkles className="h-4 w-4" /> Demo Proof
+              </button>
             )}
           </div>
-          <button
-            onClick={() => setShowInputs((prev) => !prev)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
-            style={{
-              borderColor: t.cardBorder,
-              color: t.accentText,
-              background: t.cardBg,
-            }}
-          >
-            <RefreshCw size={14} />
-            Regenerate
-            {showInputs ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
+        </div>
+      </section>
+
+      {error && (
+        <div className="mb-8 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+          {error}
         </div>
       )}
 
-      {/* ── Input Panel ── */}
-      {showInputs && (
-        <div
-          className="rounded-xl border backdrop-blur-md p-6 mb-8 transition-all duration-300"
-          style={{
-            background: t.cardBg,
-            borderColor: t.cardBorder,
-          }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles size={18} style={{ color: t.accentText }} />
-            <h2
-              className="text-lg font-bold tracking-tight"
-              style={{ color: t.text }}
-            >
-              Generate Skill Tree
-            </h2>
-          </div>
-          <p
-            className="text-sm mb-6 leading-relaxed"
-            style={{ color: t.mutedText }}
-          >
-            Paste your resume text and/or GitHub repository data below. Our AI
-            engine will analyze your evidence and construct a verified skill
-            topology.
-          </p>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Resume Text */}
-            <div>
-              <label className="flex items-center gap-2 mb-2">
-                <FileText size={14} style={{ color: t.accentText }} />
-                <span
-                  className="font-mono text-xs uppercase tracking-[0.1em] font-semibold"
-                  style={{ color: t.text }}
-                >
-                  Resume Text
-                </span>
-              </label>
-              <textarea
-                id="skill-tree-resume-input"
-                value={resumeText}
-                onChange={(e) => setResumeText(e.target.value)}
-                rows={10}
-                placeholder="Paste your full resume text here...&#10;&#10;e.g. 'Software Engineer with 3 years of experience in React, Node.js, and PostgreSQL. Built microservice architectures using Docker and Kubernetes...'"
-                className="w-full rounded-lg border px-4 py-3 text-sm font-mono resize-none transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1"
-                style={{
-                  background: t.inputBg,
-                  borderColor: t.inputBorder,
-                  color: t.inputText,
-                  focusRingColor: t.accentText,
-                }}
-              />
-            </div>
-
-            {/* GitHub Data */}
-            <div>
-              <label className="flex items-center gap-2 mb-2">
-                <GitBranch size={14} style={{ color: t.accentText }} />
-                <span
-                  className="font-mono text-xs uppercase tracking-[0.1em] font-semibold"
-                  style={{ color: t.text }}
-                >
-                  GitHub Data (JSON)
-                </span>
-              </label>
-              <textarea
-                id="skill-tree-github-input"
-                value={githubData}
-                onChange={(e) => setGithubData(e.target.value)}
-                rows={10}
-                placeholder={`{\n  "repos": [\n    {\n      "name": "my-portfolio",\n      "languages": ["JavaScript", "CSS", "HTML"],\n      "topics": ["react", "tailwindcss"]\n    },\n    {\n      "name": "api-server",\n      "languages": ["TypeScript", "Python"],\n      "topics": ["express", "fastapi", "docker"]\n    }\n  ]\n}`}
-                className="w-full rounded-lg border px-4 py-3 text-sm font-mono resize-none transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1"
-                style={{
-                  background: t.inputBg,
-                  borderColor: t.inputBorder,
-                  color: t.inputText,
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mt-6">
-            <p
-              className="text-[11px] font-mono flex items-center gap-1.5"
-              style={{ color: t.mutedText }}
-            >
-              <Lock size={11} />
-              Data processed securely via AI — not stored externally
-            </p>
-            <button
-              id="skill-tree-generate-btn"
-              onClick={handleGenerate}
-              disabled={generating}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold tracking-wide uppercase transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: generating ? t.mutedText : t.buttonPrimary,
-                color: t.buttonText,
-              }}
-            >
-              {generating ? (
-                <>
-                  <RefreshCw size={16} className="animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Shield size={16} />
-                  Generate Topology
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Skill Tree Visualization ── */}
-      <div
-        className="rounded-xl border backdrop-blur-md overflow-hidden"
-        style={{
-          background: t.cardBg,
-          borderColor: t.cardBorder,
-        }}
-      >
-        <div
-          className="flex items-center justify-between px-6 py-3 border-b"
-          style={{ borderColor: t.cardBorder }}
-        >
-          <div className="flex items-center gap-2">
-            <div
-              className="w-2 h-2 rounded-full animate-pulse"
-              style={{ background: t.accentText }}
-            />
-            <span
-              className="font-mono text-[10px] uppercase tracking-[0.2em]"
-              style={{ color: t.mutedText }}
-            >
-              {skillTree ? "Live Topology Render" : "Awaiting Data Input"}
-            </span>
-          </div>
-          {skillTree && (
-            <span
-              className="font-mono text-[10px] tabular-nums"
-              style={{ color: t.mutedText }}
-            >
-              {stats?.total} nodes &bull; {skillTree.nodes?.filter((n) => n.parentId !== null).length || 0} edges
-            </span>
-          )}
-        </div>
-
-        <div className="p-4">
-          <DynamicSkillTree
-            nodes={skillTree?.nodes || []}
-            isLoading={loading || generating}
-          />
-        </div>
+      <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <StatTile icon={Zap} label="XP" value={visibleProgress?.totalXp || 0} sub={`Level ${visibleProgress?.level || 1}`} />
+        <StatTile icon={BadgeCheck} label="Verified" value={visibleProgress?.verifiedCount || 0} sub={`${visibleProgress?.unlockedCount || 0}/${visibleProgress?.totalSkills || 0} unlocked`} />
+        <StatTile icon={ShieldCheck} label="Trust" value={`${visibleProgress?.trustScore || 0}%`} sub="Recruiter signal" />
+        <StatTile icon={GitBranch} label="GitHub" value={`${visibleProgress?.githubScore || 0}%`} sub="Repo evidence" />
+        <StatTile icon={Flame} label="Streak" value={visibleProgress?.streakDays || 0} sub="Proof days" />
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="mb-10"
+      >
+        <DynamicSkillTree graph={visibleTree} isLoading={loading || candidateLoading} />
+      </motion.div>
+
+      <section className="mb-10">
+        <div className="mb-5 flex items-center gap-3">
+          <Trophy className="h-5 w-5 text-[var(--color-accent)]" />
+          <h2 className="text-2xl font-black uppercase italic tracking-tighter">Achievement Badges</h2>
+        </div>
+        <AchievementStrip achievements={visibleProgress?.achievements || []} />
+      </section>
     </div>
   );
 };

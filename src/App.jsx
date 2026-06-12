@@ -10,6 +10,7 @@ import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { SkillTreeProvider } from "./context/SkillTreeContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import IntroScreen from "./components/IntroScreen";
@@ -56,18 +57,20 @@ const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
 const VerificationRequests = lazy(() => import("./pages/VerificationRequests"));
 const VerificationPanel = lazy(() => import("./pages/VerificationPanel"));
 
-// A simple loading screen for Suspense fallback
+// Premium loading screen
 const LoadingScreen = () => (
   <div className="flex h-[60vh] items-center justify-center">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-current border-t-transparent animate-spin opacity-20" />
-      <p className="text-current/60 font-mono text-[10px] tracking-widest uppercase animate-pulse">
-        Initializing_Archive_Protocol...
+    <div className="flex flex-col items-center gap-6">
+      <div className="relative w-10 h-10">
+        <div className="absolute inset-0 rounded-full border-2 border-[var(--color-border)]" />
+        <div className="absolute inset-0 rounded-full border-2 border-[var(--color-accent)] border-t-transparent animate-spin" />
+      </div>
+      <p className="vp-label-accent animate-pulse">
+        Initializing_Protocol...
       </p>
     </div>
   </div>
 );
-
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -364,8 +367,11 @@ const AnimatedRoutes = () => {
 
 const AppContent = () => {
   const { isExiting, setIsExiting, logout } = useAuth();
-  const [showIntro, setShowIntro] = useState(true);
-  const [isAppVisible, setIsAppVisible] = useState(false);
+
+  // ── FIRST-VISIT-ONLY INTRO ──
+  const isFirstVisit = !localStorage.getItem("vp-intro-seen");
+  const [showIntro, setShowIntro] = useState(isFirstVisit);
+  const [isAppVisible, setIsAppVisible] = useState(!isFirstVisit);
 
   // Global Scroll Logic
   const { scrollYProgress } = useScroll();
@@ -376,8 +382,9 @@ const AppContent = () => {
   });
 
   const handleIntroComplete = () => {
+    localStorage.setItem("vp-intro-seen", "true");
     setShowIntro(false);
-    setTimeout(() => setIsAppVisible(true), 400);
+    setTimeout(() => setIsAppVisible(true), 300);
   };
 
   const handleOutroComplete = () => {
@@ -415,10 +422,14 @@ const AppContent = () => {
       <ScrollToTop />
       <CursorTracker />
 
-      {/* ── DEFINTIVE GLOBAL SCROLL PROGRESS BAR ── */}
-      <motion.div 
-        className="fixed top-0 left-0 right-0 h-[4px] bg-[#81D8D0] z-[9999] origin-left shadow-[0_0_20px_#81D8D0]"
-        style={{ scaleX }}
+      {/* ── SCROLL PROGRESS BAR ── */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-[2px] z-[9999] origin-left"
+        style={{
+          scaleX,
+          background: "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, white))",
+          boxShadow: "0 0 12px var(--vp-glow)",
+        }}
       />
 
       <AnimatePresence>
@@ -432,9 +443,9 @@ const AppContent = () => {
 
       <AnimatePresence>
         {isExiting && (
-          <OutroScreen 
-            key="system-outro" 
-            onComplete={handleOutroComplete} 
+          <OutroScreen
+            key="system-outro"
+            onComplete={handleOutroComplete}
           />
         )}
       </AnimatePresence>
@@ -443,10 +454,10 @@ const AppContent = () => {
         <ArchiveBackground />
 
         <div
-          className={`relative z-10 flex flex-col font-sans transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] ${isAppVisible ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-105 blur-2xl"} min-h-screen`}
+          className={`relative z-10 flex flex-col font-sans transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAppVisible ? "opacity-100 blur-0" : "opacity-0 blur-xl"} min-h-screen`}
         >
           <Navbar />
-          <main className="flex-grow w-full max-w-7xl mx-auto pt-28 pb-8 sm:px-6 lg:px-8 relative z-10 lg:min-h-[60vh]">
+          <main className="flex-grow w-full mx-auto pt-24 pb-8 px-4 sm:px-6 lg:px-8 relative z-10">
             {isAppVisible && <AnimatedRoutes />}
           </main>
           <Footer />
@@ -460,7 +471,9 @@ const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <SkillTreeProvider>
+          <AppContent />
+        </SkillTreeProvider>
       </AuthProvider>
     </ThemeProvider>
   );

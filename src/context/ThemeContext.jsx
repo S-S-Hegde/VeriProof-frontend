@@ -7,33 +7,29 @@ export const useTheme = () => useContext(ThemeContext);
 export const THEMES = {
   LIGHT: 'light',
   DARK: 'dark',
-  STORYTELLER: 'storyteller', // Cabinet of Wonders inspired
-  IMMERSIVE: 'immersive'      // Sun Hung inspired
 };
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('veriproof-theme');
-      if (savedTheme && Object.values(THEMES).includes(savedTheme)) {
-        return savedTheme;
-      }
+      const saved = localStorage.getItem('veriproof-theme');
+      if (saved && Object.values(THEMES).includes(saved)) return saved;
+      // Legacy theme migration — map removed themes to dark
+      if (saved === 'storyteller' || saved === 'immersive') return THEMES.DARK;
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? THEMES.DARK : THEMES.LIGHT;
     }
     return THEMES.LIGHT;
   });
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    // Remove all theme classes
-    Object.values(THEMES).forEach(t => root.classList.remove(`theme-${t}`));
-    root.classList.remove('dark'); // Keep 'dark' for tailwind compatibility if needed
-    
+    const root = document.documentElement;
+    // Clean all possible theme classes (including legacy)
+    ['light', 'dark', 'storyteller', 'immersive'].forEach(t => root.classList.remove(`theme-${t}`));
+    root.classList.remove('dark');
+
     root.classList.add(`theme-${theme}`);
-    if (theme === THEMES.DARK || theme === THEMES.IMMERSIVE) {
-      root.classList.add('dark');
-    }
-    
+    if (theme === THEMES.DARK) root.classList.add('dark');
+
     localStorage.setItem('veriproof-theme', theme);
   }, [theme]);
 
@@ -41,7 +37,7 @@ export const ThemeProvider = ({ children }) => {
     setTheme(prev => (prev === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT));
   };
 
-  const isDarkMode = theme === THEMES.DARK || theme === THEMES.IMMERSIVE;
+  const isDarkMode = theme === THEMES.DARK;
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, isDarkMode, toggleTheme, THEMES }}>

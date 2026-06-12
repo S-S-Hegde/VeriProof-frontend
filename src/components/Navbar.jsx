@@ -1,273 +1,490 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
-import { 
-  LayoutDashboard, 
-  Settings, 
-  Search, 
-  ShieldCheck, 
-  Moon, 
-  Sun, 
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LayoutDashboard,
+  Settings,
+  Search,
+  ShieldCheck,
+  Moon,
+  Sun,
   Clock,
-  Menu,
   X,
   Activity,
   Wand2,
   FileText,
   Info,
   Mail,
-  User as UserIcon
+  BarChart3,
+  Briefcase,
+  Users,
+  HelpCircle,
+  GitBranch,
+  MoreHorizontal,
+  Home,
+  User as UserIcon,
+  LogOut,
+  ChevronRight,
 } from "lucide-react";
-import OutroScreen from "./OutroScreen";
 import { cldAvatar } from "../utils/cloudinaryImage";
 
+/* ═══════════════════════════════════════════════════
+   VeriProof Navbar v5.0
+   Desktop: Glass bar + pill indicators + forensic status
+   Mobile:  Bottom dock (5 primary) + overflow drawer
+   ═══════════════════════════════════════════════════ */
+
 const Navbar = () => {
-  const { user, logout, setIsExiting, isExiting } = useAuth();
+  const { user, setIsExiting } = useAuth();
   const { theme, toggleTheme, THEMES } = useTheme();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [time, setTime] = useState(new Date());
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const profileRef = useRef(null);
+  const moreRef = useRef(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    
+    const onScroll = () => setScrolled(window.scrollY > 24);
     const timer = setInterval(() => setTime(new Date()), 1000);
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", onScroll);
       clearInterval(timer);
     };
   }, []);
 
-  const interceptNavigation = (e, path) => {
-    if (!user) {
-      e.preventDefault();
-      navigate("/login");
-    }
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
+      if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false);
+    };
+    document.addEventListener("pointerdown", handler);
+    return () => document.removeEventListener("pointerdown", handler);
+  }, []);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMoreOpen(false);
+    setProfileOpen(false);
+  }, [location.pathname]);
+
+  const guard = (e, path) => {
+    if (!user) { e.preventDefault(); navigate("/login"); }
   };
 
-  const getNavLinks = () => {
-    const isRecruiter = user?.role === "recruiter";
-    if (isRecruiter) {
-      return [
+  const handleLogout = () => setIsExiting(true);
+
+  // ─── NAVIGATION DEFINITIONS ───
+  const isRecruiter = user?.role === "recruiter";
+
+  // Primary nav (desktop top bar + mobile bottom dock)
+  const primaryNav = isRecruiter
+    ? [
         { name: "Forensics", path: "/dashboard", icon: LayoutDashboard },
         { name: "Discover", path: "/discover", icon: Search },
-        { name: "Jobs", path: "/recruiter-jobs", icon: ShieldCheck },
-        { name: "Intel", path: "/recruiter-resumes", icon: Activity },
+        { name: "Jobs", path: "/recruiter-jobs", icon: Briefcase },
+        { name: "Intel", path: "/recruiter-resumes", icon: Users },
+      ]
+    : [
+        { name: "Terminal", path: "/dashboard", icon: LayoutDashboard },
+        { name: "Evidence", path: "/discover", icon: Search },
+        { name: "Exams", path: "/exams", icon: FileText },
+        { name: "Skill_Tree", path: "/skill-tree", icon: GitBranch },
       ];
-    }
-    return [
-      { name: "Terminal", path: "/dashboard", icon: LayoutDashboard },
-      { name: "Evidence", path: "/discover", icon: Search },
-      { name: "Exams", path: "/exams", icon: FileText },
-    ];
-  };
 
-  const navLinks = getNavLinks();
+  // Mobile dock items (5 max — primary nav + Home)
+  const dockItems = [
+    { name: "Home", path: "/", icon: Home },
+    ...primaryNav.slice(0, 3),
+    { name: "More", path: null, icon: MoreHorizontal, action: () => setMoreOpen(true) },
+  ];
 
-  const [profileOpen, setProfileOpen] = useState(false);
+  // Overflow drawer items (everything not in dock)
+  const overflowNav = [
+    ...(primaryNav.length > 3 ? [primaryNav[3]] : []),
+    { name: "Analytics", path: "/analytics", icon: BarChart3 },
+    { name: "Settings", path: "/settings", icon: Settings },
+    { name: "About", path: "/about", icon: Info },
+    { name: "Contact", path: "/contact", icon: Mail },
+    { name: "Support", path: "/support", icon: HelpCircle },
+  ];
 
-  const handleLogout = () => {
-    setIsExiting(true);
-  };
+  // Profile dropdown items
+  const profileActions = [
+    { name: "Protocols", path: "/settings", icon: Settings },
+    { name: "Analytics", path: "/analytics", icon: BarChart3 },
+    { name: "About_VeriProof", path: "/about", icon: Info },
+    { name: "Contact_Us", path: "/contact", icon: Mail },
+  ];
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
-      <nav 
-        className={`fixed top-0 inset-x-0 z-[60] transition-all duration-500 ${
-          scrolled 
-            ? `py-3 border-b border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl` 
-            : `py-6 bg-transparent`
-        } text-[var(--color-text)] ${theme === THEMES.LIGHT ? 'theme-light-nav' : ''}`}
+      {/* ════════════════════════════════════════════
+          DESKTOP NAVBAR
+          ════════════════════════════════════════════ */}
+      <nav
+        className={`fixed top-0 inset-x-0 z-[60] transition-all duration-500 hidden lg:block ${
+          scrolled
+            ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)] shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+            : "py-5 bg-transparent"
+        }`}
       >
-        <div className="max-w-[1800px] mx-auto px-4 lg:px-8 flex justify-between items-center w-full">
-          
-          <div className="flex items-center space-x-4 xl:space-x-6 shrink-0">
-            <Link to="/" className="group relative">
-              <span className="text-xl md:text-2xl font-black italic tracking-tighter uppercase leading-none">
+        <div className="max-w-[1600px] mx-auto px-6 xl:px-10 flex items-center justify-between">
+
+          {/* ── Left: Logo + Forensic Status ── */}
+          <div className="flex items-center gap-6">
+            <Link to="/" className="group relative flex items-center">
+              <span className="text-xl font-black italic tracking-tighter uppercase leading-none text-[var(--color-text)]">
                 VeriProof<span className="text-[var(--color-accent)] not-italic">.</span>
               </span>
-              <div className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[var(--color-accent)] group-hover:w-full transition-all duration-500" />
+              <motion.div
+                className="absolute -bottom-1 left-0 h-[2px] bg-[var(--color-accent)]"
+                initial={false}
+                animate={{ width: isActive("/") ? "100%" : "0%" }}
+                whileHover={{ width: "100%" }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              />
             </Link>
 
-            <div className="hidden 2xl:flex items-center space-x-4 border-l border-[var(--color-border)] pl-4 h-6">
-              <div className="flex items-center space-x-2 text-xs font-mono tracking-widest uppercase opacity-40">
-                <Activity className="w-3 h-3 text-green-500 animate-pulse" />
-                <span>Live_Nodes_Active</span>
+            {/* Forensic status indicators — compact */}
+            <div className="hidden xl:flex items-center gap-4 pl-6 border-l border-[var(--color-border)]">
+              <div className="flex items-center gap-1.5">
+                <span className="vp-status-dot" style={{ width: 5, height: 5 }} />
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">
+                  Live
+                </span>
               </div>
-              <div className="flex items-center space-x-2 text-xs font-mono tracking-widest uppercase opacity-40 border-l border-[var(--color-border)] pl-4">
-                <Clock className="w-3 h-3" />
-                <span>{time.toLocaleTimeString([], { hour12: false })} UTC</span>
-              </div>
+              <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
+                {time.toLocaleTimeString([], { hour12: false })} UTC
+              </span>
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center shrink-0">
-            {navLinks.map((link) => {
+          {/* ── Center: Nav Links with Pill Indicators ── */}
+          <div className="flex items-center gap-1 rounded-[var(--radius-lg)] bg-[var(--color-bg-sunken)]/50 p-1 border border-[var(--color-border)]">
+            {primaryNav.map((link) => {
               const Icon = link.icon;
-              const isActive = location.pathname === link.path;
+              const active = isActive(link.path);
               return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  onClick={(e) => interceptNavigation(e, link.path)}
-                  className={`px-4 xl:px-6 py-2 border-l last:border-r border-[var(--color-border)] flex items-center space-x-2 text-xs xl:text-sm tracking-widest xl:tracking-[0.2em] uppercase font-bold transition-all duration-300 group ${
-                    isActive 
-                      ? "text-[var(--color-accent)] bg-[var(--color-accent)]/5" 
-                      : "text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-text)]/[0.02]"
+                  onClick={(e) => guard(e, link.path)}
+                  className={`relative flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 rounded-[var(--radius-md)] ${
+                    active
+                      ? "text-[var(--color-bg)]"
+                      : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 shrink-0 ${isActive ? "text-[var(--color-accent)]" : ""}`} />
-                  <span className="whitespace-nowrap">{link.name}</span>
+                  {active && (
+                    <motion.div
+                      layoutId="nav-pill"
+                      className="absolute inset-0 bg-[var(--color-text)] rounded-[var(--radius-md)]"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Icon className="w-3.5 h-3.5" />
+                    <span className="hidden xl:inline">{link.name}</span>
+                  </span>
                 </Link>
               );
             })}
           </div>
 
-          <div className="flex items-center space-x-4 xl:space-x-6 shrink-0">
-            <button 
-                onClick={toggleTheme}
-                className="p-2 border border-[var(--color-border)] hover:border-[var(--color-text)] transition-all rounded-sm text-[var(--color-text)] flex shrink-0"
+          {/* ── Right: Theme + Auth/Profile ── */}
+          <div className="flex items-center gap-3">
+            {/* Theme toggle */}
+            <motion.button
+              onClick={toggleTheme}
+              className="relative w-9 h-9 flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text)] transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Toggle theme"
             >
-              {theme === THEMES.DARK || theme === THEMES.IMMERSIVE ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
+              <AnimatePresence mode="wait">
+                {theme === THEMES.DARK ? (
+                  <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <Sun className="w-4 h-4" />
+                  </motion.div>
+                ) : (
+                  <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <Moon className="w-4 h-4" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
 
             {user ? (
-                <div 
-                    className="relative group"
-                    onMouseEnter={() => setProfileOpen(true)}
-                    onMouseLeave={() => setProfileOpen(false)}
+              /* ── Profile dropdown ── */
+              <div ref={profileRef} className="relative">
+                <motion.button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] hover:border-[var(--color-accent)]/40 transition-colors bg-[var(--color-bg-sunken)]/50"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                    <div className="w-10 h-10 border border-[var(--color-accent)] flex items-center justify-center bg-[var(--color-accent)]/5 group-hover:bg-[var(--color-accent)] transition-all cursor-pointer overflow-hidden group-hover:text-white">
-                        {user.profileImage ? (
-                          <img 
-                            src={cldAvatar(user.profileImage)} 
-                            alt={user.name} 
-                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                          />
-                        ) : (
-                          <span className="text-xs font-mono font-bold uppercase">{user.name.charAt(0)}</span>
-                        )}
-                    </div>
+                  <div className="w-7 h-7 rounded-[var(--radius-md)] overflow-hidden bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
+                    {user.profileImage ? (
+                      <img src={cldAvatar(user.profileImage)} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] font-mono font-bold text-[var(--color-accent)]">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-text)] hidden xl:block max-w-[100px] truncate">
+                    {user.name.split(" ")[0]}
+                  </span>
+                  <ChevronRight className={`w-3 h-3 text-[var(--color-muted)] transition-transform ${profileOpen ? "rotate-90" : ""}`} />
+                </motion.button>
 
-                    <AnimatePresence>
-                        {profileOpen && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                className="absolute right-0 mt-2 w-56 bg-[var(--color-bg)] border border-[var(--color-border)] shadow-2xl backdrop-blur-xl p-4 origin-top-right z-50"
+                <AnimatePresence>
+                  {profileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute right-0 mt-2 w-60 vp-glass p-2 origin-top-right z-50"
+                    >
+                      {/* User info header */}
+                      <div className="px-3 py-3 mb-1 border-b border-[var(--color-border)]">
+                        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">Authorized_User</p>
+                        <p className="text-sm font-bold uppercase tracking-wider text-[var(--color-text)] truncate mt-0.5">{user.name}</p>
+                        <p className="font-mono text-[10px] tracking-wider text-[var(--color-muted)] mt-0.5">{user.role === "recruiter" ? "INVESTIGATOR" : "CANDIDATE"}</p>
+                      </div>
+
+                      <div className="py-1">
+                        {profileActions.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link
+                              key={item.name}
+                              to={item.path}
+                              onClick={() => setProfileOpen(false)}
+                              className="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-accent-subtle)] rounded-[var(--radius-md)] transition-colors"
                             >
-                                <div className="mb-4 pb-4 border-b border-[var(--color-border)]">
-                                    <p className="text-sm font-mono opacity-40 uppercase tracking-tighter">Authorized_User</p>
-                                    <p className="text-base font-bold uppercase tracking-widest truncate">{user.name}</p>
-                                </div>
-                                
-                                <div className="space-y-1">
-                                    <Link 
-                                        to="/settings" 
-                                        onClick={() => setProfileOpen(false)}
-                                        className="flex items-center space-x-3 p-2 text-sm uppercase tracking-widest hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-all font-bold"
-                                    >
-                                        <Settings className="w-3 h-3" />
-                                        <span>Protocols</span>
-                                    </Link>
-                                    <Link 
-                                        to="/about" 
-                                        onClick={() => setProfileOpen(false)}
-                                        className="flex items-center space-x-3 p-2 text-sm uppercase tracking-widest hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-all font-bold"
-                                    >
-                                        <Info className="w-3 h-3" />
-                                        <span>About_Us</span>
-                                    </Link>
-                                    <Link 
-                                        to="/contact" 
-                                        onClick={() => setProfileOpen(false)}
-                                        className="flex items-center space-x-3 p-2 text-sm uppercase tracking-widest hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-all font-bold"
-                                    >
-                                        <Mail className="w-3 h-3" />
-                                        <span>Contact_Us</span>
-                                    </Link>
-                                    <button 
-                                        onClick={handleLogout}
-                                        className="w-full flex items-center space-x-3 p-2 text-sm uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all font-bold text-left"
-                                    >
-                                        <X className="w-3 h-3" />
-                                        <span>Terminate_Session</span>
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            ) : (
-                <div className="flex items-center space-x-2 md:space-x-4">
-                  <Link
-                      to="/login"
-                      className="hidden sm:block px-4 md:px-6 py-2 border border-[var(--color-text)] hover:bg-[var(--color-text)] hover:text-[var(--color-bg)] text-xs md:text-sm font-bold uppercase tracking-widest transition-all whitespace-nowrap"
-                  >
-                      Auth
-                  </Link>
-                  <Link
-                      to="/register"
-                      className="px-4 md:px-6 py-2 bg-[var(--color-text)] text-[var(--color-bg)] hover:bg-[var(--color-accent)] hover:text-white text-xs md:text-sm font-bold uppercase tracking-widest transition-all whitespace-nowrap"
-                  >
-                      Register
-                  </Link>
-                </div>
-            )}
+                              <Icon className="w-3.5 h-3.5" />
+                              {item.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
 
-            <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden p-2">
-              {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+                      <div className="pt-1 mt-1 border-t border-[var(--color-border)]">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-error)] hover:bg-[var(--color-error)]/8 rounded-[var(--radius-md)] transition-colors"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          Terminate_Session
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              /* ── Auth buttons ── */
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-5"
+                >
+                  Sign_In
+                </Link>
+                <Link
+                  to="/register"
+                  className="vp-btn vp-btn-primary text-[10px] py-2 px-5"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </nav>
 
+      {/* ════════════════════════════════════════════
+          MOBILE BOTTOM DOCK
+          ════════════════════════════════════════════ */}
+      <nav className="fixed bottom-0 inset-x-0 z-[60] lg:hidden">
+        {/* Dock bar */}
+        <div className="mx-3 mb-3 rounded-[var(--radius-2xl)] bg-[var(--vp-glass-bg)] backdrop-blur-2xl border border-[var(--vp-glass-border)] shadow-[0_-4px_32px_rgba(0,0,0,0.12)]">
+          <div className="flex items-center justify-around px-2 py-2">
+            {dockItems.map((item) => {
+              const Icon = item.icon;
+              const active = item.path && isActive(item.path);
+              const isMore = item.name === "More";
+
+              return (
+                <motion.div key={item.name} whileTap={{ scale: 0.9 }}>
+                  {isMore ? (
+                    <button
+                      onClick={item.action}
+                      className="flex flex-col items-center gap-1 px-3 py-2 text-[var(--color-muted)] active:text-[var(--color-text)] transition-colors"
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-[9px] font-bold uppercase tracking-wider">{item.name}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      onClick={(e) => guard(e, item.path)}
+                      className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors relative ${
+                        active ? "text-[var(--color-accent)]" : "text-[var(--color-muted)]"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-[9px] font-bold uppercase tracking-wider">{item.name}</span>
+                      {active && (
+                        <motion.div
+                          layoutId="dock-indicator"
+                          className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-[var(--color-accent)]"
+                          transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                        />
+                      )}
+                    </Link>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+
+      {/* ════════════════════════════════════════════
+          MOBILE: Minimal top bar (logo + theme + profile)
+          ════════════════════════════════════════════ */}
+      <div className={`fixed top-0 inset-x-0 z-[60] lg:hidden transition-all duration-500 ${
+        scrolled
+          ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)]"
+          : "py-3 bg-transparent"
+      }`}>
+        <div className="px-4 flex items-center justify-between">
+          <Link to="/" className="text-lg font-black italic tracking-tighter uppercase text-[var(--color-text)]">
+            VP<span className="text-[var(--color-accent)] not-italic">.</span>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {/* Compact status */}
+            <div className="flex items-center gap-1.5 mr-2">
+              <span className="vp-status-dot" style={{ width: 4, height: 4 }} />
+              <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">Live</span>
+            </div>
+
+            <motion.button
+              onClick={toggleTheme}
+              className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-muted)]"
+              whileTap={{ scale: 0.9 }}
+            >
+              {theme === THEMES.DARK ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </motion.button>
+
+            {user ? (
+              <Link to="/settings" className="w-8 h-8 rounded-[var(--radius-md)] overflow-hidden border border-[var(--color-border)] bg-[var(--color-accent)]/10 flex items-center justify-center">
+                {user.profileImage ? (
+                  <img src={cldAvatar(user.profileImage)} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] font-mono font-bold text-[var(--color-accent)]">{user.name.charAt(0)}</span>
+                )}
+              </Link>
+            ) : (
+              <Link to="/login" className="vp-btn vp-btn-primary text-[9px] py-1.5 px-3">Auth</Link>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════
+          MOBILE: Overflow Drawer (More panel)
+          ════════════════════════════════════════════ */}
       <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed inset-0 z-[55] bg-[var(--color-bg)] flex flex-col p-12 pt-32"
-          >
-            <div className="flex flex-col space-y-12">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  onClick={(e) => {
-                      setMenuOpen(false);
-                      interceptNavigation(e, link.path);
-                  }}
-                  className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-6 group"
-                >
-                  <span className="text-[var(--color-accent)] opacity-20 group-hover:opacity-100 transition-opacity">/</span>
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-            
-            <div className="mt-auto pt-12 border-t border-[var(--color-border)] flex flex-col gap-4">
-                <Link to="/about" onClick={() => setMenuOpen(false)} className="text-sm font-mono uppercase tracking-[0.4em] opacity-40 hover:opacity-100 hover:text-[var(--color-accent)] transition-all">About Us</Link>
-                <Link to="/contact" onClick={() => setMenuOpen(false)} className="text-sm font-mono uppercase tracking-[0.4em] opacity-40 hover:opacity-100 hover:text-[var(--color-accent)] transition-all">Contact Us</Link>
-                <p className="text-sm font-mono opacity-20 uppercase tracking-[0.5em]">SYSTEM_VERSION_4.0.0_STABLE</p>
-            </div>
-          </motion.div>
+        {moreOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMoreOpen(false)}
+              className="fixed inset-0 z-[65] bg-black/40 backdrop-blur-sm lg:hidden"
+            />
+            {/* Drawer */}
+            <motion.div
+              ref={moreRef}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 300 }}
+              className="fixed bottom-0 inset-x-0 z-[70] lg:hidden rounded-t-[var(--radius-2xl)] bg-[var(--color-bg-raised)] border-t border-[var(--vp-glass-border)] shadow-[0_-8px_40px_rgba(0,0,0,0.2)] max-h-[70vh] overflow-y-auto"
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-2">
+                <div className="w-10 h-1 rounded-full bg-[var(--color-border-strong)]" />
+              </div>
+
+              <div className="px-5 pb-3">
+                <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-[var(--color-muted)] mb-4">
+                  Navigation_Matrix
+                </p>
+              </div>
+
+              <div className="px-3 pb-6">
+                {overflowNav.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.path);
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.path}
+                      onClick={(e) => { setMoreOpen(false); guard(e, item.path); }}
+                      className={`flex items-center gap-4 px-4 py-3.5 rounded-[var(--radius-lg)] transition-colors ${
+                        active
+                          ? "bg-[var(--color-accent-subtle)] text-[var(--color-accent)]"
+                          : "text-[var(--color-text)] hover:bg-[var(--color-accent-subtle)]"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="text-sm font-bold uppercase tracking-[0.12em]">{item.name}</span>
+                      {active && <span className="ml-auto vp-status-dot" style={{ width: 5, height: 5 }} />}
+                    </Link>
+                  );
+                })}
+
+                {/* Logout */}
+                {user && (
+                  <button
+                    onClick={() => { setMoreOpen(false); handleLogout(); }}
+                    className="w-full flex items-center gap-4 px-4 py-3.5 rounded-[var(--radius-lg)] text-[var(--color-error)] hover:bg-[var(--color-error)]/8 transition-colors mt-2"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span className="text-sm font-bold uppercase tracking-[0.12em]">Terminate_Session</span>
+                  </button>
+                )}
+              </div>
+
+              {/* System info */}
+              <div className="px-5 py-4 border-t border-[var(--color-border)] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="vp-status-dot" style={{ width: 4, height: 4 }} />
+                  <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
+                    Protocol_Online
+                  </span>
+                </div>
+                <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">v5.0.0</span>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
