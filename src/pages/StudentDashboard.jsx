@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import PageTransition from "../components/PageTransition";
 import ProjectCard3D from "../components/ProjectCard3D";
 import SkillProgressPanel from "../components/SkillProgressPanel";
+import { VerificationPipeline, ResumeUploadCard, ProfileCompletionCard } from "../components/OnboardingComponents";
 import { useSkillTree } from "../context/SkillTreeContext";
 import { motion } from "framer-motion";
 import {
@@ -39,11 +40,12 @@ const SkeletonCard = () => (
 );
 
 const StudentDashboard = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [projects, setProjects] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [resumeStatus, setResumeStatus] = useState(user?.resumeStatus || "Not Submitted");
+  const [profileData, setProfileData] = useState(null);
+  const [analysisState, setAnalysisState] = useState(null);
   const navigate = useNavigate();
   const { progress } = useSkillTree();
 
@@ -52,10 +54,14 @@ const StudentDashboard = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const profileRes = await axios.get("/api/users/profile", config);
-        if (profileRes.data.resumeUrl) {
-          setResumeStatus(profileRes.data.resumeStatus || "Pending Evaluation");
-        }
+        setProfileData(profileRes.data);
         setCertificates(profileRes.data.certificates || []);
+
+        // Update user context with workflowState
+        if (profileRes.data.workflowState && user) {
+          setUser({ ...user, workflowState: profileRes.data.workflowState });
+        }
+
         const { data } = await axios.get("/api/projects/myprojects", config);
         setProjects(data);
         setLoading(false);
@@ -65,7 +71,59 @@ const StudentDashboard = () => {
       }
     };
     fetchData();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const workflowState = profileData?.workflowState || user?.workflowState;
+  const resumeUrl = profileData?.resumeUrl || "";
+  const resumeStatus = profileData?.resumeStatus || "Not Submitted";
+  const profileImage = profileData?.profileImage || user?.profileImage || "";
+
+  // Poll resume analysis status when Pending Evaluation
+  useEffect(() => {
+    let intervalId;
+    
+    const checkAnalysisStatus = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await axios.get("/api/users/profile/resume-analysis", config);
+        setAnalysisState(data);
+        
+        if (data.status === "Analysis Complete" || data.status === "Analysis Failed") {
+          clearInterval(intervalId);
+          
+          // Refresh profile data to unlock next stage
+          const profileRes = await axios.get("/api/users/profile", config);
+          setProfileData(profileRes.data);
+          if (profileRes.data.workflowState && user) {
+            setUser({ ...user, workflowState: profileRes.data.workflowState });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check resume analysis status:", err);
+      }
+    };
+
+    if (resumeStatus === "Pending Evaluation") {
+      checkAnalysisStatus();
+      intervalId = setInterval(checkAnalysisStatus, 4000); // Poll every 4 seconds
+    } else {
+      setAnalysisState(null);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [resumeStatus, user, setUser]);
+
+  const handleResumeUploadComplete = (data) => {
+    setProfileData((prev) => ({
+      ...prev,
+      resumeUrl: data.resumeUrl,
+      resumeStatus: data.resumeStatus,
+      workflowState: { ...prev?.workflowState, hasResume: true },
+    }));
+  };
 
   const stats = [
     { label: "Authenticated_Nodes", val: projects.length, icon: Database, id: "01" },
@@ -104,10 +162,11 @@ const StudentDashboard = () => {
                   <GitBranch className="w-3.5 h-3.5" /> Skill_Tree
                 </motion.button>
                 <motion.button
-                  whileHover={user?.workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
-                  whileTap={user?.workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
-                  onClick={() => user?.workflowState?.isResumeAnalyzed ? navigate("/add-project") : alert("Resume Analysis Required. Please wait for verification engine to process your resume.")}
-                  className={`vp-btn text-[10px] py-3 px-6 gap-2 ${user?.workflowState?.isResumeAnalyzed ? 'vp-btn-accent' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
+                  whileHover={workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
+                  whileTap={workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
+                  onClick={() => workflowState?.isResumeAnalyzed ? navigate("/add-project") : null}
+                  className={`vp-btn text-[10px] py-3 px-6 gap-2 ${workflowState?.isResumeAnalyzed ? 'vp-btn-accent' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
+                  title={!workflowState?.isResumeAnalyzed ? "Complete Resume Analysis to unlock" : ""}
                 >
                   <Plus className="w-3.5 h-3.5" /> Upload_Evidence
                 </motion.button>
@@ -115,7 +174,32 @@ const StudentDashboard = () => {
             </div>
             <div className="flex items-center gap-3 mt-4">
               <span className="vp-status-dot" />
-              <span className="vp-label">System_Status: Syncing_Global_Nodes</span>
+              <span className="vp-label">System_Status: {workflowState?.hasResume ? "Pipeline_Active" : "Awaiting_Resume"}</span>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* ═══ ONBOARDING: PIPELINE + RESUME + PROFILE ═══ */}
+        <Reveal delay={0.1}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 lg:mb-16">
+            {/* Left column: Pipeline + Resume Upload */}
+            <div className="lg:col-span-8 space-y-4">
+              <ResumeUploadCard
+                user={user}
+                resumeUrl={resumeUrl}
+                resumeStatus={resumeStatus}
+                onUploadComplete={handleResumeUploadComplete}
+                analysisState={analysisState}
+              />
+              <VerificationPipeline workflowState={workflowState} />
+            </div>
+            {/* Right column: Profile Completion */}
+            <div className="lg:col-span-4">
+              <ProfileCompletionCard
+                user={profileData || user}
+                resumeUrl={resumeUrl}
+                profileImage={profileImage}
+              />
             </div>
           </div>
         </Reveal>
@@ -123,7 +207,7 @@ const StudentDashboard = () => {
         {/* ═══ STATS BENTO ═══ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-12 lg:mb-16">
           {stats.map((stat, i) => (
-            <Reveal key={i} delay={0.1 + i * 0.08}>
+            <Reveal key={i} delay={0.2 + i * 0.08}>
               <motion.div
                 whileHover={{ y: -4, boxShadow: "var(--vp-surface-2-shadow)" }}
                 className="vp-surface-1 p-6 group cursor-default transition-all duration-300"
@@ -142,7 +226,7 @@ const StudentDashboard = () => {
         </div>
 
         {/* ═══ SKILL PROGRESS ═══ */}
-        <Reveal delay={0.3}>
+        <Reveal delay={0.4}>
           <div className="mb-12 lg:mb-16">
             <SkillProgressPanel progress={progress} />
           </div>
@@ -150,7 +234,7 @@ const StudentDashboard = () => {
 
         {/* ═══ CREDENTIALS ═══ */}
         {certificates.length > 0 && (
-          <Reveal delay={0.35}>
+          <Reveal delay={0.45}>
             <div className="mb-12 lg:mb-16">
               <div className="flex items-center gap-3 mb-8">
                 <Award className="w-5 h-5 text-[var(--color-accent)]" />
@@ -197,7 +281,7 @@ const StudentDashboard = () => {
         )}
 
         {/* ═══ PROJECTS ═══ */}
-        <Reveal delay={0.4}>
+        <Reveal delay={0.5}>
           <div className="flex items-center gap-3 mb-8">
             <Database className="w-5 h-5 text-[var(--color-accent)]" />
             <h3 className="text-xl font-black uppercase tracking-tight">Evidence_Archive</h3>
@@ -209,7 +293,7 @@ const StudentDashboard = () => {
             {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
           </div>
         ) : projects.length === 0 ? (
-          <Reveal delay={0.45}>
+          <Reveal delay={0.55}>
             <div className="text-center py-20 vp-surface-1 relative overflow-hidden">
               <div className="relative z-10">
                 <Database className="w-12 h-12 mx-auto text-[var(--color-muted)] opacity-20 mb-6" />
@@ -217,15 +301,18 @@ const StudentDashboard = () => {
                   Empty_Archive
                 </h3>
                 <p className="text-sm text-[var(--color-muted)] mb-8">
-                  No evidence has been synchronized with this node.
+                  {workflowState?.isResumeAnalyzed
+                    ? "No evidence has been synchronized with this node."
+                    : "Complete Resume Analysis to begin uploading project evidence."
+                  }
                 </p>
                 <motion.button
-                  whileHover={user?.workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
-                  whileTap={user?.workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
-                  onClick={() => user?.workflowState?.isResumeAnalyzed ? navigate("/add-project") : alert("Resume Analysis Required. Please wait for verification engine to process your resume.")}
-                  className={`vp-btn text-[11px] py-3 px-8 ${user?.workflowState?.isResumeAnalyzed ? 'vp-btn-primary' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
+                  whileHover={workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
+                  whileTap={workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
+                  onClick={() => workflowState?.isResumeAnalyzed ? navigate("/add-project") : null}
+                  className={`vp-btn text-[11px] py-3 px-8 ${workflowState?.isResumeAnalyzed ? 'vp-btn-primary' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
                 >
-                  {user?.workflowState?.isResumeAnalyzed ? "Initiate_First_Sync" : "Awaiting_Resume_Analysis"}
+                  {workflowState?.isResumeAnalyzed ? "Initiate_First_Sync" : "Awaiting_Resume_Analysis"}
                 </motion.button>
               </div>
             </div>

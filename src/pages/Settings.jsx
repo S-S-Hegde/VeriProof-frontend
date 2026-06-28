@@ -92,29 +92,40 @@ const Settings = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
+    const allowed = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+    ];
+    if (!allowed.includes(file.type)) {
+      setToast({ type: "error", msg: "Invalid file type. Use PDF, DOC, DOCX, or TXT." });
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setToast({ type: "error", msg: "File too large. Maximum 5MB." });
+      return;
+    }
+
     setResumeUploading(true);
     setSystemStatus("Injecting_Evidence...");
     
     const formData = new FormData();
-    formData.append("image", file); // Simple reuse of image route for binary uplink
+    formData.append("resume", file);
 
     try {
-      const cfg = {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        }
-      };
+      const { data } = await api.post("/api/users/profile/resume-file", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       
-      const { data } = await api.post("/api/users/profile/image", formData, cfg);
-      const fileUrl = data.profileImage;
-      
-      await api.put("/api/users/profile/resume", { resumeUrl: fileUrl });
-      
-      setForm(p => ({ ...p, resumeUrl: fileUrl, resumeStatus: "Pending Evaluation" }));
+      setForm(p => ({ ...p, resumeUrl: data.resumeUrl, resumeStatus: data.resumeStatus }));
       setToast({ type: "success", msg: "Evidence: Uplink Secured" });
       setSystemStatus("Sync_Success");
-    } catch {
-      setToast({ type: "error", msg: "Evidence: Protocol Fail" });
+    } catch (err) {
+      setToast({ type: "error", msg: err.response?.data?.message || "Evidence: Protocol Fail" });
       setSystemStatus("Fatal_Error");
     } finally {
       setResumeUploading(false);
