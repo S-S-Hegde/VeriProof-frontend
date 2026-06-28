@@ -94,33 +94,33 @@ const VerificationRequests = () => {
   return (
     <PageTransition>
       <div className="max-w-5xl mx-auto px-4 mt-8 relative">
-        <div className="flex justify-between items-end mb-10 border-b border-ibex-surface/30 pb-6">
+        <div className="flex justify-between items-end mb-10 border-b border-[var(--color-border)] pb-6">
           <div>
-            <h2 className="text-4xl font-serif text-ibex-text font-light tracking-wider uppercase mb-2">
-              Verification <span className="text-ibex-gold italic lowercase normal-case">Requests</span>
+            <h2 className="text-4xl font-serif text-[var(--color-text)] font-light tracking-wider uppercase mb-2">
+              Verification <span className="text-[var(--color-accent)] italic lowercase normal-case">Requests</span>
             </h2>
-            <p className="text-ibex-muted tracking-widest uppercase text-xs">
+            <p className="text-[var(--color-muted)] tracking-widest uppercase text-xs">
               Algorithmic Portfolio Validation & Exam Protocols
             </p>
           </div>
         </div>
 
-        <div className="glass-card shadow-lg bg-white dark:bg-ibex-surface/40 overflow-hidden">
+        <div className="vp-surface-1 shadow-lg bg-white dark:bg-[var(--color-bg-sunken)]/50 overflow-hidden">
           {results.length === 0 ? (
-            <div className="p-16 text-center text-vp-teal dark:text-ibex-text text-lg font-light tracking-wide flex flex-col items-center">
-              <ShieldCheck className="w-12 h-12 mb-4 text-ibex-muted/30" />
+            <div className="p-16 text-center text-[var(--color-text)] dark:text-[var(--color-text)] text-lg font-light tracking-wide flex flex-col items-center">
+              <ShieldCheck className="w-12 h-12 mb-4 text-[var(--color-muted)]/30" />
               Tracking Network Validation Requests...
-              <p className="text-sm mt-4 text-ibex-muted font-sans uppercase tracking-widest">
+              <p className="text-sm mt-4 text-[var(--color-muted)] font-sans uppercase tracking-widest">
                 No active validations initialized.
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-ibex-surface/20">
+            <div className="divide-y divide-[var(--color-bg-sunken)]/20">
               {results.map((result) => (
-                <div key={result._id} className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-ibex-surface/5 transition-colors group">
+                <div key={result._id} className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-[var(--color-bg-sunken)]/50 transition-colors group">
                   <div className="space-y-2 mb-6 md:mb-0">
                     <div className="flex items-center space-x-3">
-                      <h4 className="text-lg font-serif text-ibex-text uppercase tracking-widest">{result.jobId?.title || "Unknown Specification"}</h4>
+                      <h4 className="text-lg font-serif text-[var(--color-text)] uppercase tracking-widest">{result.jobId?.title || "Unknown Specification"}</h4>
                       
                       {result.status === "Verified" ? (
                         <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-sm tracking-widest uppercase border border-green-500/20 font-bold">
@@ -138,20 +138,20 @@ const VerificationRequests = () => {
                           <span>Validation Failed</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-ibex-surface/10 text-ibex-muted text-sm tracking-widest uppercase border border-ibex-surface/20 font-bold">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-[var(--color-bg-sunken)]/50 text-[var(--color-muted)] text-sm tracking-widest uppercase border border-[var(--color-border)] font-bold">
                           In Review
                         </span>
                       )}
                     </div>
                     
                     <div className="flex items-center space-x-6 text-sm">
-                      <div className="flex items-center space-x-2 text-ibex-muted">
+                      <div className="flex items-center space-x-2 text-[var(--color-muted)]">
                         <span className="uppercase tracking-widest text-sm">NLP Alignment:</span>
-                        <span className="font-medium text-ibex-text">{result.alignmentScore}%</span>
+                        <span className="font-medium text-[var(--color-text)]">{result.alignmentScore}%</span>
                       </div>
-                      <div className="flex items-center space-x-2 text-ibex-muted">
+                      <div className="flex items-center space-x-2 text-[var(--color-muted)]">
                         <span className="uppercase tracking-widest text-sm">Verification Score:</span>
-                        <span className="font-medium text-ibex-text">{result.examScore !== undefined ? `${result.examScore}%` : "—"}</span>
+                        <span className="font-medium text-[var(--color-text)]">{result.examScore !== undefined ? `${result.examScore}%` : "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -159,7 +159,7 @@ const VerificationRequests = () => {
                   {result.status === "Pending Exam" && (
                     <button 
                       onClick={() => startExam(result)}
-                      className="px-6 py-3 bg-ibex-gold text-vp-teal rounded-full text-xs font-bold uppercase tracking-widest hover:shadow-lg hover:scale-105 transition-all flex items-center space-x-2"
+                      className="px-6 py-3 bg-[var(--color-accent)] text-[var(--color-text)] rounded-full text-xs font-bold uppercase tracking-widest hover:shadow-lg hover:scale-105 transition-all flex items-center space-x-2"
                     >
                       <span>Take Exam</span>
                       <ChevronRight className="w-4 h-4" />
@@ -193,7 +193,7 @@ const VerificationRequests = () => {
                 initial={{ scale: 0.95, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.95, y: 20 }}
-                className="bg-ibex-bg dark:bg-ibex-surface rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-ibex-surface/30 relative my-12 flex flex-col max-h-[90vh]"
+                className="bg-[var(--color-bg)] dark:bg-[var(--color-bg-sunken)] rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-[var(--color-border)] relative my-12 flex flex-col max-h-[90vh]"
               >
                 {!examSubmitted ? (
                   <>
@@ -215,13 +215,13 @@ const VerificationRequests = () => {
                     <div className="p-8 space-y-12 overflow-y-auto">
                       {examData?.questions.map((q, qIndex) => (
                         <div key={q._id} className="space-y-4">
-                          <h4 className="text-lg text-ibex-text font-medium"><span className="text-ibex-gold mr-2 font-serif font-bold">{qIndex + 1}.</span> {q.questionText}</h4>
+                          <h4 className="text-lg text-[var(--color-text)] font-medium"><span className="text-[var(--color-accent)] mr-2 font-serif font-bold">{qIndex + 1}.</span> {q.questionText}</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             {q.options.map((opt, oIndex) => (
                               <button
                                 key={oIndex}
                                 onClick={() => handleOptionSelect(qIndex, oIndex)}
-                                className={`p-4 rounded-xl border-2 text-left transition-all duration-300 text-sm ${answers[qIndex] === oIndex ? 'border-ibex-gold bg-ibex-gold/10 text-ibex-text font-medium' : 'border-ibex-surface/20 text-ibex-muted hover:border-ibex-gold/50 hover:bg-ibex-surface/5'}`}
+                                className={`p-4 rounded-xl border-2 text-left transition-all duration-300 text-sm ${answers[qIndex] === oIndex ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-text)] font-medium' : 'border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-bg-sunken)]/50'}`}
                               >
                                 {opt}
                               </button>
@@ -232,19 +232,19 @@ const VerificationRequests = () => {
                     </div>
 
                     {/* Footer */}
-                    <div className="p-6 border-t border-ibex-surface/20 bg-ibex-surface/5 flex justify-between items-center shrink-0">
+                    <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-bg-sunken)]/50 flex justify-between items-center shrink-0">
                       <button 
                         onClick={() => {
                           setTakingExam(null);
                         }}
-                        className="text-xs font-bold uppercase tracking-widest text-ibex-muted hover:text-red-500 transition-colors"
+                        className="text-xs font-bold uppercase tracking-widest text-[var(--color-muted)] hover:text-red-500 transition-colors"
                       >
                         Abandon Exam
                       </button>
                       <button 
                         onClick={submitExam}
                         disabled={answers.includes(null)}
-                        className={`px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${answers.includes(null) ? 'bg-ibex-surface/20 text-ibex-muted cursor-not-allowed' : 'bg-ibex-gold text-vp-teal hover:shadow-[0_4px_15px_rgba(166,244,220,0.5)]'}`}
+                        className={`px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${answers.includes(null) ? 'bg-[var(--color-bg-sunken)]/50 text-[var(--color-muted)] cursor-not-allowed' : 'bg-[var(--color-accent)] text-[var(--color-text)] hover:shadow-[0_4px_15px_rgba(166,244,220,0.5)]'}`}
                       >
                         Submit Final Answers
                       </button>
@@ -256,18 +256,18 @@ const VerificationRequests = () => {
                     {finalScore?.status === "Verified" ? (
                       <>
                         <ShieldCheck className="w-24 h-24 text-green-500 mb-6" />
-                        <h2 className="text-4xl font-serif text-ibex-text mb-2">VALIDATED</h2>
+                        <h2 className="text-4xl font-serif text-[var(--color-text)] mb-2">VALIDATED</h2>
                         <p className="text-green-500 font-medium text-xl mb-8">Score: {finalScore.examScore}%</p>
-                        <p className="text-ibex-muted mb-8 max-w-sm">
+                        <p className="text-[var(--color-muted)] mb-8 max-w-sm">
                           Your cryptographic signature has been secured. Your skills align perfectly with the target parameters.
                         </p>
                       </>
                     ) : (
                       <>
                         <AlertTriangle className="w-24 h-24 text-red-500 mb-6" />
-                        <h2 className="text-4xl font-serif text-ibex-text mb-2">VALIDATION FAILED</h2>
+                        <h2 className="text-4xl font-serif text-[var(--color-text)] mb-2">VALIDATION FAILED</h2>
                         <p className="text-red-500 font-medium text-xl mb-8">Score: {finalScore.examScore}%</p>
-                        <p className="text-ibex-muted mb-8 max-w-sm">
+                        <p className="text-[var(--color-muted)] mb-8 max-w-sm">
                           Your examination algorithms did not meet the required threshold requested by the recruiter.
                         </p>
                       </>
@@ -275,7 +275,7 @@ const VerificationRequests = () => {
                     
                     <button 
                       onClick={() => setTakingExam(null)}
-                      className="ibex-button-primary bg-gradient-premium text-white border-0 py-4 px-10 rounded-full"
+                      className="px-8 py-3 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.2em] uppercase text-xs hover:bg-[var(--color-accent)] hover:text-white transition-all bg-gradient-premium text-white border-0 py-4 px-10 rounded-full"
                     >
                       Return to Requests
                     </button>

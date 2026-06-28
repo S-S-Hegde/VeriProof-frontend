@@ -104,10 +104,10 @@ const StudentDashboard = () => {
                   <GitBranch className="w-3.5 h-3.5" /> Skill_Tree
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/add-project")}
-                  className="vp-btn vp-btn-accent text-[10px] py-3 px-6 gap-2"
+                  whileHover={user?.workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
+                  whileTap={user?.workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
+                  onClick={() => user?.workflowState?.isResumeAnalyzed ? navigate("/add-project") : alert("Resume Analysis Required. Please wait for verification engine to process your resume.")}
+                  className={`vp-btn text-[10px] py-3 px-6 gap-2 ${user?.workflowState?.isResumeAnalyzed ? 'vp-btn-accent' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
                 >
                   <Plus className="w-3.5 h-3.5" /> Upload_Evidence
                 </motion.button>
@@ -220,12 +220,12 @@ const StudentDashboard = () => {
                   No evidence has been synchronized with this node.
                 </p>
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/add-project")}
-                  className="vp-btn vp-btn-primary text-[11px] py-3 px-8"
+                  whileHover={user?.workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
+                  whileTap={user?.workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
+                  onClick={() => user?.workflowState?.isResumeAnalyzed ? navigate("/add-project") : alert("Resume Analysis Required. Please wait for verification engine to process your resume.")}
+                  className={`vp-btn text-[11px] py-3 px-8 ${user?.workflowState?.isResumeAnalyzed ? 'vp-btn-primary' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
                 >
-                  Initiate_First_Sync
+                  {user?.workflowState?.isResumeAnalyzed ? "Initiate_First_Sync" : "Awaiting_Resume_Analysis"}
                 </motion.button>
               </div>
             </div>

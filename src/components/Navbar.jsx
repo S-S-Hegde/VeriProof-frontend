@@ -90,12 +90,14 @@ const Navbar = () => {
         { name: "Discover", path: "/discover", icon: Search },
         { name: "Jobs", path: "/recruiter-jobs", icon: Briefcase },
         { name: "Intel", path: "/recruiter-resumes", icon: Users },
+        { name: "Panel", path: "/verification-panel", icon: ShieldCheck },
       ]
     : [
         { name: "Terminal", path: "/dashboard", icon: LayoutDashboard },
         { name: "Evidence", path: "/discover", icon: Search },
         { name: "Exams", path: "/exams", icon: FileText },
         { name: "Skill_Tree", path: "/skill-tree", icon: GitBranch },
+        { name: "Requests", path: "/verification-requests", icon: ShieldCheck },
       ];
 
   // Mobile dock items (5 max — primary nav + Home)
@@ -107,7 +109,7 @@ const Navbar = () => {
 
   // Overflow drawer items (everything not in dock)
   const overflowNav = [
-    ...(primaryNav.length > 3 ? [primaryNav[3]] : []),
+    ...(primaryNav.length > 3 ? primaryNav.slice(3) : []),
     { name: "Analytics", path: "/analytics", icon: BarChart3 },
     { name: "Settings", path: "/settings", icon: Settings },
     { name: "About", path: "/about", icon: Info },

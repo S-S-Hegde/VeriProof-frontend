@@ -33,16 +33,15 @@ const AddProject = lazy(() => import("./pages/AddProject"));
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
 const Discover = lazy(() => import("./pages/Discover"));
 const Analytics = lazy(() => import("./pages/Analytics"));
-const Talent = lazy(() => import("./pages/Talent"));
+// Removed Talent
 const Settings = lazy(() => import("./pages/Settings"));
 const Home = lazy(() => import("./pages/Home"));
 const Demo = lazy(() => import("./pages/Demo"));
-const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
+// Removed ResumeBuilder
 const RecruiterResumes = lazy(() => import("./pages/RecruiterResumes"));
 const RecruiterJobs = lazy(() => import("./pages/RecruiterJobs"));
 
 const Terms = lazy(() => import("./pages/Terms"));
-const Opportunities = lazy(() => import("./pages/Opportunities"));
 const Support = lazy(() => import("./pages/Support"));
 const DevelopmentStatus = lazy(() => import("./pages/DevelopmentStatus"));
 const About = lazy(() => import("./pages/About"));
@@ -218,16 +217,7 @@ const AnimatedRoutes = () => {
             </Suspense>
           }
         />
-        <Route
-          path="/talent"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <Talent />
-              </PageTransition>
-            </Suspense>
-          }
-        />
+
         <Route
           path="/settings"
           element={
@@ -238,16 +228,7 @@ const AnimatedRoutes = () => {
             </Suspense>
           }
         />
-        <Route
-          path="/resume-builder"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <ResumeBuilder />
-              </PageTransition>
-            </Suspense>
-          }
-        />
+
         <Route
           path="/recruiter-resumes"
           element={
@@ -279,16 +260,7 @@ const AnimatedRoutes = () => {
             </Suspense>
           }
         />
-        <Route
-          path="/opportunities"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <Opportunities />
-              </PageTransition>
-            </Suspense>
-          }
-        />
+
         <Route
           path="/support"
           element={

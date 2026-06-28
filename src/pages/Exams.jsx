@@ -149,7 +149,7 @@ const Exams = () => {
   };
 
   if (!hasInitiated) {
-    const hasResume = !!user?.resumeUrl;
+    const hasRepoAnalysis = user?.workflowState?.hasRepoAnalysis;
     
     return (
       <div className="min-h-[90vh] flex items-center justify-center px-4">
@@ -159,24 +159,24 @@ const Exams = () => {
         
         <div className="glass-card max-w-3xl w-full p-12 md:p-16 relative z-10 border border-[var(--color-border)] overflow-hidden shadow-2xl">
           <div className="flex flex-col items-center text-center">
-            {hasResume ? (
+            {hasRepoAnalysis ? (
                <Fingerprint className="w-16 h-16 text-[var(--color-accent)] mb-8" />
             ) : (
                <Lock className="w-16 h-16 text-red-500 mb-8" />
             )}
             
             <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter mb-4">
-              {hasResume ? "Certification" : "System" } <span className={`${hasResume ? 'text-[var(--color-accent)]' : 'text-red-500'} not-italic`}>{hasResume ? "Lobby." : "Locked."}</span>
+              {hasRepoAnalysis ? "Certification" : "System" } <span className={`${hasRepoAnalysis ? 'text-[var(--color-accent)]' : 'text-red-500'} not-italic`}>{hasRepoAnalysis ? "Lobby." : "Locked."}</span>
             </h2>
             
             <p className="max-w-md font-mono text-xs tracking-widest uppercase opacity-60 mb-10 leading-relaxed">
-              {hasResume 
+              {hasRepoAnalysis 
                 ? "You are about to initiate the high-stakes Verification Protocol. This is a strictly monitored, cryptographically signed examination." 
-                : "Your profile lacks fundamental architectural data. You must upload a verified resume to unlock the certification engine."
+                : "Your profile lacks Repository Analysis data. You must synchronize your GitHub projects to unlock the certification engine."
               }
             </p>
 
-            {hasResume ? (
+            {hasRepoAnalysis ? (
               <button 
                 onClick={handleStartSequence}
                 className="group relative px-10 py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-black tracking-[0.3em] uppercase text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all rounded-sm shadow-xl flex items-center gap-4 overflow-hidden"
