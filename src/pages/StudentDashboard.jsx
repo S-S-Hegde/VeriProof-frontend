@@ -95,8 +95,12 @@ const StudentDashboard = () => {
           // Refresh profile data to unlock next stage
           const profileRes = await axios.get("/api/users/profile", config);
           setProfileData(profileRes.data);
-          if (profileRes.data.workflowState && user) {
-            setUser({ ...user, workflowState: profileRes.data.workflowState });
+          if (profileRes.data.workflowState) {
+            setUser((prev) => ({
+              ...prev,
+              resumeStatus: profileRes.data.resumeStatus,
+              workflowState: profileRes.data.workflowState,
+            }));
           }
         }
       } catch (err) {
@@ -122,6 +126,12 @@ const StudentDashboard = () => {
       resumeUrl: data.resumeUrl,
       resumeStatus: data.resumeStatus,
       workflowState: { ...prev?.workflowState, hasResume: true },
+    }));
+    setUser((prev) => ({
+      ...prev,
+      resumeUrl: data.resumeUrl,
+      resumeStatus: data.resumeStatus,
+      workflowState: prev ? { ...prev.workflowState, hasResume: true } : null
     }));
   };
 

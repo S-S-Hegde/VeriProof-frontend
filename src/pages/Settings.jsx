@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,7 +10,8 @@ import {
   Instagram, Github, Shield, Bell, Eye, Lock,
   CheckCircle, AlertCircle, GraduationCap, Save,
   Terminal as TerminalIcon, Cpu, Activity, Zap, HardDrive,
-  Fingerprint, Camera, Loader2, UploadCloud, FileText, FileUp
+  Fingerprint, Camera, Loader2, UploadCloud, FileText, FileUp,
+  Trash2
 } from "lucide-react";
 import { cldProfilePhoto } from "../utils/cloudinaryImage";
 
@@ -24,6 +26,7 @@ const TABS = [
   { id: "Nodes", icon: Globe, label: "Network Nodes" },
   { id: "Privacy", icon: Eye, label: "Privacy Sync" },
   { id: "Shield", icon: Lock, label: "Security Shield" },
+  { id: "DangerZone", icon: Trash2, label: "Danger Zone" },
 ];
 
 const Settings = () => {
@@ -49,6 +52,45 @@ const Settings = () => {
   const [resumeUploading, setResumeUploading] = useState(false);
   const fileInputRef = useRef(null);
   const resumeInputRef = useRef(null);
+
+  // Danger Zone States
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const navigate = useNavigate(); // For redirecting after deletion
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE" || !deletePassword) return;
+    
+    const confirmFirst = window.confirm("Are you absolutely sure you want to permanently delete your VeriProof account? This action is irreversible.");
+    if (!confirmFirst) return;
+
+    const confirmSecond = window.confirm("FINAL WARNING: All evidence, claims, and verified nodes will be lost. Click OK to proceed with permanent destruction.");
+    if (!confirmSecond) return;
+
+    setDeletingAccount(true);
+    setSystemStatus("Annihilating_Node...");
+
+    try {
+      await api.delete("/api/users/profile", {
+        data: { password: deletePassword }
+      });
+
+      // Clear all local session data and invalidate context
+      localStorage.clear();
+      setUser(null);
+      setToast({ type: "success", msg: "Success: Protocols Wiped" });
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    } catch (err) {
+      setToast({ type: "error", msg: err.response?.data?.message || "Destruction: Authorization Failed" });
+      setSystemStatus("Fatal_Error");
+      setDeletingAccount(false);
+      setTimeout(() => setSystemStatus("Idle"), 2000);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -122,6 +164,12 @@ const Settings = () => {
       });
       
       setForm(p => ({ ...p, resumeUrl: data.resumeUrl, resumeStatus: data.resumeStatus }));
+      setUser(prev => ({
+        ...prev,
+        resumeUrl: data.resumeUrl,
+        resumeStatus: data.resumeStatus,
+        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null
+      }));
       setToast({ type: "success", msg: "Evidence: Uplink Secured" });
       setSystemStatus("Sync_Success");
     } catch (err) {
@@ -151,7 +199,7 @@ const Settings = () => {
       };
       const { data } = await api.post("/api/users/profile/image", formData, cfg);
       setForm(p => ({ ...p, profileImage: data.profileImage }));
-      setUser({ ...user, profileImage: data.profileImage });
+      setUser(prev => ({ ...prev, profileImage: data.profileImage }));
       setToast({ type: "success", msg: "Image: Protocol Secured" });
       setSystemStatus("Sync_Success");
     } catch {
@@ -190,9 +238,7 @@ const Settings = () => {
         ...(form.newPassword ? { password: form.newPassword } : {}),
       };
       const { data } = await api.put("/api/users/profile", payload);
-      const updated = { ...user, ...data };
-      setUser(updated);
-      persistUserSession(updated);
+      setUser(prev => ({ ...prev, ...data }));
       setToast({ type: "success", msg: "Success: Protocols Updated" });
       setSystemStatus("Protocol_Secured");
       setForm((p) => ({ ...p, newPassword: "", confirmPassword: "" }));
@@ -603,24 +649,95 @@ const Settings = () => {
                     </div>
                   </motion.div>
                 )}
+
+                {/* ── DANGER ZONE TAB ── */}
+                {activeTab === "DangerZone" && (
+                  <motion.div
+                    key="dangerzone"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div className="flex items-center gap-4 border-b border-red-500/20 pb-6">
+                        <Trash2 className="w-6 h-6 text-red-500" />
+                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter text-red-500">Danger Zone</h3>
+                    </div>
+
+                    <div className="p-8 border border-red-500/30 bg-red-500/5 rounded-[var(--radius-md)] space-y-6">
+                      <div className="flex items-start gap-4">
+                        <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-bold uppercase tracking-wider text-red-500">Permanent Account Deletion</h4>
+                          <p className="text-xs text-[var(--color-muted)] uppercase tracking-wider leading-relaxed">
+                            Warning: This action is completely irreversible. Once confirmed, your candidate profile, 
+                            claims repository, verified projects, certificates, exam results, and all local files 
+                            will be permanently erased. There is no way to recover your data.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t border-red-500/20">
+                        <div>
+                          <label className="block text-xs uppercase tracking-widest font-bold text-red-400 mb-2">
+                            Confirm Password
+                          </label>
+                          <input
+                            type="password"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            placeholder="ENTER YOUR ACCOUNT PASSWORD"
+                            className="block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-red-500/20 focus:outline-none focus:border-red-500 text-[var(--color-text)] placeholder-[var(--color-muted)]/30 font-mono text-xs tracking-wider"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs uppercase tracking-widest font-bold text-red-400 mb-2">
+                            To confirm, type <span className="text-white font-black">DELETE</span> below:
+                          </label>
+                          <input
+                            type="text"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="TYPE DELETE"
+                            className="block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-red-500/20 focus:outline-none focus:border-red-500 text-[var(--color-text)] placeholder-[var(--color-muted)]/30 font-mono text-xs tracking-wider"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={deletePassword.trim() === "" || deleteConfirmText !== "DELETE" || deletingAccount}
+                          onClick={handleDeleteAccount}
+                          className={`w-full py-4 border font-mono text-xs font-bold uppercase tracking-widest transition-all ${
+                            deletePassword.trim() === "" || deleteConfirmText !== "DELETE"
+                              ? "border-red-500/10 text-red-500/30 cursor-not-allowed"
+                              : "border-red-500 hover:bg-red-500 hover:text-white text-red-500"
+                          }`}
+                        >
+                          {deletingAccount ? "DELETING PROTOCOLS..." : "INITIATE ACCOUNT ANNIHILATION"}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
 
-              {/* ── GLOBAL ACTION BAR ── */}
-              <div className="flex items-center justify-between pt-12 border-t border-[var(--color-border)]">
-                <div className="hidden md:flex flex-col gap-1">
-                    <span className="text-sm font-mono uppercase tracking-[0.2em] opacity-40">Changes: {systemStatus === "Awaiting_Save" ? "UNCOMMITTED" : "SYNCHRONIZED"}</span>
-                    <div className={`h-[1px] w-32 ${systemStatus === "Awaiting_Save" ? "bg-red-500 animate-pulse" : "bg-[var(--color-accent)]"}`} />
+              {/* ── GLOBAL ACTION BAR (HIDDEN IN DANGER ZONE) ── */}
+              {activeTab !== "DangerZone" && (
+                <div className="flex items-center justify-between pt-12 border-t border-[var(--color-border)]">
+                  <div className="hidden md:flex flex-col gap-1">
+                      <span className="text-sm font-mono uppercase tracking-[0.2em] opacity-40">Changes: {systemStatus === "Awaiting_Save" ? "UNCOMMITTED" : "SYNCHRONIZED"}</span>
+                      <div className={`h-[1px] w-32 ${systemStatus === "Awaiting_Save" ? "bg-red-500 animate-pulse" : "bg-[var(--color-accent)]"}`} />
+                  </div>
+                  <button type="submit" disabled={saving}
+                    className="group flex items-center gap-4 px-12 py-5 bg-[var(--color-accent)] text-[var(--color-bg)] font-bold tracking-[0.4em] uppercase text-base shadow-[0_0_30px_var(--color-accent)]/20 hover:shadow-[0_0_40px_var(--color-accent)]/40 transition-all disabled:opacity-50"
+                  >
+                    {saving ? "SYNCHRONIZING..." : (
+                      <>
+                        Execute_Update <Save className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                      </>
+                    )}
+                  </button>
                 </div>
-                <button type="submit" disabled={saving}
-                  className="group flex items-center gap-4 px-12 py-5 bg-[var(--color-accent)] text-[var(--color-bg)] font-bold tracking-[0.4em] uppercase text-base shadow-[0_0_30px_var(--color-accent)]/20 hover:shadow-[0_0_40px_var(--color-accent)]/40 transition-all disabled:opacity-50"
-                >
-                  {saving ? "SYNCHRONIZING..." : (
-                    <>
-                      Execute_Update <Save className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                    </>
-                  )}
-                </button>
-              </div>
+              )}
             </form>
           </main>
         </div>

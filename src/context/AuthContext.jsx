@@ -39,17 +39,23 @@ export const AuthProvider = ({ children }) => {
   const [isExiting, setIsExiting] = useState(false);
   const logoutTimerRef = useRef(null);
 
-  const performLogout = () => {
-    clearUserSession();
-    setUser(null);
-    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+  const updateCurrentUser = (val) => {
+    setUser((prev) => {
+      const nextUser = typeof val === "function" ? val(prev) : val;
+      if (nextUser) {
+        persistUserSession(nextUser);
+      } else {
+        clearUserSession();
+      }
+      return nextUser;
+    });
   };
 
   const scheduleLogout = (timeRemaining) => {
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     logoutTimerRef.current = setTimeout(() => {
       console.log("[VeriProof] Session expired (1 Hour limit reached). Auto-logging out.");
-      performLogout();
+      updateCurrentUser(null);
     }, timeRemaining);
   };
 
@@ -83,18 +89,17 @@ export const AuthProvider = ({ children }) => {
       { email, password },
       config,
     );
-    setUser(data);
-    persistUserSession(data);
+    updateCurrentUser(data);
     scheduleLogout(ONE_HOUR);
     return data;
   };
 
   const logout = () => {
-    performLogout();
+    updateCurrentUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, setUser, isExiting, setIsExiting }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, setUser: updateCurrentUser, isExiting, setIsExiting }}>
       {children}
     </AuthContext.Provider>
   );
