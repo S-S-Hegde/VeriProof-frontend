@@ -150,12 +150,11 @@ const RESUME_STATUS_MAP = {
   "Rejected":          { label: "Needs Re-upload", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", icon: XCircle },
 };
 
-export const ResumeUploadCard = ({ user, resumeUrl, resumeStatus, onUploadComplete, analysisState }) => {
+export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, analysisState }) => {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
-  const navigate = useNavigate();
 
   const hasResume = !!resumeUrl;
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
@@ -166,12 +165,11 @@ export const ResumeUploadCard = ({ user, resumeUrl, resumeStatus, onUploadComple
     // Validate file type
     const allowed = [
       "application/pdf",
-      "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
     ];
     if (!allowed.includes(file.type)) {
-      setError("Invalid file type. Please upload PDF, DOC, DOCX, or TXT.");
+      setError("Invalid file type. Please upload PDF, DOCX, or TXT.");
       return;
     }
 
@@ -315,7 +313,7 @@ export const ResumeUploadCard = ({ user, resumeUrl, resumeStatus, onUploadComple
                 ref={fileInputRef}
                 onChange={(e) => handleUpload(e.target.files?.[0])}
                 className="hidden"
-                accept=".pdf,.doc,.docx,.txt"
+                accept=".pdf,.docx,.txt"
               />
             </div>
           </div>
@@ -375,7 +373,7 @@ export const ResumeUploadCard = ({ user, resumeUrl, resumeStatus, onUploadComple
           ref={fileInputRef}
           onChange={(e) => handleUpload(e.target.files?.[0])}
           className="hidden"
-          accept=".pdf,.doc,.docx,.txt"
+          accept=".pdf,.docx,.txt"
         />
 
         {uploading ? (

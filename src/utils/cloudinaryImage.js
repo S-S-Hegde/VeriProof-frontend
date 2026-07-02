@@ -18,6 +18,12 @@
 
 const CLOUDINARY_PATTERN = /res\.cloudinary\.com/;
 
+const resolveImageUrl = (url) => {
+  if (!url?.startsWith("/uploads/")) return url || "";
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+  return `${apiBaseUrl}${url}`;
+};
+
 /**
  * Appends f_auto,q_auto to Cloudinary URLs.
  * Optionally accepts a `width` to add c_limit,w_{width} for responsive sizing.
@@ -28,8 +34,9 @@ const CLOUDINARY_PATTERN = /res\.cloudinary\.com/;
  * @returns {string}
  */
 export function cldImg(url, { w } = {}) {
+  const resolvedUrl = resolveImageUrl(url);
   // Passthrough for falsy, local, or non-Cloudinary URLs
-  if (!url || !CLOUDINARY_PATTERN.test(url)) return url || "";
+  if (!resolvedUrl || !CLOUDINARY_PATTERN.test(resolvedUrl)) return resolvedUrl;
 
   // Build the transformation string
   const transforms = ["f_auto", "q_auto", ...(w ? [`c_limit,w_${w}`] : [])].join(",");
@@ -37,7 +44,7 @@ export function cldImg(url, { w } = {}) {
   // Insert transforms right after /upload/ or /fetch/
   // e.g. https://res.cloudinary.com/demo/image/upload/v1/sample.jpg
   //   →  https://res.cloudinary.com/demo/image/upload/f_auto,q_auto/v1/sample.jpg
-  return url.replace(/\/(upload|fetch)\/(?!f_auto)/, `/$1/${transforms}/`);
+  return resolvedUrl.replace(/\/(upload|fetch)\/(?!f_auto)/, `/$1/${transforms}/`);
 }
 
 /**

@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
-import { persistUserSession } from "../utils/authStorage";
 import {
   User, Mail, Phone, MapPin, Globe, Linkedin, Twitter,
   Instagram, Github, Shield, Bell, Eye, Lock,
@@ -137,12 +136,11 @@ const Settings = () => {
     // Validate file type
     const allowed = [
       "application/pdf",
-      "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
     ];
     if (!allowed.includes(file.type)) {
-      setToast({ type: "error", msg: "Invalid file type. Use PDF, DOC, DOCX, or TXT." });
+      setToast({ type: "error", msg: "Invalid file type. Use PDF, DOCX, or TXT." });
       return;
     }
 
@@ -185,6 +183,18 @@ const Settings = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.type)) {
+      setToast({ type: "error", msg: "Invalid image. Use JPG, PNG, WEBP, or GIF." });
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setToast({ type: "error", msg: "Image too large. Maximum size is 2MB." });
+      e.target.value = "";
+      return;
+    }
+
     setUploading(true);
     setSystemStatus("Syncing_Image_Node...");
     
@@ -202,11 +212,12 @@ const Settings = () => {
       setUser(prev => ({ ...prev, profileImage: data.profileImage }));
       setToast({ type: "success", msg: "Image: Protocol Secured" });
       setSystemStatus("Sync_Success");
-    } catch {
-      setToast({ type: "error", msg: "Image: Uplink Failed" });
+    } catch (err) {
+      setToast({ type: "error", msg: err.response?.data?.message || "Image: Uplink Failed" });
       setSystemStatus("Fatal_Error");
     } finally {
       setUploading(false);
+      e.target.value = "";
       setTimeout(() => setSystemStatus("Idle"), 2000);
     }
   };
@@ -362,7 +373,7 @@ const Settings = () => {
                             ref={fileInputRef} 
                             onChange={handleImageUpload} 
                             className="hidden" 
-                            accept="image/*" 
+                            accept="image/jpeg,image/png,image/webp,image/gif" 
                           />
                           <div 
                             onClick={() => fileInputRef.current.click()}
@@ -437,7 +448,7 @@ const Settings = () => {
                             ref={resumeInputRef} 
                             onChange={handleResumeUpload} 
                             className="hidden" 
-                            accept=".pdf,.doc,.docx,.txt" 
+                            accept=".pdf,.docx,.txt" 
                           />
                           <div 
                             onClick={() => resumeInputRef.current.click()}

@@ -1,57 +1,63 @@
+import { useEffect, useRef, useState } from "react";
 import PageTransition from "../components/PageTransition";
-import { UploadCloud, Activity } from "lucide-react";
-import { motion } from "framer-motion";
+import { Activity, UploadCloud } from "lucide-react";
+import api from "../utils/api";
 
 const RecruiterResumes = () => {
-  return (
-    <PageTransition>
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-12 relative min-h-screen">
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[var(--color-accent)] opacity-[0.03] blur-[120px] -z-10 pointer-events-none" />
+  const [jobs, setJobs] = useState([]);
+  const [jobId, setJobId] = useState("");
+  const [applicants, setApplicants] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const inputRef = useRef(null);
 
-        <div className="mb-16 border-b border-[var(--color-border)] pb-8">
-          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-            <div className="flex items-center gap-4 mb-4">
-              <span className="w-8 h-[1px] bg-[var(--color-accent)]" />
-              <p className="text-sm font-mono tracking-[0.5em] uppercase text-[var(--color-accent)] font-bold">
-                Mass_Intelligence_Upload
-              </p>
-            </div>
-            <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter leading-none mb-4">
-              Bulk <span className="text-[var(--color-accent)] not-italic">Intel.</span>
-            </h2>
-            <p className="mt-4 text-sm font-medium opacity-40 uppercase tracking-widest flex items-center gap-3 max-w-3xl leading-relaxed">
-              Upload large batches of intel documents to parse and match them against the core forensics database of verified skills.
-            </p>
-          </motion.div>
-        </div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-white/5 dark:bg-black/20 backdrop-blur-xl p-12 lg:p-32 border border-[var(--color-border)] flex flex-col items-center justify-center text-center transition-all duration-500 hover:border-[var(--color-accent)] cursor-pointer group border-dashed relative overflow-hidden"
-        >
-          {/* Scanning line animation */}
-          <div className="absolute left-0 right-0 h-[1px] bg-[var(--color-accent)] shadow-[0_0_20px_var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:animate-scan z-0 pointer-events-none" />
+  const load = async () => {
+    const [jobResponse, applicantResponse] = await Promise.all([
+      api.get("/api/verify/my-jobs"), api.get("/api/verify/applicants"),
+    ]);
+    setJobs(jobResponse.data);
+    setApplicants(applicantResponse.data);
+    setJobId((current) => current || jobResponse.data[0]?._id || "");
+  };
+  useEffect(() => { load().catch(() => setMessage("Unable to load recruiter screening data.")); }, []);
 
-          <div className="bg-[var(--color-accent)]/5 border border-[var(--color-accent)]/20 p-8 mb-8 text-[var(--color-accent)] shadow-[0_0_30px_var(--color-accent)]/10 group-hover:scale-110 transition-transform duration-500 relative z-10 rounded-sm">
-            <UploadCloud className="w-16 h-16" />
-          </div>
-          
-          <h3 className="text-3xl font-black italic uppercase tracking-widest mb-4 relative z-10 group-hover:text-[var(--color-accent)] transition-colors">
-            Init_File_Transfer
-          </h3>
-          <p className="text-xs tracking-[0.2em] font-mono uppercase text-[var(--color-muted)] max-w-xl mx-auto leading-loose opacity-50 mb-12 relative z-10">
-            Supported protocols: PDF, DOCX. The AI forensics engine will automatically extract intelligence and cross-reference records against verified nodes.
-          </p>
-          
-          <button className="px-12 py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-black tracking-[0.4em] uppercase text-xs hover:bg-[var(--color-accent)] hover:text-white transition-all shadow-xl relative z-10">
-            Browse_Local_System
-          </button>
-        </motion.div>
-      </div>
-    </PageTransition>
-  );
+  const upload = async (event) => {
+    const files = [...(event.target.files || [])];
+    if (!files.length || !jobId) { setMessage("Create and select a job before uploading resumes."); return; }
+    setBusy(true); setMessage("");
+    const data = new FormData();
+    data.append("jobId", jobId);
+    files.forEach((file) => data.append("resumes", file));
+    try {
+      const response = await api.post("/api/verify/applicants/upload", data);
+      const failed = response.data.filter((item) => item.status === "Failed").length;
+      setMessage(`${response.data.length - failed} resume(s) screened${failed ? `; ${failed} failed` : ""}.`);
+      await load();
+    } catch (error) { setMessage(error.response?.data?.message || "Bulk upload failed."); }
+    finally { setBusy(false); event.target.value = ""; }
+  };
+
+  return <PageTransition><div className="max-w-6xl mx-auto px-6 py-12 min-h-screen">
+    <div className="mb-10 border-b border-[var(--color-border)] pb-8">
+      <p className="vp-label-accent mb-3">Mass_Intelligence_Upload</p>
+      <h2 className="text-5xl font-black italic uppercase tracking-tighter">Bulk <span className="text-[var(--color-accent)] not-italic">Screening.</span></h2>
+    </div>
+    {message && <p className="mb-6 border border-[var(--color-border)] p-3 text-sm">{message}</p>}
+    <section className="border border-dashed border-[var(--color-border)] p-8 text-center mb-10">
+      <select value={jobId} onChange={(e) => setJobId(e.target.value)} className="w-full max-w-md bg-[var(--color-bg)] border border-[var(--color-border)] p-3 mb-5">
+        {!jobs.length && <option value="">No job roles available</option>}
+        {jobs.map((job) => <option key={job._id} value={job._id}>{job.title}</option>)}
+      </select>
+      <input ref={inputRef} type="file" multiple hidden accept=".pdf,.docx,.txt" onChange={upload} />
+      <button disabled={busy || !jobId} onClick={() => inputRef.current?.click()} className="mx-auto px-8 py-4 bg-[var(--color-accent)] text-white uppercase font-bold tracking-widest flex gap-3 disabled:opacity-40"><UploadCloud className="w-5" />{busy ? "Screening..." : "Choose up to 10 resumes"}</button>
+      <p className="text-xs opacity-50 mt-4">PDF, DOCX, or TXT · 5MB each · claims retained per upload</p>
+    </section>
+    <section className="overflow-x-auto border border-[var(--color-border)]">
+      <table className="w-full text-left"><thead><tr className="border-b border-[var(--color-border)]"><th className="p-4">Applicant file</th><th className="p-4">Job</th><th className="p-4">Alignment</th><th className="p-4">Matched claims</th><th className="p-4">Status</th></tr></thead>
+      <tbody>{applicants.map((item) => <tr key={item._id} className="border-b border-[var(--color-border)] text-sm"><td className="p-4">{item.originalFileName}</td><td className="p-4">{item.jobId?.title}</td><td className="p-4 font-bold">{item.alignmentScore}%</td><td className="p-4">{item.matchedSkills?.join(", ") || "—"}</td><td className="p-4"><span className="flex gap-2 items-center"><Activity className="w-3" />{item.status}</span>{item.error && <small className="block text-red-500 mt-1">{item.error}</small>}</td></tr>)}</tbody></table>
+      {!applicants.length && <p className="p-10 text-center opacity-50">No applicant resumes screened yet.</p>}
+    </section>
+  </div></PageTransition>;
 };
 
 export default RecruiterResumes;

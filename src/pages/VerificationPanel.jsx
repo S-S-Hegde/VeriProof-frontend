@@ -18,7 +18,6 @@ const VerificationPanel = () => {
   
   // Parse Form Data
   const [selectedJob, setSelectedJob] = useState("");
-  const [resumeText, setResumeText] = useState("");
   const [candidateId, setCandidateId] = useState("");
 
   const fetchJobs = async () => {
@@ -99,15 +98,13 @@ const VerificationPanel = () => {
 
   const handleParseResume = async (e) => {
     e.preventDefault();
-    if (!selectedJob || !resumeText || !candidateId) return;
+    if (!selectedJob || !candidateId) return;
     try {
       await api.post("/api/verify/parse", {
         jobId: selectedJob,
         candidateId,
-        resumeText
       });
       
-      setResumeText("");
       fetchResults();
     } catch (error) {
       console.error("Failed to parse resume", error);
@@ -227,20 +224,12 @@ const VerificationPanel = () => {
                     ))}
                   </select>
                 </div>
-                <div className="md:col-span-4">
-                  <label className="block text-xs uppercase tracking-widest text-[var(--color-muted)] mb-2">Paste Candidate Resume</label>
-                  <input 
-                    type="text" 
-                    value={resumeText}
-                    onChange={(e) => setResumeText(e.target.value)}
-                    className="w-full bg-[var(--color-bg-sunken)]/50 border border-[var(--color-border)] rounded-lg p-3 text-sm text-[var(--color-text)] focus:outline-none focus:border-[var(--color-accent)]"
-                    placeholder="Candidate experience text..."
-                    required
-                  />
+                <div className="md:col-span-4 flex items-end text-xs text-[var(--color-muted)]">
+                  The latest completed resume analysis and stored claims will be screened automatically.
                 </div>
                 <div className="md:col-span-12 flex items-end justify-end">
                   <button type="submit" className="w-full py-3 bg-[var(--color-accent)] text-[var(--color-text)] rounded-lg font-bold uppercase tracking-widest text-xs hover:shadow-lg transition-all">
-                    Run NLP
+                    Screen Stored Claims
                   </button>
                 </div>
               </form>
