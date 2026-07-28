@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "../components/PageTransition";
 import ProjectCard3D from "../components/ProjectCard3D";
 import SkillProgressPanel from "../components/SkillProgressPanel";
-import { VerificationPipeline, ResumeUploadCard, ProfileCompletionCard } from "../components/OnboardingComponents";
+import {
+  VerificationPipeline,
+  ResumeUploadCard,
+  ProfileCompletionCard,
+} from "../components/OnboardingComponents";
 import { useSkillTree } from "../context/SkillTreeContext";
 import { motion } from "framer-motion";
 import {
-  Plus, Database, Shield, Award, Activity, CheckCircle,
-  ExternalLink, GitBranch, Terminal,
+  Plus,
+  Database,
+  Shield,
+  Award,
+  Activity,
+  CheckCircle,
+  ExternalLink,
+  GitBranch,
+  Terminal,
 } from "lucide-react";
 
-/* ─── Section Reveal ─── */
 const Reveal = ({ children, delay = 0, className = "" }) => (
   <motion.div
     initial={{ opacity: 0, y: 30, filter: "blur(3px)" }}
@@ -25,7 +35,6 @@ const Reveal = ({ children, delay = 0, className = "" }) => (
   </motion.div>
 );
 
-/* ─── Skeleton Loader ─── */
 const SkeletonCard = () => (
   <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-bg)] p-7 space-y-4 animate-pulse">
     <div className="h-3 w-24 rounded bg-[var(--color-border)]" />
@@ -50,50 +59,60 @@ const StudentDashboard = () => {
   const { progress } = useSkillTree();
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const profileRes = await axios.get("/api/users/profile", config);
+        const [profileRes, projectsRes] = await Promise.all([
+          api.get("/api/users/profile"),
+          api.get("/api/projects/myprojects"),
+        ]);
+
+        if (!isMounted) return;
+
         setProfileData(profileRes.data);
         setCertificates(profileRes.data.certificates || []);
-
-        // Update user context with workflowState
         if (profileRes.data.workflowState && user) {
-          setUser({ ...user, workflowState: profileRes.data.workflowState });
+          setUser((prev) => ({
+            ...prev,
+            workflowState: profileRes.data.workflowState,
+          }));
         }
 
-        const { data } = await axios.get("/api/projects/myprojects", config);
-        setProjects(data);
+        setProjects(projectsRes.data || []);
         setLoading(false);
-      } catch {
-        console.error("Failed to fetch data");
-        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+        if (isMounted) setLoading(false);
       }
     };
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [setUser]);
 
   const workflowState = profileData?.workflowState || user?.workflowState;
   const resumeUrl = profileData?.resumeUrl || "";
   const resumeStatus = profileData?.resumeStatus || "Not Submitted";
   const profileImage = profileData?.profileImage || user?.profileImage || "";
 
-  // Poll resume analysis status when Pending Evaluation
   useEffect(() => {
     let intervalId;
-    
+    let isMounted = true;
+
     const checkAnalysisStatus = async () => {
       try {
-        const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        const { data } = await axios.get("/api/users/profile/resume-analysis", config);
+        const { data } = await api.get("/api/users/profile/resume-analysis");
+        if (!isMounted) return;
         setAnalysisState(data);
-        
-        if (data.status === "Analysis Complete" || data.status === "Analysis Failed") {
-          clearInterval(intervalId);
-          
-          // Refresh profile data to unlock next stage
-          const profileRes = await axios.get("/api/users/profile", config);
+
+        if (
+          data.status === "Analysis Complete" ||
+          data.status === "Analysis Failed"
+        ) {
+          if (intervalId) clearInterval(intervalId);
+          const profileRes = await api.get("/api/users/profile");
+          if (!isMounted) return;
           setProfileData(profileRes.data);
           if (profileRes.data.workflowState) {
             setUser((prev) => ({
@@ -110,15 +129,16 @@ const StudentDashboard = () => {
 
     if (resumeStatus === "Pending Evaluation") {
       checkAnalysisStatus();
-      intervalId = setInterval(checkAnalysisStatus, 4000); // Poll every 4 seconds
+      intervalId = setInterval(checkAnalysisStatus, 4000);
     } else {
       setAnalysisState(null);
     }
 
     return () => {
+      isMounted = false;
       if (intervalId) clearInterval(intervalId);
     };
-  }, [resumeStatus, user, setUser]);
+  }, [resumeStatus, setUser]);
 
   const handleResumeUploadComplete = (data) => {
     setProfileData((prev) => ({
@@ -131,13 +151,23 @@ const StudentDashboard = () => {
       ...prev,
       resumeUrl: data.resumeUrl,
       resumeStatus: data.resumeStatus,
-      workflowState: prev ? { ...prev.workflowState, hasResume: true } : null
+      workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
     }));
   };
 
   const stats = [
-    { label: "Authenticated_Nodes", val: projects.length, icon: Database, id: "01" },
-    { label: "Verification_Level", val: resumeStatus.toUpperCase(), icon: Shield, id: "02" },
+    {
+      label: "Authenticated_Nodes",
+      val: projects.length,
+      icon: Database,
+      id: "01",
+    },
+    {
+      label: "Verification_Level",
+      val: resumeStatus.toUpperCase(),
+      icon: Shield,
+      id: "02",
+    },
     { label: "Talent_Signal", val: "ALPHA", icon: Activity, id: "03" },
     { label: "Global_Integrity", val: "99.2%", icon: Award, id: "04" },
   ];
@@ -145,14 +175,13 @@ const StudentDashboard = () => {
   return (
     <PageTransition>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 lg:py-12 pb-28 lg:pb-12">
-
-        {/* ═══ HEADER ═══ */}
         <Reveal>
           <div className="mb-12 lg:mb-16">
             <div className="flex items-center gap-3 mb-4">
               <Terminal className="w-4 h-4 text-[var(--color-accent)]" />
               <span className="vp-label-accent">
-                Terminal_Authorized // {user.name?.replace(" ", "_").toUpperCase()}
+                Terminal_Authorized //{" "}
+                {user?.name?.replace(" ", "_").toUpperCase()}
               </span>
             </div>
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
@@ -160,7 +189,10 @@ const StudentDashboard = () => {
                 className="font-black italic uppercase tracking-tighter leading-[0.85]"
                 style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
               >
-                Candidate <span className="text-[var(--color-accent)] not-italic">Terminal.</span>
+                Candidate{" "}
+                <span className="text-[var(--color-accent)] not-italic">
+                  Terminal.
+                </span>
               </h1>
               <div className="flex gap-3">
                 <motion.button
@@ -172,11 +204,23 @@ const StudentDashboard = () => {
                   <GitBranch className="w-3.5 h-3.5" /> Skill_Tree
                 </motion.button>
                 <motion.button
-                  whileHover={workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
-                  whileTap={workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
-                  onClick={() => workflowState?.isResumeAnalyzed ? navigate("/add-project") : null}
-                  className={`vp-btn text-[10px] py-3 px-6 gap-2 ${workflowState?.isResumeAnalyzed ? 'vp-btn-accent' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
-                  title={!workflowState?.isResumeAnalyzed ? "Complete Resume Analysis to unlock" : ""}
+                  whileHover={
+                    workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}
+                  }
+                  whileTap={
+                    workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}
+                  }
+                  onClick={() =>
+                    workflowState?.isResumeAnalyzed
+                      ? navigate("/add-project")
+                      : null
+                  }
+                  className={`vp-btn text-[10px] py-3 px-6 gap-2 ${workflowState?.isResumeAnalyzed ? "vp-btn-accent" : "bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50"}`}
+                  title={
+                    !workflowState?.isResumeAnalyzed
+                      ? "Complete Resume Analysis to unlock"
+                      : ""
+                  }
                 >
                   <Plus className="w-3.5 h-3.5" /> Upload_Evidence
                 </motion.button>
@@ -184,15 +228,18 @@ const StudentDashboard = () => {
             </div>
             <div className="flex items-center gap-3 mt-4">
               <span className="vp-status-dot" />
-              <span className="vp-label">System_Status: {workflowState?.hasResume ? "Pipeline_Active" : "Awaiting_Resume"}</span>
+              <span className="vp-label">
+                System_Status:{" "}
+                {workflowState?.hasResume
+                  ? "Pipeline_Active"
+                  : "Awaiting_Resume"}
+              </span>
             </div>
           </div>
         </Reveal>
 
-        {/* ═══ ONBOARDING: PIPELINE + RESUME + PROFILE ═══ */}
         <Reveal delay={0.1}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 lg:mb-16">
-            {/* Left column: Pipeline + Resume Upload */}
             <div className="lg:col-span-8 space-y-4">
               <ResumeUploadCard
                 user={user}
@@ -203,7 +250,6 @@ const StudentDashboard = () => {
               />
               <VerificationPipeline workflowState={workflowState} />
             </div>
-            {/* Right column: Profile Completion */}
             <div className="lg:col-span-4">
               <ProfileCompletionCard
                 user={profileData || user}
@@ -214,7 +260,6 @@ const StudentDashboard = () => {
           </div>
         </Reveal>
 
-        {/* ═══ STATS BENTO ═══ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-12 lg:mb-16">
           {stats.map((stat, i) => (
             <Reveal key={i} delay={0.2 + i * 0.08}>
@@ -229,26 +274,28 @@ const StudentDashboard = () => {
                   <span className="vp-label">Stat_{stat.id}</span>
                 </div>
                 <p className="vp-label mb-2">{stat.label}</p>
-                <p className="text-2xl font-black italic uppercase tracking-tight">{stat.val}</p>
+                <p className="text-2xl font-black italic uppercase tracking-tight">
+                  {stat.val}
+                </p>
               </motion.div>
             </Reveal>
           ))}
         </div>
 
-        {/* ═══ SKILL PROGRESS ═══ */}
         <Reveal delay={0.4}>
           <div className="mb-12 lg:mb-16">
             <SkillProgressPanel progress={progress} />
           </div>
         </Reveal>
 
-        {/* ═══ CREDENTIALS ═══ */}
         {certificates.length > 0 && (
           <Reveal delay={0.45}>
             <div className="mb-12 lg:mb-16">
               <div className="flex items-center gap-3 mb-8">
                 <Award className="w-5 h-5 text-[var(--color-accent)]" />
-                <h3 className="text-xl font-black uppercase tracking-tight">Verified_Credentials</h3>
+                <h3 className="text-xl font-black uppercase tracking-tight">
+                  Verified_Credentials
+                </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {certificates.map((cert, idx) => (
@@ -258,27 +305,29 @@ const StudentDashboard = () => {
                     className="vp-surface-1 p-7 group relative overflow-hidden"
                   >
                     <div className="absolute -top-12 -right-12 w-24 h-24 bg-[var(--color-accent)] opacity-[0.04] rotate-45 pointer-events-none" />
-
                     <div className="flex justify-between items-start mb-6">
                       <div className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] flex items-center justify-center">
                         <CheckCircle className="w-5 h-5 text-[var(--color-accent)]" />
                       </div>
-                      <span className="vp-label">Issue: {new Date(cert.issuedAt).toLocaleDateString()}</span>
+                      <span className="vp-label">
+                        Issue: {new Date(cert.issuedAt).toLocaleDateString()}
+                      </span>
                     </div>
-
                     <h4 className="text-lg font-black uppercase tracking-tight mb-2 group-hover:text-[var(--color-accent)] transition-colors">
                       {cert.title}
                     </h4>
                     <p className="vp-label mb-5">{cert.issuer}</p>
-
                     <div className="flex flex-wrap gap-1.5 mb-6">
                       {cert.techStack?.map((tech, i) => (
-                        <span key={i} className="vp-tag">{tech}</span>
+                        <span key={i} className="vp-tag">
+                          {tech}
+                        </span>
                       ))}
                     </div>
-
                     <div className="flex items-center justify-between pt-5 border-t border-[var(--color-border)]">
-                      <span className="vp-label" style={{ fontSize: "8px" }}>ID: {cert.credentialId}</span>
+                      <span className="vp-label" style={{ fontSize: "8px" }}>
+                        ID: {cert.credentialId}
+                      </span>
                       <button className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-accent)] hover:opacity-70 transition-opacity">
                         Verify <ExternalLink className="w-3 h-3" />
                       </button>
@@ -290,17 +339,20 @@ const StudentDashboard = () => {
           </Reveal>
         )}
 
-        {/* ═══ PROJECTS ═══ */}
         <Reveal delay={0.5}>
           <div className="flex items-center gap-3 mb-8">
             <Database className="w-5 h-5 text-[var(--color-accent)]" />
-            <h3 className="text-xl font-black uppercase tracking-tight">Evidence_Archive</h3>
+            <h3 className="text-xl font-black uppercase tracking-tight">
+              Evidence_Archive
+            </h3>
           </div>
         </Reveal>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : projects.length === 0 ? (
           <Reveal delay={0.55}>
@@ -313,16 +365,25 @@ const StudentDashboard = () => {
                 <p className="text-sm text-[var(--color-muted)] mb-8">
                   {workflowState?.isResumeAnalyzed
                     ? "No evidence has been synchronized with this node."
-                    : "Complete Resume Analysis to begin uploading project evidence."
-                  }
+                    : "Complete Resume Analysis to begin uploading project evidence."}
                 </p>
                 <motion.button
-                  whileHover={workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}}
-                  whileTap={workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}}
-                  onClick={() => workflowState?.isResumeAnalyzed ? navigate("/add-project") : null}
-                  className={`vp-btn text-[11px] py-3 px-8 ${workflowState?.isResumeAnalyzed ? 'vp-btn-primary' : 'bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50'}`}
+                  whileHover={
+                    workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}
+                  }
+                  whileTap={
+                    workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}
+                  }
+                  onClick={() =>
+                    workflowState?.isResumeAnalyzed
+                      ? navigate("/add-project")
+                      : null
+                  }
+                  className={`vp-btn text-[11px] py-3 px-8 ${workflowState?.isResumeAnalyzed ? "vp-btn-primary" : "bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50"}`}
                 >
-                  {workflowState?.isResumeAnalyzed ? "Initiate_First_Sync" : "Awaiting_Resume_Analysis"}
+                  {workflowState?.isResumeAnalyzed
+                    ? "Initiate_First_Sync"
+                    : "Awaiting_Resume_Analysis"}
                 </motion.button>
               </div>
             </div>
@@ -334,7 +395,11 @@ const StudentDashboard = () => {
                 key={project._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                transition={{
+                  duration: 0.5,
+                  delay: i * 0.08,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
               >
                 <ProjectCard3D project={project} />
               </motion.div>

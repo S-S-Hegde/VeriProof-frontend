@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/api";
 import PageTransition from "../components/PageTransition";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -19,7 +19,7 @@ const ProjectDetails = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const { data } = await axios.get(`/api/projects/${id}`);
+        const { data } = await api.get(`/api/projects/${id}`);
         setProject(data);
         setLoading(false);
       } catch (err) {
@@ -59,16 +59,17 @@ const ProjectDetails = () => {
           to="/dashboard"
           className="text-ibex-muted hover:text-ibex-gold flex items-center mb-12 tracking-widest uppercase text-xs transition-colors group"
         >
-          <span className="mr-2 group-hover:-translate-x-1 transition-transform">←</span> Return to Discover Hub
+          <span className="mr-2 group-hover:-translate-x-1 transition-transform">
+            ←
+          </span>{" "}
+          Return to Discover Hub
         </Link>
-
         <motion.article
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="relative"
         >
-          {/* Header Section */}
           <header className="mb-16 md:flex md:justify-between md:items-end">
             <div className="md:w-3/4">
               <h1 className="text-5xl md:text-7xl font-serif text-vp-teal font-light tracking-wide leading-tight mb-6">
@@ -80,11 +81,15 @@ const ProjectDetails = () => {
                   {project.user.name.charAt(0)}
                 </div>
                 <p className="text-ibex-muted font-light tracking-wide uppercase text-sm flex items-center">
-                  A work by <span className="text-vp-teal font-medium">{project.user.name}</span> <span className="mx-2 text-ibex-gold">|</span> @{project.user.githubUsername}
+                  A work by{" "}
+                  <span className="text-vp-teal font-medium">
+                    {project.user.name}
+                  </span>{" "}
+                  <span className="mx-2 text-ibex-gold">|</span> @
+                  {project.user.githubUsername}
                 </p>
               </div>
             </div>
-            
             <div className="mt-8 md:mt-0 pb-2">
               <span
                 className={`inline-flex items-center px-4 py-2 border text-xs tracking-widest uppercase shadow-sm backdrop-blur-md ${project.isVerified ? "border-green-800/50 text-green-500 bg-green-900/20" : "border-ibex-gold/30 text-ibex-gold bg-ibex-gold/5"}`}
@@ -97,7 +102,6 @@ const ProjectDetails = () => {
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-            {/* Main Content Area */}
             <div className="lg:col-span-8">
               <section className="mb-16">
                 <h3 className="text-xs font-semibold text-ibex-gold mb-6 uppercase tracking-[0.2em] border-b border-ibex-gold/20 pb-4">
@@ -110,7 +114,6 @@ const ProjectDetails = () => {
                 </div>
               </section>
 
-              {/* Images Gallery */}
               {project.images && project.images.length > 0 && (
                 <section className="mb-16">
                   <h3 className="text-xs font-semibold text-ibex-gold mb-6 uppercase tracking-[0.2em] border-b border-ibex-gold/20 pb-4">
@@ -118,7 +121,10 @@ const ProjectDetails = () => {
                   </h3>
                   <div className="grid grid-cols-1 gap-8">
                     {project.images.map((img, idx) => (
-                      <div key={idx} className="relative group overflow-hidden border border-ibex-gold/20 p-2 bg-ibex-surface/30">
+                      <div
+                        key={idx}
+                        className="relative group overflow-hidden border border-ibex-gold/20 p-2 bg-ibex-surface/30"
+                      >
                         <img
                           src={img}
                           alt={`Project view ${idx + 1}`}
@@ -129,7 +135,6 @@ const ProjectDetails = () => {
                   </div>
                 </section>
               )}
-              {/* Plagiarism Checker — only shown when logged in */}
               {user && (
                 <section className="mt-10 bg-black/60 backdrop-blur border border-orange-500/12 rounded-2xl p-6">
                   <PlagiarismChecker projectId={id} />
@@ -137,7 +142,6 @@ const ProjectDetails = () => {
               )}
             </div>
 
-            {/* Sidebar Details Area */}
             <div className="lg:col-span-4 space-y-12">
               <section>
                 <h3 className="text-xs font-semibold text-ibex-gold mb-6 uppercase tracking-[0.2em] border-b border-ibex-gold/20 pb-4">
@@ -160,17 +164,22 @@ const ProjectDetails = () => {
                   Access & Verification
                 </h3>
                 <div className="flex flex-col space-y-6">
-                    <a
-                      href={project.repositoryUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group"
-                    >
-                      <div className="text-xs text-ibex-muted uppercase tracking-widest mb-1">Source Repository</div>
-                      <div className="text-ibex-text group-hover:text-ibex-gold transition-colors flex items-center">
-                        Explore Source Code <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
-                      </div>
-                    </a>
+                  <a
+                    href={project.repositoryUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group"
+                  >
+                    <div className="text-xs text-ibex-muted uppercase tracking-widest mb-1">
+                      Source Repository
+                    </div>
+                    <div className="text-ibex-text group-hover:text-ibex-gold transition-colors flex items-center">
+                      Explore Source Code{" "}
+                      <span className="ml-2 transition-transform group-hover:translate-x-1">
+                        →
+                      </span>
+                    </div>
+                  </a>
                   {project.liveUrl && (
                     <a
                       href={project.liveUrl}
@@ -178,16 +187,20 @@ const ProjectDetails = () => {
                       rel="noreferrer"
                       className="group"
                     >
-                      <div className="text-xs text-ibex-muted uppercase tracking-widest mb-1">Live Project</div>
+                      <div className="text-xs text-ibex-muted uppercase tracking-widest mb-1">
+                        Live Project
+                      </div>
                       <div className="text-ibex-text group-hover:text-ibex-gold transition-colors flex items-center">
-                        View Interactive <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
+                        View Interactive{" "}
+                        <span className="ml-2 transition-transform group-hover:translate-x-1">
+                          →
+                        </span>
                       </div>
                     </a>
                   )}
                 </div>
               </section>
 
-              {/* GitHub Stats Section if available */}
               {project.githubStats && project.githubStats.lastCommitDate && (
                 <section className="bg-vp-teal/5 p-6 border border-vp-teal/10">
                   <h3 className="text-xs font-semibold text-ibex-gold mb-6 uppercase tracking-[0.2em] border-b border-ibex-gold/20 pb-4">
@@ -195,8 +208,12 @@ const ProjectDetails = () => {
                   </h3>
                   <div className="space-y-6">
                     <p className="text-sm font-light text-vp-teal">
-                      <span className="text-xs text-ibex-muted uppercase tracking-widest block mb-1">Status</span>
-                      {project.isVerified ? "Verified ✅" : "Pending Evaluation"}
+                      <span className="text-xs text-ibex-muted uppercase tracking-widest block mb-1">
+                        Status
+                      </span>
+                      {project.isVerified
+                        ? "Verified ✅"
+                        : "Pending Evaluation"}
                     </p>
                     <div>
                       <p className="text-sm text-ibex-muted uppercase tracking-widest mb-1">
@@ -238,7 +255,6 @@ const ProjectDetails = () => {
             </div>
           </div>
 
-          {/* Featured Code Snippets - Full Width Section */}
           {project.featuredSnippets && project.featuredSnippets.length > 0 && (
             <section className="mt-20 pt-20 border-t border-ibex-gold/20">
               <h3 className="text-xs font-semibold text-ibex-gold mb-10 uppercase tracking-[0.2em] flex items-center gap-3">

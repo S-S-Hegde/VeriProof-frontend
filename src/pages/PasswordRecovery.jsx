@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import PageTransition from "../components/PageTransition";
-import { Mail, ArrowLeft, TerminalSquare, AlertTriangle, Loader2 } from "lucide-react";
-import axios from "axios";
+import {
+  Mail,
+  ArrowLeft,
+  TerminalSquare,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import api from "../utils/api";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +23,7 @@ const ForgotPassword = () => {
     setError("");
 
     try {
-      const { data } = await axios.post("/api/users/forgotpassword", { email });
+      const { data } = await api.post("/api/users/forgotpassword", { email });
       setMessage(data.message);
     } catch (err) {
       setError(err.response?.data?.message || "Error generating reset token.");
@@ -32,7 +38,6 @@ const ForgotPassword = () => {
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[var(--color-accent)] opacity-[0.03] blur-[100px] pointer-events-none" />
 
       <div className="glass-card max-w-lg w-full p-10 md:p-12 relative z-10 border border-[var(--color-border)] overflow-hidden">
-        {/* Cybernetic accent bar */}
         <div className="absolute top-0 inset-x-0 h-1 bg-[var(--color-accent)]" />
 
         <div className="flex justify-center mb-8">
@@ -40,7 +45,10 @@ const ForgotPassword = () => {
         </div>
 
         <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-2">
-          Forgot <span className="text-[var(--color-accent)] not-italic">Password.</span>
+          Forgot{" "}
+          <span className="text-[var(--color-accent)] not-italic">
+            Password.
+          </span>
         </h2>
         <p className="text-center font-mono text-xs tracking-widest uppercase opacity-50 mb-10">
           Initiate Cryptographic Key Recovery
@@ -83,7 +91,11 @@ const ForgotPassword = () => {
             disabled={loading}
             className="w-full flex items-center justify-center gap-3 py-4 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.3em] uppercase text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all shadow-xl group border border-transparent disabled:opacity-50"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Dispatch Recovery Protocol"}
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              "Dispatch Recovery Protocol"
+            )}
           </button>
         </form>
 

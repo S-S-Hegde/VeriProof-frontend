@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import PageTransition from "../components/PageTransition";
-import { KeyRound, ArrowRight, TerminalSquare, AlertTriangle, Loader2 } from "lucide-react";
-import axios from "axios";
+import {
+  KeyRound,
+  ArrowRight,
+  TerminalSquare,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import api from "../utils/api";
 
 const ResetPassword = () => {
   const { resettoken } = useParams();
   const navigate = useNavigate();
-  
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -20,19 +26,24 @@ const ResetPassword = () => {
       setError("Passphrases do not match.");
       return;
     }
-    
+
     setLoading(true);
     setMessage("");
     setError("");
 
     try {
-      const { data } = await axios.put(`/api/users/resetpassword/${resettoken}`, { password });
+      const { data } = await api.put(`/api/users/resetpassword/${resettoken}`, {
+        password,
+      });
       setMessage(data.message);
       setTimeout(() => {
         navigate("/login");
       }, 3000);
     } catch (err) {
-      setError(err.response?.data?.message || "Error updating passphrase. Token may be expired.");
+      setError(
+        err.response?.data?.message ||
+          "Error updating passphrase. Token may be expired.",
+      );
     } finally {
       setLoading(false);
     }
@@ -51,7 +62,10 @@ const ResetPassword = () => {
         </div>
 
         <h2 className="text-3xl font-black italic uppercase tracking-tighter text-center mb-2">
-          New <span className="text-[var(--color-accent)] not-italic">Passphrase.</span>
+          New{" "}
+          <span className="text-[var(--color-accent)] not-italic">
+            Passphrase.
+          </span>
         </h2>
         <p className="text-center font-mono text-xs tracking-widest uppercase opacity-50 mb-10">
           Establish New Cryptographic Key
@@ -77,6 +91,7 @@ const ResetPassword = () => {
               <KeyRound className="w-5 h-5 opacity-40 group-focus-within:opacity-100 group-focus-within:text-[var(--color-accent)] transition-all" />
             </div>
             <input
+              id="reset-passphrase"
               type="password"
               placeholder="••••••••"
               className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-sm font-mono tracking-wider focus:bg-transparent"
@@ -85,7 +100,10 @@ const ResetPassword = () => {
               required
               minLength={6}
             />
-            <label className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]">
+            <label
+              htmlFor="reset-passphrase"
+              className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]"
+            >
               New Passphrase
             </label>
           </div>
@@ -95,6 +113,7 @@ const ResetPassword = () => {
               <KeyRound className="w-5 h-5 opacity-40 group-focus-within:opacity-100 group-focus-within:text-[var(--color-accent)] transition-all" />
             </div>
             <input
+              id="confirm-passphrase"
               type="password"
               placeholder="••••••••"
               className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-sm font-mono tracking-wider focus:bg-transparent"
@@ -103,7 +122,10 @@ const ResetPassword = () => {
               required
               minLength={6}
             />
-            <label className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]">
+            <label
+              htmlFor="confirm-passphrase"
+              className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]"
+            >
               Verify Passphrase
             </label>
           </div>
@@ -113,8 +135,13 @@ const ResetPassword = () => {
             disabled={loading || !!message}
             className="w-full flex items-center justify-center gap-3 py-4 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.3em] uppercase text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all shadow-xl group border border-transparent disabled:opacity-50"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-              <>Lock Passphrase <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                Lock Passphrase{" "}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </>
             )}
           </button>
         </form>

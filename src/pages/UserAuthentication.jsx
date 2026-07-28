@@ -6,8 +6,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
 import { persistUserSession } from "../utils/authStorage";
 import {
-  Mail, Lock, ArrowRight, Shield, UserCircle, ShieldCheck,
-  Loader2, CheckCircle,
+  Mail,
+  Lock,
+  ArrowRight,
+  Shield,
+  UserCircle,
+  ShieldCheck,
+  Loader2,
+  CheckCircle,
 } from "lucide-react";
 
 const Login = () => {
@@ -33,7 +39,11 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post("/api/users/login", { email, password, role });
+      const { data } = await api.post("/api/users/login", {
+        email,
+        password,
+        role,
+      });
       setWelcomeName(data.name);
       setShowWelcome(true);
       setTimeout(() => {
@@ -50,7 +60,6 @@ const Login = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-      {/* Welcome overlay */}
       <AnimatePresence>
         {showWelcome && (
           <motion.div
@@ -81,7 +90,10 @@ const Login = () => {
               transition={{ delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter"
             >
-              Welcome, <span className="text-[var(--color-accent)] not-italic">{welcomeName}</span>
+              Welcome,{" "}
+              <span className="text-[var(--color-accent)] not-italic">
+                {welcomeName}
+              </span>
             </motion.h2>
           </motion.div>
         )}
@@ -93,7 +105,6 @@ const Login = () => {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md"
       >
-        {/* Header */}
         <div className="text-center mb-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -102,20 +113,24 @@ const Login = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-border)] mb-6"
           >
             <Shield className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-            <span className="vp-label-accent" style={{ letterSpacing: "0.2em" }}>Secure_Authentication</span>
+            <span
+              className="vp-label-accent"
+              style={{ letterSpacing: "0.2em" }}
+            >
+              Secure_Authentication
+            </span>
           </motion.div>
           <h1 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter mb-2">
-            Sign <span className="text-[var(--color-accent)] not-italic">In</span>
+            Sign{" "}
+            <span className="text-[var(--color-accent)] not-italic">In</span>
           </h1>
-          <p className="text-sm text-[var(--color-muted)]">Access your verification terminal</p>
+          <p className="text-sm text-[var(--color-muted)]">
+            Access your verification terminal
+          </p>
         </div>
 
-        {/* Glass Card */}
         <div className="vp-glass p-8 relative overflow-hidden">
-          {/* Accent glow */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-accent)] opacity-[0.03] blur-3xl -mr-16 -mt-16 pointer-events-none" />
-
-          {/* Role toggle */}
           <div className="flex mb-8 p-1 rounded-[var(--radius-md)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]">
             {[
               { value: "student", label: "Candidate", icon: UserCircle },
@@ -125,11 +140,7 @@ const Login = () => {
                 key={value}
                 type="button"
                 onClick={() => setRole(value)}
-                className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] rounded-[var(--radius-sm)] transition-colors ${
-                  role === value
-                    ? "text-[var(--color-bg)]"
-                    : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                }`}
+                className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] rounded-[var(--radius-sm)] transition-colors ${role === value ? "text-[var(--color-bg)]" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}
               >
                 {role === value && (
                   <motion.div
@@ -146,14 +157,13 @@ const Login = () => {
             ))}
           </div>
 
-          {/* Form */}
           <form onSubmit={submitHandler} className="space-y-5">
             <div>
-              <label className="vp-label mb-2 block">
-                <Mail className="w-3 h-3 inline mr-1.5" />
-                Network_Address
+              <label htmlFor="login-email" className="vp-label mb-2 block">
+                <Mail className="w-3 h-3 inline mr-1.5" /> Network_Address
               </label>
               <input
+                id="login-email"
                 ref={emailRef}
                 type="email"
                 required
@@ -163,13 +173,12 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-
             <div>
-              <label className="vp-label mb-2 block">
-                <Lock className="w-3 h-3 inline mr-1.5" />
-                Access_Key
+              <label htmlFor="login-password" className="vp-label mb-2 block">
+                <Lock className="w-3 h-3 inline mr-1.5" /> Access_Key
               </label>
               <input
+                id="login-password"
                 type="password"
                 required
                 placeholder="••••••••"
@@ -178,8 +187,6 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-
-            {/* Error */}
             <AnimatePresence>
               {error && (
                 <motion.p
@@ -192,8 +199,6 @@ const Login = () => {
                 </motion.p>
               )}
             </AnimatePresence>
-
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -209,8 +214,6 @@ const Login = () => {
               )}
             </button>
           </form>
-
-          {/* Links */}
           <div className="mt-6 flex flex-col items-center gap-3">
             <Link
               to="/forgot-password"
@@ -220,7 +223,10 @@ const Login = () => {
             </Link>
             <p className="text-[11px] text-[var(--color-muted)] uppercase tracking-wider">
               No credentials?{" "}
-              <Link to="/register" className="text-[var(--color-accent)] font-bold hover:underline">
+              <Link
+                to="/register"
+                className="text-[var(--color-accent)] font-bold hover:underline"
+              >
                 Register
               </Link>
             </p>

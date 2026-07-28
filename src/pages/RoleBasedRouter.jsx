@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import StudentDashboard from "./StudentDashboard";
-import RecruiterDashboard from "./RecruiterDashboard";
+import InvestigatorHub from "./InvestigatorHub";
 
-const Dashboard = () => {
+const RoleBasedRouter = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -15,19 +15,19 @@ const Dashboard = () => {
   }, [user, loading, navigate]);
 
   if (loading)
-    return <div className="text-center pt-20 text-ibex-muted tracking-widest uppercase text-sm">Loading...</div>;
+    return (
+      <div className="text-center pt-20 text-ibex-muted tracking-widest uppercase text-sm">
+        Loading...
+      </div>
+    );
 
   if (!user) return null;
 
   return (
     <div className="py-6">
-      {user.role === "recruiter" ? (
-        <RecruiterDashboard />
-      ) : (
-        <StudentDashboard />
-      )}
+      {user.role === "recruiter" ? <InvestigatorHub /> : <StudentDashboard />}
     </div>
   );
 };
 
-export default Dashboard;
+export default RoleBasedRouter;

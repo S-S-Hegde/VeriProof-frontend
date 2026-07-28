@@ -19,42 +19,47 @@ import ArchiveBackground from "./components/ArchiveBackground";
 import CursorTracker from "./components/CursorTracker";
 import PageTransition from "./components/PageTransition";
 import ScrollToTop from "./components/ScrollToTop";
-import Lenis from '@studio-freight/lenis';
+import Lenis from "@studio-freight/lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Lazy load heavy page components
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const AddProject = lazy(() => import("./pages/AddProject"));
-const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
-const Discover = lazy(() => import("./pages/Discover"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-// Removed Talent
-const Settings = lazy(() => import("./pages/Settings"));
-const Home = lazy(() => import("./pages/Home"));
-const Demo = lazy(() => import("./pages/Demo"));
-// Removed ResumeBuilder
-const RecruiterResumes = lazy(() => import("./pages/RecruiterResumes"));
-const RecruiterJobs = lazy(() => import("./pages/RecruiterJobs"));
+// Lazy load heavy page components with mapped refactored names
+const UserAuthentication = lazy(() => import("./pages/UserAuthentication"));
+const InitializeProfile = lazy(() => import("./pages/InitializeProfile"));
+const PasswordRecovery = lazy(() => import("./pages/PasswordRecovery"));
+const PassphraseReset = lazy(() => import("./pages/ResetPassword"));
+const RoleBasedRouter = lazy(() => import("./pages/RoleBasedRouter"));
+const CandidateEvidenceSubmit = lazy(
+  () => import("./pages/CandidateEvidenceSubmit"),
+);
+const ArtifactInspector = lazy(() => import("./pages/ArtifactInspector"));
+const InvestigatorSearchHub = lazy(
+  () => import("./pages/InvestigatorSearchHub"),
+);
+const CandidateSkillAnalytics = lazy(
+  () => import("./pages/CandidateSkillAnalytics"),
+);
+const SystemConfiguration = lazy(() => import("./pages/Settings"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const BulkScreening = lazy(() => import("./pages/BulkScreening"));
+const JobRolesManager = lazy(() => import("./pages/JobRolesManager"));
 
-const Terms = lazy(() => import("./pages/Terms"));
-const Support = lazy(() => import("./pages/Support"));
-const DevelopmentStatus = lazy(() => import("./pages/DevelopmentStatus"));
-const About = lazy(() => import("./pages/About"));
-const Contact = lazy(() => import("./pages/Contact"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
+const RoadmapPage = lazy(() => import("./pages/RoadmapPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 
-// Import individual dashboard components
-const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
-const RecruiterDashboard = lazy(() => import("./pages/RecruiterDashboard"));
+const CandidateHub = lazy(() => import("./pages/StudentDashboard"));
+const InvestigatorHub = lazy(() => import("./pages/InvestigatorHub"));
 const Exams = lazy(() => import("./pages/Exams"));
-const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
+const DynamicSkillGraph = lazy(() => import("./pages/DynamicSkillGraph"));
 
-const VerificationRequests = lazy(() => import("./pages/VerificationRequests"));
-const VerificationPanel = lazy(() => import("./pages/VerificationPanel"));
+const CandidateVerificationRequests = lazy(
+  () => import("./pages/VerificationRequests"),
+);
+const InvestigatorJobFlow = lazy(() => import("./pages/VerificationPanel"));
 
 // Premium loading screen
 const LoadingScreen = () => (
@@ -64,9 +69,7 @@ const LoadingScreen = () => (
         <div className="absolute inset-0 rounded-full border-2 border-[var(--color-border)]" />
         <div className="absolute inset-0 rounded-full border-2 border-[var(--color-accent)] border-t-transparent animate-spin" />
       </div>
-      <p className="vp-label-accent animate-pulse">
-        Initializing_Protocol...
-      </p>
+      <p className="vp-label-accent animate-pulse">Initializing_Protocol...</p>
     </div>
   </div>
 );
@@ -77,32 +80,85 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        {/* Public Access Domain */}
         <Route
           path="/"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <Home />
+                <LandingPage />
               </PageTransition>
             </Suspense>
           }
         />
         <Route
-          path="/demo"
+          path="/home"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <Demo />
+                <HomePage />
               </PageTransition>
             </Suspense>
           }
         />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <AboutPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <ContactPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <SupportPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <TermsPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/status"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <RoadmapPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+
+        {/* Authentication Domain */}
         <Route
           path="/login"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <Login />
+                <UserAuthentication />
               </PageTransition>
             </Suspense>
           }
@@ -112,7 +168,7 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <Register />
+                <InitializeProfile />
               </PageTransition>
             </Suspense>
           }
@@ -122,7 +178,7 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <ForgotPassword />
+                <PasswordRecovery />
               </PageTransition>
             </Suspense>
           }
@@ -132,37 +188,31 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <ResetPassword />
+                <PassphraseReset />
               </PageTransition>
             </Suspense>
           }
         />
+
+        {/* Core Router */}
         <Route
           path="/dashboard"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <Dashboard />
+                <RoleBasedRouter />
               </PageTransition>
             </Suspense>
           }
         />
+
+        {/* Candidate Domain */}
         <Route
           path="/student-dashboard"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <StudentDashboard />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-        <Route
-          path="/recruiter-dashboard"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <RecruiterDashboard />
+                <CandidateHub />
               </PageTransition>
             </Suspense>
           }
@@ -172,17 +222,27 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <AddProject />
+                <CandidateEvidenceSubmit />
               </PageTransition>
             </Suspense>
           }
         />
         <Route
-          path="/project/:id"
+          path="/analytics"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <ProjectDetails />
+                <CandidateSkillAnalytics />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/skill-tree"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <DynamicSkillGraph />
               </PageTransition>
             </Suspense>
           }
@@ -198,43 +258,43 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/verification-requests"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <CandidateVerificationRequests />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+
+        {/* Investigator Domain */}
+        <Route
+          path="/recruiter-dashboard"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <InvestigatorHub />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
           path="/discover"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <Discover />
+                <InvestigatorSearchHub />
               </PageTransition>
             </Suspense>
           }
         />
         <Route
-          path="/analytics"
+          path="/bulk-screening"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <Analytics />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-
-        <Route
-          path="/settings"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <Settings />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-
-        <Route
-          path="/recruiter-resumes"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <RecruiterResumes />
+                <BulkScreening />
               </PageTransition>
             </Suspense>
           }
@@ -244,50 +304,7 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <RecruiterJobs />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-
-        <Route
-          path="/terms"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <Terms />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-
-        <Route
-          path="/support"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <Support />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-        <Route
-          path="/status"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <DevelopmentStatus />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-
-        <Route
-          path="/verification-requests"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <VerificationRequests />
+                <JobRolesManager />
               </PageTransition>
             </Suspense>
           }
@@ -297,37 +314,29 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <VerificationPanel />
+                <InvestigatorJobFlow />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+
+        {/* Core Shared Domain */}
+        <Route
+          path="/project/:id"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <ArtifactInspector />
               </PageTransition>
             </Suspense>
           }
         />
         <Route
-          path="/skill-tree"
+          path="/settings"
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <SkillTreePage />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <About />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-        <Route
-          path="/contact"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <Contact />
+                <SystemConfiguration />
               </PageTransition>
             </Suspense>
           }
@@ -340,17 +349,15 @@ const AnimatedRoutes = () => {
 const AppContent = () => {
   const { isExiting, setIsExiting, logout } = useAuth();
 
-  // ── FIRST-VISIT-ONLY INTRO ──
   const isFirstVisit = !localStorage.getItem("vp-intro-seen");
   const [showIntro, setShowIntro] = useState(isFirstVisit);
   const [isAppVisible, setIsAppVisible] = useState(!isFirstVisit);
 
-  // Global Scroll Logic
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
-    restDelta: 0.001
+    restDelta: 0.001,
   });
 
   const handleIntroComplete = () => {
@@ -394,31 +401,25 @@ const AppContent = () => {
       <ScrollToTop />
       <CursorTracker />
 
-      {/* ── SCROLL PROGRESS BAR ── */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-[2px] z-[9999] origin-left"
         style={{
           scaleX,
-          background: "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, white))",
+          background:
+            "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, white))",
           boxShadow: "0 0 12px var(--vp-glow)",
         }}
       />
 
       <AnimatePresence>
         {showIntro && (
-          <IntroScreen
-            key="cinematic-intro"
-            onComplete={handleIntroComplete}
-          />
+          <IntroScreen key="cinematic-intro" onComplete={handleIntroComplete} />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {isExiting && (
-          <OutroScreen
-            key="system-outro"
-            onComplete={handleOutroComplete}
-          />
+          <OutroScreen key="system-outro" onComplete={handleOutroComplete} />
         )}
       </AnimatePresence>
 
@@ -426,7 +427,9 @@ const AppContent = () => {
         <ArchiveBackground />
 
         <div
-          className={`relative z-10 flex flex-col font-sans transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAppVisible ? "opacity-100 blur-0" : "opacity-0 blur-xl"} min-h-screen`}
+          className={`relative z-10 flex flex-col font-sans transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isAppVisible ? "opacity-100 blur-0" : "opacity-0 blur-xl"
+          } min-h-screen`}
         >
           <Navbar />
           <main className="flex-grow w-full mx-auto pt-24 pb-8 px-4 sm:px-6 lg:px-8 relative z-10">
