@@ -1,332 +1,206 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import PageTransition from "../components/PageTransition";
-import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
+  Search,
+  Filter,
   ShieldCheck,
   Clock,
   CheckCircle,
-  XCircle,
-  ChevronRight,
   AlertTriangle,
+  ArrowRight,
+  UserCircle,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import api from "../utils/api";
 
 const VerificationRequests = () => {
-  const { user } = useAuth();
-  const [results, setResults] = useState([]);
-  const [takingExam, setTakingExam] = useState(null);
-  const [examData, setExamData] = useState(null);
-  const [answers, setAnswers] = useState([]);
-  const [timeLeft, setTimeLeft] = useState(300);
-  const [examSubmitted, setExamSubmitted] = useState(false);
-  const [finalScore, setFinalScore] = useState(null);
-  const endTimeRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState("All");
 
-  const fetchResults = useCallback(async () => {
-    try {
-      if (!user?.token) return;
-      const { data } = await api.get("/api/verify/my-results");
-      setResults(data);
-    } catch (error) {
-      console.error("Failed to fetch my results", error);
-    }
-  }, [user?.token]);
+  // Mock Data for the Audit Queue
+  // Empty state for actual API integration
+  const [requests, setRequests] = useState([]);
+  const filteredRequests = requests.filter(
+    (req) =>
+      req.candidate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.role.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-  useEffect(() => {
-    if (user?.token) fetchResults();
-  }, [user?.token, fetchResults]);
-
-  const submitExam = useCallback(async () => {
-    try {
-      const { data } = await api.post(`/api/verify/exam/${takingExam._id}`, {
-        examId: examData._id,
-        answers,
-      });
-      setFinalScore(data);
-      setExamSubmitted(true);
-      fetchResults();
-    } catch (error) {
-      console.error("Failed to submit exam", error);
-    }
-  }, [takingExam, examData, answers, fetchResults]);
-
-  const startExam = async (result) => {
-    try {
-      const { data } = await api.get(`/api/verify/exam/${result.jobId?._id}`);
-      setExamData(data);
-      setAnswers(new Array(data.questions.length).fill(null));
-      setTakingExam(result);
-      setTimeLeft(300);
-      endTimeRef.current = Date.now() + 300 * 1000;
-      setExamSubmitted(false);
-    } catch (error) {
-      console.error("Failed to fetch exam payload", error);
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Analyzed":
+        return "text-blue-400 bg-blue-400/10 border-blue-400/20";
+      case "Flagged":
+        return "text-[var(--color-error)] bg-[var(--color-error)]/10 border-[var(--color-error)]/20";
+      default:
+        return "text-amber-400 bg-amber-400/10 border-amber-400/20";
     }
   };
 
-  const handleOptionSelect = (qIndex, oIndex) => {
-    const newAnswers = [...answers];
-    newAnswers[qIndex] = oIndex;
-    setAnswers(newAnswers);
-  };
-
-  // Timestamp-based Timer Effect (Prevents Background Tab Throttling Exploits)
-  useEffect(() => {
-    let timer;
-    if (takingExam && !examSubmitted && endTimeRef.current) {
-      timer = setInterval(() => {
-        const remaining = Math.max(
-          0,
-          Math.ceil((endTimeRef.current - Date.now()) / 1000),
-        );
-        setTimeLeft(remaining);
-        if (remaining <= 0) {
-          clearInterval(timer);
-          submitExam();
-        }
-      }, 500);
-    }
-    return () => clearInterval(timer);
-  }, [takingExam, examSubmitted, submitExam]);
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  const getScoreColor = (score) => {
+    if (score >= 90) return "text-green-400";
+    if (score >= 70) return "text-amber-400";
+    return "text-[var(--color-error)]";
   };
 
   return (
-    <PageTransition>
-      <div className="max-w-5xl mx-auto px-4 mt-8 relative">
-        <div className="flex justify-between items-end mb-10 border-b border-[var(--color-border)] pb-6">
-          <div>
-            <h2 className="text-4xl font-serif text-[var(--color-text)] font-light tracking-wider uppercase mb-2">
-              Verification{" "}
-              <span className="text-[var(--color-accent)] italic lowercase normal-case">
-                Requests
-              </span>
-            </h2>
-            <p className="text-[var(--color-muted)] tracking-widest uppercase text-xs">
-              Algorithmic Portfolio Validation & Exam Protocols
-            </p>
-          </div>
+    <div className="max-w-6xl mx-auto">
+      {/* Header Section */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-[var(--color-text)]">
+            Audit{" "}
+            <span className="text-[var(--color-accent)] not-italic">Queue</span>
+          </h1>
+          <p className="text-sm text-[var(--color-muted)] mt-1">
+            Review and verify candidate claims against target job specifications
+          </p>
         </div>
 
-        <div className="vp-surface-1 shadow-lg bg-[var(--color-bg)] overflow-hidden border border-[var(--color-border)]">
-          {results.length === 0 ? (
-            <div className="p-16 text-center text-[var(--color-text)] text-lg font-light tracking-wide flex flex-col items-center">
-              <ShieldCheck className="w-12 h-12 mb-4 text-[var(--color-muted)]/30" />
-              Tracking Network Validation Requests...
-              <p className="text-sm mt-4 text-[var(--color-muted)] font-sans uppercase tracking-widest">
-                No active validations initialized.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-[var(--color-border)]">
-              {results.map((result) => (
-                <div
-                  key={result._id}
-                  className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-white/5 transition-colors group"
-                >
-                  <div className="space-y-2 mb-6 md:mb-0">
-                    <div className="flex items-center space-x-3">
-                      <h4 className="text-lg font-serif text-[var(--color-text)] uppercase tracking-widest">
-                        {result.jobId?.title || "Unknown Specification"}
-                      </h4>
-                      {result.status === "Verified" ? (
-                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm tracking-widest uppercase border border-green-500/20 font-bold">
-                          <CheckCircle className="w-3 h-3" />
-                          <span>Verified</span>
-                        </span>
-                      ) : result.status === "Pending Exam" ? (
-                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-400 text-sm tracking-widest uppercase border border-yellow-500/20 font-bold">
-                          <Clock className="w-3 h-3" />
-                          <span>Exam Required</span>
-                        </span>
-                      ) : result.status === "Failed" ? (
-                        <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-sm tracking-widest uppercase border border-red-500/20 font-bold">
-                          <XCircle className="w-3 h-3" />
-                          <span>Validation Failed</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-[var(--color-bg-sunken)]/50 text-[var(--color-muted)] text-sm tracking-widest uppercase border border-[var(--color-border)] font-bold">
-                          In Review
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-6 text-sm">
-                      <div className="flex items-center space-x-2 text-[var(--color-muted)]">
-                        <span className="uppercase tracking-widest text-sm">
-                          NLP Alignment:
-                        </span>
-                        <span className="font-medium text-[var(--color-text)]">
-                          {result.alignmentScore}%
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-[var(--color-muted)]">
-                        <span className="uppercase tracking-widest text-sm">
-                          Verification Score:
-                        </span>
-                        <span className="font-medium text-[var(--color-text)]">
-                          {result.examScore !== undefined
-                            ? `${result.examScore}%`
-                            : "—"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted)]" />
+            <input
+              type="text"
+              placeholder="Search ID or Candidate..."
+              className="vp-input pl-9 w-64 text-xs"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button className="vp-btn vp-btn-secondary px-3 py-2 flex items-center gap-2 text-xs">
+            <Filter className="w-4 h-4" /> Filter
+          </button>
+        </div>
+      </div>
 
-                  {result.status === "Pending Exam" && (
-                    <button
-                      onClick={() => startExam(result)}
-                      className="px-6 py-3 bg-[var(--color-accent)] text-[var(--color-bg)] rounded-full text-xs font-bold uppercase tracking-widest hover:shadow-lg hover:scale-105 transition-all flex items-center space-x-2"
-                    >
-                      <span>Take Exam</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  )}
-                  {result.status === "Verified" && (
-                    <button
-                      disabled
-                      className="px-6 py-3 border border-green-500/30 text-green-400 rounded-full text-xs font-bold uppercase tracking-widest opacity-80 flex items-center space-x-2"
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Secured</span>
-                    </button>
-                  )}
-                </div>
-              ))}
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {[
+          {
+            label: "Pending Reviews",
+            value: "0",
+            icon: Clock,
+            color: "text-amber-400",
+          },
+          {
+            label: "Verified Today",
+            value: "0",
+            icon: CheckCircle,
+            color: "text-green-400",
+          },
+          {
+            label: "Flagged Discrepancies",
+            value: "0",
+            icon: AlertTriangle,
+            color: "text-[var(--color-error)]",
+          },
+        ].map((stat, i) => (
+          <div
+            key={i}
+            className="vp-glass p-5 rounded-[var(--radius-xl)] flex items-center justify-between border border-[var(--color-border)]"
+          >
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-muted)] mb-1">
+                {stat.label}
+              </p>
+              <p className="text-2xl font-bold">{stat.value}</p>
             </div>
-          )}
+            <stat.icon className={`w-8 h-8 opacity-50 ${stat.color}`} />
+          </div>
+        ))}
+      </div>
+
+      {/* Requests List */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-12 gap-4 px-6 py-3 font-mono text-[10px] uppercase tracking-widest text-[var(--color-muted)] border-b border-[var(--color-border)]">
+          <div className="col-span-3">Candidate</div>
+          <div className="col-span-3">Target Role</div>
+          <div className="col-span-2 text-center">Match Score</div>
+          <div className="col-span-2 text-center">Status</div>
+          <div className="col-span-2 text-right">Action</div>
         </div>
 
         <AnimatePresence>
-          {takingExam && (
+          {filteredRequests.map((req, idx) => (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto"
+              key={req.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              className="vp-glass p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] hover:border-[var(--color-accent)]/40 transition-colors grid grid-cols-12 gap-4 items-center group"
             >
-              <motion.div
-                initial={{ scale: 0.95, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 20 }}
-                className="bg-[var(--color-bg)] rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-[var(--color-border)] relative my-12 flex flex-col max-h-[90vh]"
-              >
-                {!examSubmitted ? (
-                  <>
-                    <div className="bg-[var(--color-accent)]/10 p-4 md:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center text-white shrink-0 gap-4 border-b border-[var(--color-border)]">
-                      <div>
-                        <h3 className="font-serif text-xl md:text-2xl tracking-widest uppercase text-[var(--color-text)]">
-                          {examData?.topic || "Verification Exam"}
-                        </h3>
-                        <p className="text-sm md:text-xs uppercase tracking-widest opacity-70 mt-1 text-[var(--color-muted)]">
-                          Passing Threshold: {examData?.passingScore}%
-                        </p>
-                      </div>
-                      <div className="flex flex-col sm:items-end w-full sm:w-auto bg-white/5 p-3 sm:p-0 rounded-lg sm:rounded-none">
-                        <span className="text-sm md:text-xs uppercase tracking-widest opacity-80 mb-1 text-[var(--color-muted)]">
-                          Time Remaining
-                        </span>
-                        <div
-                          className={`text-2xl md:text-3xl font-mono font-bold ${timeLeft < 60 ? "text-red-400 animate-pulse" : "text-[var(--color-accent)]"}`}
-                        >
-                          {formatTime(timeLeft)}
-                        </div>
-                      </div>
-                    </div>
+              {/* Candidate Info */}
+              <div className="col-span-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-bg-sunken)] flex items-center justify-center border border-[var(--color-border)]">
+                  <UserCircle className="w-5 h-5 text-[var(--color-muted)]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{req.candidate}</p>
+                  <p className="font-mono text-[10px] text-[var(--color-muted)]">
+                    {req.id}
+                  </p>
+                </div>
+              </div>
 
-                    <div className="p-8 space-y-12 overflow-y-auto">
-                      {examData?.questions.map((q, qIndex) => (
-                        <div key={q._id} className="space-y-4">
-                          <h4 className="text-lg text-[var(--color-text)] font-medium">
-                            <span className="text-[var(--color-accent)] mr-2 font-serif font-bold">
-                              {qIndex + 1}.
-                            </span>{" "}
-                            {q.questionText}
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            {q.options.map((opt, oIndex) => (
-                              <button
-                                key={oIndex}
-                                onClick={() =>
-                                  handleOptionSelect(qIndex, oIndex)
-                                }
-                                className={`p-4 rounded-xl border-2 text-left transition-all duration-300 text-sm ${answers[qIndex] === oIndex ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-text)] font-medium" : "border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-accent)]/50"}`}
-                              >
-                                {opt}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+              {/* Role */}
+              <div className="col-span-3">
+                <p className="text-xs font-mono truncate">{req.role}</p>
+                <p className="text-[10px] text-[var(--color-muted)] mt-0.5">
+                  {req.date}
+                </p>
+              </div>
 
-                    <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-bg)] flex justify-between items-center shrink-0">
-                      <button
-                        onClick={() => setTakingExam(null)}
-                        className="text-xs font-bold uppercase tracking-widest text-[var(--color-muted)] hover:text-red-500 transition-colors"
-                      >
-                        Abandon Exam
-                      </button>
-                      <button
-                        onClick={submitExam}
-                        disabled={answers.includes(null)}
-                        className={`px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${answers.includes(null) ? "bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed" : "bg-[var(--color-accent)] text-[var(--color-bg)] hover:shadow-lg"}`}
-                      >
-                        Submit Final Answers
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="p-16 text-center flex flex-col items-center justify-center">
-                    {finalScore?.status === "Verified" ? (
-                      <>
-                        <ShieldCheck className="w-24 h-24 text-green-500 mb-6" />
-                        <h2 className="text-4xl font-serif text-[var(--color-text)] mb-2">
-                          VALIDATED
-                        </h2>
-                        <p className="text-green-500 font-medium text-xl mb-8">
-                          Score: {finalScore.examScore}%
-                        </p>
-                        <p className="text-[var(--color-muted)] mb-8 max-w-sm">
-                          Your cryptographic signature has been secured. Your
-                          skills align perfectly with the target parameters.
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="w-24 h-24 text-red-500 mb-6" />
-                        <h2 className="text-4xl font-serif text-[var(--color-text)] mb-2">
-                          VALIDATION FAILED
-                        </h2>
-                        <p className="text-red-500 font-medium text-xl mb-8">
-                          Score: {finalScore.examScore}%
-                        </p>
-                        <p className="text-[var(--color-muted)] mb-8 max-w-sm">
-                          Your examination algorithms did not meet the required
-                          threshold requested by the recruiter.
-                        </p>
-                      </>
-                    )}
+              {/* Match Score */}
+              <div className="col-span-2 flex flex-col items-center justify-center">
+                <div
+                  className={`text-xl font-black italic ${getScoreColor(req.matchScore)}`}
+                >
+                  {req.matchScore}%
+                </div>
+                <div className="w-16 h-1 bg-[var(--color-bg-sunken)] rounded-full mt-1 overflow-hidden">
+                  <div
+                    className="h-full bg-current rounded-full"
+                    style={{
+                      width: `${req.matchScore}%`,
+                      backgroundColor: "currentColor",
+                    }}
+                  />
+                </div>
+              </div>
 
-                    <button
-                      onClick={() => setTakingExam(null)}
-                      className="px-8 py-4 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.2em] uppercase text-xs hover:bg-[var(--color-accent)] transition-all rounded-full"
-                    >
-                      Return to Requests
-                    </button>
-                  </div>
-                )}
-              </motion.div>
+              {/* Status */}
+              <div className="col-span-2 flex justify-center">
+                <span
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(req.status)}`}
+                >
+                  {req.status}
+                </span>
+              </div>
+
+              {/* Action */}
+              <div className="col-span-2 flex justify-end">
+                <Link
+                  to="/verification-panel"
+                  className="vp-btn vp-btn-primary px-4 py-2 text-[10px] flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  Inspect <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
             </motion.div>
-          )}
+          ))}
         </AnimatePresence>
+
+        {filteredRequests.length === 0 && (
+          <div className="vp-glass p-12 rounded-[var(--radius-xl)] text-center flex flex-col items-center justify-center">
+            <ShieldCheck className="w-12 h-12 text-[var(--color-muted)] mb-4 opacity-20" />
+            <p className="text-[var(--color-muted)] font-mono uppercase tracking-widest text-sm">
+              Queue Empty
+            </p>
+          </div>
+        )}
       </div>
-    </PageTransition>
+    </div>
   );
-};
+};;
 
 export default VerificationRequests;

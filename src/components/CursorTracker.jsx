@@ -5,14 +5,22 @@ const CursorTracker = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const dotRef = useRef(null);
+  const requestRef = useRef(null);
 
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
-  const springX = useSpring(cursorX, { damping: 28, stiffness: 300, mass: 0.5 });
-  const springY = useSpring(cursorY, { damping: 28, stiffness: 300, mass: 0.5 });
+  const springX = useSpring(cursorX, {
+    damping: 28,
+    stiffness: 300,
+    mass: 0.5,
+  });
+  const springY = useSpring(cursorY, {
+    damping: 28,
+    stiffness: 300,
+    mass: 0.5,
+  });
 
   useEffect(() => {
-    // Hide custom cursor on touch devices
     const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
     if (isTouchDevice) return;
 
@@ -21,12 +29,25 @@ const CursorTracker = () => {
     const handleMove = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
-      document.documentElement.style.setProperty("--vp-cursor-x", `${e.clientX}px`);
-      document.documentElement.style.setProperty("--vp-cursor-y", `${e.clientY}px`);
+
+      // Throttle CSS variable updates to the next animation frame
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      requestRef.current = requestAnimationFrame(() => {
+        document.documentElement.style.setProperty(
+          "--vp-cursor-x",
+          `${e.clientX}px`,
+        );
+        document.documentElement.style.setProperty(
+          "--vp-cursor-y",
+          `${e.clientY}px`,
+        );
+      });
     };
 
     const handleOver = (e) => {
-      const target = e.target.closest("a, button, [role='button'], input, textarea, select, [data-cursor='hover']");
+      const target = e.target.closest(
+        "a, button, [role='button'], input, textarea, select, [data-cursor='hover']",
+      );
       setIsHovering(!!target);
     };
 
@@ -36,6 +57,7 @@ const CursorTracker = () => {
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerover", handleOver);
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
   }, [cursorX, cursorY]);
 
@@ -43,7 +65,6 @@ const CursorTracker = () => {
 
   return (
     <>
-      {/* Outer ring */}
       <motion.div
         ref={dotRef}
         className="fixed top-0 left-0 z-[9998] pointer-events-none mix-blend-difference"
@@ -61,7 +82,6 @@ const CursorTracker = () => {
           transition={{ type: "spring", stiffness: 280, damping: 22 }}
         />
       </motion.div>
-      {/* Inner dot */}
       <motion.div
         className="fixed top-0 left-0 z-[9999] pointer-events-none"
         style={{ x: cursorX, y: cursorY }}

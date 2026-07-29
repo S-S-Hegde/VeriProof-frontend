@@ -49,9 +49,13 @@ const Navbar = () => {
   const moreRef = useRef(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 24);
+    };
+
     const timer = setInterval(() => setTime(new Date()), 1000);
     window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => {
       window.removeEventListener("scroll", onScroll);
       clearInterval(timer);
@@ -61,8 +65,10 @@ const Navbar = () => {
   // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
-      if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target))
+        setProfileOpen(false);
+      if (moreRef.current && !moreRef.current.contains(e.target))
+        setMoreOpen(false);
     };
     document.addEventListener("pointerdown", handler);
     return () => document.removeEventListener("pointerdown", handler);
@@ -75,7 +81,10 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const guard = (e, path) => {
-    if (!user) { e.preventDefault(); navigate("/login"); }
+    if (!user) {
+      e.preventDefault();
+      navigate("/login");
+    }
   };
 
   const handleLogout = () => setIsExiting(true);
@@ -104,7 +113,12 @@ const Navbar = () => {
   const dockItems = [
     { name: "Home", path: "/", icon: Home },
     ...primaryNav.slice(0, 3),
-    { name: "More", path: null, icon: MoreHorizontal, action: () => setMoreOpen(true) },
+    {
+      name: "More",
+      path: null,
+      icon: MoreHorizontal,
+      action: () => setMoreOpen(true),
+    },
   ];
 
   // Overflow drawer items (everything not in dock)
@@ -133,19 +147,19 @@ const Navbar = () => {
           DESKTOP NAVBAR
           ════════════════════════════════════════════ */}
       <nav
-        className={`fixed top-0 inset-x-0 z-[60] transition-all duration-500 hidden lg:block ${
+        className={`fixed top-0 inset-x-0 z-[60] transition-all duration-300 ease-out hidden lg:block ${
           scrolled
-            ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)] shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
-            : "py-5 bg-transparent"
+            ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)] shadow-sm translate-y-0"
+            : "py-2.5 bg-transparent translate-y-2"
         }`}
       >
         <div className="max-w-[1600px] mx-auto px-6 xl:px-10 flex items-center justify-between">
-
           {/* ── Left: Logo + Forensic Status ── */}
           <div className="flex items-center gap-6">
             <Link to="/" className="group relative flex items-center">
               <span className="text-xl font-black italic tracking-tighter uppercase leading-none text-[var(--color-text)]">
-                VeriProof<span className="text-[var(--color-accent)] not-italic">.</span>
+                VeriProof
+                <span className="text-[var(--color-accent)] not-italic">.</span>
               </span>
               <motion.div
                 className="absolute -bottom-1 left-0 h-[2px] bg-[var(--color-accent)]"
@@ -159,7 +173,10 @@ const Navbar = () => {
             {/* Forensic status indicators — compact */}
             <div className="hidden xl:flex items-center gap-4 pl-6 border-l border-[var(--color-border)]">
               <div className="flex items-center gap-1.5">
-                <span className="vp-status-dot" style={{ width: 5, height: 5 }} />
+                <span
+                  className="vp-status-dot"
+                  style={{ width: 5, height: 5 }}
+                />
                 <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">
                   Live
                 </span>
@@ -190,7 +207,11 @@ const Navbar = () => {
                     <motion.div
                       layoutId="nav-pill"
                       className="absolute inset-0 bg-[var(--color-text)] rounded-[var(--radius-md)]"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                      }}
                     />
                   )}
                   <span className="relative z-10 flex items-center gap-2">
@@ -214,11 +235,23 @@ const Navbar = () => {
             >
               <AnimatePresence mode="wait">
                 {theme === THEMES.DARK ? (
-                  <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                  <motion.div
+                    key="sun"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <Sun className="w-4 h-4" />
                   </motion.div>
                 ) : (
-                  <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                  <motion.div
+                    key="moon"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <Moon className="w-4 h-4" />
                   </motion.div>
                 )}
@@ -236,7 +269,11 @@ const Navbar = () => {
                 >
                   <div className="w-7 h-7 rounded-[var(--radius-md)] overflow-hidden bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
                     {user.profileImage ? (
-                      <img src={cldAvatar(user.profileImage)} alt={user.name} className="w-full h-full object-cover" />
+                      <img
+                        src={cldAvatar(user.profileImage)}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <span className="text-[10px] font-mono font-bold text-[var(--color-accent)]">
                         {user.name.charAt(0).toUpperCase()}
@@ -246,7 +283,9 @@ const Navbar = () => {
                   <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-text)] hidden xl:block max-w-[100px] truncate">
                     {user.name.split(" ")[0]}
                   </span>
-                  <ChevronRight className={`w-3 h-3 text-[var(--color-muted)] transition-transform ${profileOpen ? "rotate-90" : ""}`} />
+                  <ChevronRight
+                    className={`w-3 h-3 text-[var(--color-muted)] transition-transform ${profileOpen ? "rotate-90" : ""}`}
+                  />
                 </motion.button>
 
                 <AnimatePresence>
@@ -260,9 +299,17 @@ const Navbar = () => {
                     >
                       {/* User info header */}
                       <div className="px-3 py-3 mb-1 border-b border-[var(--color-border)]">
-                        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">Authorized_User</p>
-                        <p className="text-sm font-bold uppercase tracking-wider text-[var(--color-text)] truncate mt-0.5">{user.name}</p>
-                        <p className="font-mono text-[10px] tracking-wider text-[var(--color-muted)] mt-0.5">{user.role === "recruiter" ? "INVESTIGATOR" : "CANDIDATE"}</p>
+                        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">
+                          Authorized_User
+                        </p>
+                        <p className="text-sm font-bold uppercase tracking-wider text-[var(--color-text)] truncate mt-0.5">
+                          {user.name}
+                        </p>
+                        <p className="font-mono text-[10px] tracking-wider text-[var(--color-muted)] mt-0.5">
+                          {user.role === "recruiter"
+                            ? "INVESTIGATOR"
+                            : "CANDIDATE"}
+                        </p>
                       </div>
 
                       <div className="py-1">
@@ -336,23 +383,33 @@ const Navbar = () => {
                       className="flex flex-col items-center gap-1 px-3 py-2 text-[var(--color-muted)] active:text-[var(--color-text)] transition-colors"
                     >
                       <Icon className="w-5 h-5" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">{item.name}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider">
+                        {item.name}
+                      </span>
                     </button>
                   ) : (
                     <Link
                       to={item.path}
                       onClick={(e) => guard(e, item.path)}
                       className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors relative ${
-                        active ? "text-[var(--color-accent)]" : "text-[var(--color-muted)]"
+                        active
+                          ? "text-[var(--color-accent)]"
+                          : "text-[var(--color-muted)]"
                       }`}
                     >
                       <Icon className="w-5 h-5" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">{item.name}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wider">
+                        {item.name}
+                      </span>
                       {active && (
                         <motion.div
                           layoutId="dock-indicator"
                           className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-[var(--color-accent)]"
-                          transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 28,
+                          }}
                         />
                       )}
                     </Link>
@@ -367,13 +424,18 @@ const Navbar = () => {
       {/* ════════════════════════════════════════════
           MOBILE: Minimal top bar (logo + theme + profile)
           ════════════════════════════════════════════ */}
-      <div className={`fixed top-0 inset-x-0 z-[60] lg:hidden transition-all duration-500 ${
-        scrolled
-          ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)]"
-          : "py-3 bg-transparent"
-      }`}>
+      <div
+        className={`fixed top-0 inset-x-0 z-[60] lg:hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          scrolled
+            ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)]"
+            : "py-3 bg-transparent"
+        }`}
+      >
         <div className="px-4 flex items-center justify-between">
-          <Link to="/" className="text-lg font-black italic tracking-tighter uppercase text-[var(--color-text)]">
+          <Link
+            to="/"
+            className="text-lg font-black italic tracking-tighter uppercase text-[var(--color-text)]"
+          >
             VP<span className="text-[var(--color-accent)] not-italic">.</span>
           </Link>
 
@@ -381,7 +443,9 @@ const Navbar = () => {
             {/* Compact status */}
             <div className="flex items-center gap-1.5 mr-2">
               <span className="vp-status-dot" style={{ width: 4, height: 4 }} />
-              <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">Live</span>
+              <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
+                Live
+              </span>
             </div>
 
             <motion.button
@@ -389,19 +453,37 @@ const Navbar = () => {
               className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-muted)]"
               whileTap={{ scale: 0.9 }}
             >
-              {theme === THEMES.DARK ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              {theme === THEMES.DARK ? (
+                <Sun className="w-3.5 h-3.5" />
+              ) : (
+                <Moon className="w-3.5 h-3.5" />
+              )}
             </motion.button>
 
             {user ? (
-              <Link to="/settings" className="w-8 h-8 rounded-[var(--radius-md)] overflow-hidden border border-[var(--color-border)] bg-[var(--color-accent)]/10 flex items-center justify-center">
+              <Link
+                to="/settings"
+                className="w-8 h-8 rounded-[var(--radius-md)] overflow-hidden border border-[var(--color-border)] bg-[var(--color-accent)]/10 flex items-center justify-center"
+              >
                 {user.profileImage ? (
-                  <img src={cldAvatar(user.profileImage)} alt={user.name} className="w-full h-full object-cover" />
+                  <img
+                    src={cldAvatar(user.profileImage)}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <span className="text-[10px] font-mono font-bold text-[var(--color-accent)]">{user.name.charAt(0)}</span>
+                  <span className="text-[10px] font-mono font-bold text-[var(--color-accent)]">
+                    {user.name.charAt(0)}
+                  </span>
                 )}
               </Link>
             ) : (
-              <Link to="/login" className="vp-btn vp-btn-primary text-[9px] py-1.5 px-3">Auth</Link>
+              <Link
+                to="/login"
+                className="vp-btn vp-btn-primary text-[9px] py-1.5 px-3"
+              >
+                Auth
+              </Link>
             )}
           </div>
         </div>
@@ -449,7 +531,10 @@ const Navbar = () => {
                     <Link
                       key={item.name}
                       to={item.path}
-                      onClick={(e) => { setMoreOpen(false); guard(e, item.path); }}
+                      onClick={(e) => {
+                        setMoreOpen(false);
+                        guard(e, item.path);
+                      }}
                       className={`flex items-center gap-4 px-4 py-3.5 rounded-[var(--radius-lg)] transition-colors ${
                         active
                           ? "bg-[var(--color-accent-subtle)] text-[var(--color-accent)]"
@@ -457,8 +542,15 @@ const Navbar = () => {
                       }`}
                     >
                       <Icon className="w-5 h-5 flex-shrink-0" />
-                      <span className="text-sm font-bold uppercase tracking-[0.12em]">{item.name}</span>
-                      {active && <span className="ml-auto vp-status-dot" style={{ width: 5, height: 5 }} />}
+                      <span className="text-sm font-bold uppercase tracking-[0.12em]">
+                        {item.name}
+                      </span>
+                      {active && (
+                        <span
+                          className="ml-auto vp-status-dot"
+                          style={{ width: 5, height: 5 }}
+                        />
+                      )}
                     </Link>
                   );
                 })}
@@ -466,11 +558,16 @@ const Navbar = () => {
                 {/* Logout */}
                 {user && (
                   <button
-                    onClick={() => { setMoreOpen(false); handleLogout(); }}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      handleLogout();
+                    }}
                     className="w-full flex items-center gap-4 px-4 py-3.5 rounded-[var(--radius-lg)] text-[var(--color-error)] hover:bg-[var(--color-error)]/8 transition-colors mt-2"
                   >
                     <LogOut className="w-5 h-5" />
-                    <span className="text-sm font-bold uppercase tracking-[0.12em]">Terminate_Session</span>
+                    <span className="text-sm font-bold uppercase tracking-[0.12em]">
+                      Terminate_Session
+                    </span>
                   </button>
                 )}
               </div>
@@ -478,12 +575,17 @@ const Navbar = () => {
               {/* System info */}
               <div className="px-5 py-4 border-t border-[var(--color-border)] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="vp-status-dot" style={{ width: 4, height: 4 }} />
+                  <span
+                    className="vp-status-dot"
+                    style={{ width: 4, height: 4 }}
+                  />
                   <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
                     Protocol_Online
                   </span>
                 </div>
-                <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">v5.0.0</span>
+                <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
+                  v5.0.0
+                </span>
               </div>
             </motion.div>
           </>

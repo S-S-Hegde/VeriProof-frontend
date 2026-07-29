@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
 import { persistUserSession } from "../utils/authStorage";
@@ -14,43 +13,68 @@ import {
   ShieldCheck,
   Loader2,
   CheckCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("student");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeName, setWelcomeName] = useState("");
-  const { setUser } = useAuth();
-  useTheme();
+
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const emailRef = useRef(null);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      const redirectPath =
+        user.role === "recruiter" ? "/verification-requests" : "/dashboard";
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     emailRef.current?.focus();
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   const submitHandler = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       const { data } = await api.post("/api/users/login", {
         email,
         password,
         role,
       });
+
       setWelcomeName(data.name);
       setShowWelcome(true);
-      setTimeout(() => {
+
+      timeoutRef.current = setTimeout(() => {
         setUser(data);
         persistUserSession(data);
-        const from = location.state?.from || "/dashboard";
-        navigate(from);
+
+        let fromPath = location.state?.from?.pathname || location.state?.from;
+
+        if (!fromPath) {
+          fromPath =
+            data.role === "recruiter" ? "/verification-requests" : "/dashboard";
+        }
+
+        navigate(fromPath, { replace: true });
       }, 1800);
     } catch (err) {
       setError(err.response?.data?.message || "Authentication_Failed");
@@ -100,8 +124,8 @@ const Login = () => {
       </AnimatePresence>
 
       <motion.div
-        initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md"
       >
@@ -131,30 +155,45 @@ const Login = () => {
 
         <div className="vp-glass p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-accent)] opacity-[0.03] blur-3xl -mr-16 -mt-16 pointer-events-none" />
-          <div className="flex mb-8 p-1 rounded-[var(--radius-md)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]">
-            {[
-              { value: "student", label: "Candidate", icon: UserCircle },
-              { value: "recruiter", label: "Investigator", icon: ShieldCheck },
-            ].map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setRole(value)}
-                className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] rounded-[var(--radius-sm)] transition-colors ${role === value ? "text-[var(--color-bg)]" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}
-              >
-                {role === value && (
-                  <motion.div
-                    layoutId="role-pill"
-                    className="absolute inset-0 bg-[var(--color-accent)] rounded-[var(--radius-sm)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <Icon className="w-3.5 h-3.5" />
-                  {label}
-                </span>
-              </button>
-            ))}
+
+          {/* Role Selection Section */}
+          <div className="mb-8">
+            <label className="vp-label mb-3 block text-center tracking-widest uppercase text-[var(--color-muted)]">
+              Select Your Destination Portal
+            </label>
+            <div className="flex p-1 rounded-[var(--radius-md)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]">
+              {[
+                { value: "student", label: "Candidate", icon: UserCircle },
+                {
+                  value: "recruiter",
+                  label: "Investigator",
+                  icon: ShieldCheck,
+                },
+              ].map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setRole(value)}
+                  className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] rounded-[var(--radius-sm)] transition-colors ${role === value ? "text-[var(--color-bg)]" : "text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}
+                >
+                  {role === value && (
+                    <motion.div
+                      layoutId="role-pill"
+                      className="absolute inset-0 bg-[var(--color-accent)] rounded-[var(--radius-sm)]"
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <form onSubmit={submitHandler} className="space-y-5">
@@ -164,29 +203,49 @@ const Login = () => {
               </label>
               <input
                 id="login-email"
+                name="email"
+                autoComplete="username"
                 ref={emailRef}
                 type="email"
                 required
                 placeholder="identity@protocol.com"
-                className="vp-input"
+                className="vp-input w-full"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
+
             <div>
               <label htmlFor="login-password" className="vp-label mb-2 block">
                 <Lock className="w-3 h-3 inline mr-1.5" /> Access_Key
               </label>
-              <input
-                id="login-password"
-                type="password"
-                required
-                placeholder="••••••••"
-                className="vp-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  id="login-password"
+                  name="password"
+                  autoComplete="current-password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  className="vp-input w-full pr-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
+
             <AnimatePresence>
               {error && (
                 <motion.p
@@ -214,6 +273,7 @@ const Login = () => {
               )}
             </button>
           </form>
+
           <div className="mt-6 flex flex-col items-center gap-3">
             <Link
               to="/forgot-password"

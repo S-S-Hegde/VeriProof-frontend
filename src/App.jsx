@@ -78,7 +78,7 @@ const AnimatedRoutes = () => {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo(0, 0)}>
       <Routes location={location} key={location.pathname}>
         {/* Public Access Domain */}
         <Route
@@ -350,7 +350,7 @@ const AppContent = () => {
   const { isExiting, setIsExiting, logout } = useAuth();
 
   const isFirstVisit = !localStorage.getItem("vp-intro-seen");
-  const [showIntro, setShowIntro] = useState(isFirstVisit);
+  const [showIntro, setShowIntro] = useState(true);
   const [isAppVisible, setIsAppVisible] = useState(!isFirstVisit);
 
   const { scrollYProgress } = useScroll();
@@ -373,6 +373,7 @@ const AppContent = () => {
   };
 
   useEffect(() => {
+    window.history.scrollRestoration = "manual";
     const lenis = new Lenis({
       duration: 1.1,
       lerp: 0.085,
@@ -398,9 +399,7 @@ const AppContent = () => {
 
   return (
     <Router>
-      <ScrollToTop />
       <CursorTracker />
-
       <motion.div
         className="fixed top-0 left-0 right-0 h-[2px] z-[9999] origin-left"
         style={{
