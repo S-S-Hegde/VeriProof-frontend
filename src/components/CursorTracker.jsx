@@ -1,102 +1,114 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+/**
+ * CursorTracker — GPU-only, zero Framer Motion overhead
+ *
+ * Performance approach:
+ *  - The outer "ring" follows via CSS custom properties + CSS transform (no JS spring)
+ *  - The inner "dot" is absolute to the ring — no separate spring
+ *  - A single requestAnimationFrame loop drives both the DOM mutation and CSS vars
+ *  - No motion.div animate prop (no Framer JS-driven style recalculation per frame)
+ *  - Hover state triggers a single CSS class toggle, transition handled entirely in CSS
+ */
+import { useEffect, useRef } from "react";
 
 const CursorTracker = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const dotRef = useRef(null);
-  const requestRef = useRef(null);
-
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const springX = useSpring(cursorX, {
-    damping: 28,
-    stiffness: 300,
-    mass: 0.5,
-  });
-  const springY = useSpring(cursorY, {
-    damping: 28,
-    stiffness: 300,
-    mass: 0.5,
-  });
+  const ringRef = useRef(null);
+  const dotRef  = useRef(null);
+  const posRef  = useRef({ x: -200, y: -200 });
+  const rafRef  = useRef(null);
 
   useEffect(() => {
-    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
-    if (isTouchDevice) return;
+    // No custom cursor on touch devices
+    if (window.matchMedia("(pointer: coarse)").matches) return;
 
-    setIsVisible(true);
+    const ring = ringRef.current;
+    const dot  = dotRef.current;
+    if (!ring || !dot) return;
 
-    const handleMove = (e) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
+    // Show cursors
+    ring.style.opacity = "1";
+    dot.style.opacity  = "1";
 
-      // Throttle CSS variable updates to the next animation frame
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      requestRef.current = requestAnimationFrame(() => {
-        document.documentElement.style.setProperty(
-          "--vp-cursor-x",
-          `${e.clientX}px`,
-        );
-        document.documentElement.style.setProperty(
-          "--vp-cursor-y",
-          `${e.clientY}px`,
-        );
-      });
+    // Single pointermove handler — writes to ref only (no setState, no re-render)
+    const onMove = (e) => {
+      posRef.current = { x: e.clientX, y: e.clientY };
+
+      // CSS variables for the shader background — batched in the same rAF
+      // (ForensicShaderBackground reads pointerRef directly, so we skip the CSS var update there)
+      document.documentElement.style.setProperty("--vp-cursor-x", `${e.clientX}px`);
+      document.documentElement.style.setProperty("--vp-cursor-y", `${e.clientY}px`);
     };
 
-    const handleOver = (e) => {
-      const target = e.target.closest(
-        "a, button, [role='button'], input, textarea, select, [data-cursor='hover']",
+    // rAF loop: move both elements to current position
+    const tick = () => {
+      const { x, y } = posRef.current;
+      // translate(-50%,-50%) so the element's center tracks the pointer
+      const transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      ring.style.transform = transform;
+      dot.style.transform  = transform;
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+
+    // Hover detection — only a class swap, transition is in CSS
+    const onOver = (e) => {
+      const isInteractive = e.target.closest(
+        "a, button, [role='button'], input, textarea, select, label, [data-cursor='hover']"
       );
-      setIsHovering(!!target);
+      ring.classList.toggle("cursor-hover", !!isInteractive);
     };
 
-    window.addEventListener("pointermove", handleMove, { passive: true });
-    window.addEventListener("pointerover", handleOver, { passive: true });
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerover", onOver, { passive: true });
 
     return () => {
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerover", handleOver);
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerover", onOver);
     };
-  }, [cursorX, cursorY]);
-
-  if (!isVisible) return null;
+  }, []);
 
   return (
     <>
-      <motion.div
+      {/* Ring — size, border-radius, and transition all in CSS */}
+      <div
+        ref={ringRef}
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: 28,
+          height: 28,
+          borderRadius: "50%",
+          border: "1px solid rgba(255,255,255,0.28)",
+          pointerEvents: "none",
+          zIndex: 9998,
+          opacity: 0,
+          mixBlendMode: "difference",
+          willChange: "transform",
+          transition: "width 200ms cubic-bezier(0.16,1,0.3,1), height 200ms cubic-bezier(0.16,1,0.3,1), opacity 300ms ease",
+        }}
+        className="vp-cursor-ring"
+      />
+      {/* Dot — smaller, faster */}
+      <div
         ref={dotRef}
-        className="fixed top-0 left-0 z-[9998] pointer-events-none mix-blend-difference"
-        style={{ x: springX, y: springY }}
-      >
-        <motion.div
-          className="rounded-full border border-white/30"
-          animate={{
-            width: isHovering ? 48 : 28,
-            height: isHovering ? 48 : 28,
-            x: isHovering ? -24 : -14,
-            y: isHovering ? -24 : -14,
-            opacity: isHovering ? 0.6 : 0.3,
-          }}
-          transition={{ type: "spring", stiffness: 280, damping: 22 }}
-        />
-      </motion.div>
-      <motion.div
-        className="fixed top-0 left-0 z-[9999] pointer-events-none"
-        style={{ x: cursorX, y: cursorY }}
-      >
-        <motion.div
-          className="rounded-full bg-white mix-blend-difference"
-          animate={{
-            width: isHovering ? 6 : 4,
-            height: isHovering ? 6 : 4,
-            x: isHovering ? -3 : -2,
-            y: isHovering ? -3 : -2,
-          }}
-          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        />
-      </motion.div>
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: 4,
+          height: 4,
+          borderRadius: "50%",
+          background: "white",
+          pointerEvents: "none",
+          zIndex: 9999,
+          opacity: 0,
+          mixBlendMode: "difference",
+          willChange: "transform",
+        }}
+      />
     </>
   );
 };

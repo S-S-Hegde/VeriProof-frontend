@@ -95,19 +95,20 @@ const Navbar = () => {
   // Primary nav (desktop top bar + mobile bottom dock)
   const primaryNav = isRecruiter
     ? [
-        { name: "Forensics", path: "/dashboard", icon: LayoutDashboard },
-        { name: "Discover", path: "/discover", icon: Search },
-        { name: "Jobs", path: "/recruiter-jobs", icon: Briefcase },
-        { name: "Intel", path: "/recruiter-resumes", icon: Users },
-        { name: "Panel", path: "/verification-panel", icon: ShieldCheck },
+        { name: "Command",   path: "/recruiter-dashboard", icon: LayoutDashboard },
+        { name: "Blueprint", path: "/recruiter-jobs",      icon: Briefcase },
+        { name: "Intake",    path: "/bulk-screening",      icon: Users },
+        { name: "Verdicts",  path: "/verdicts",            icon: BarChart3 },
+        { name: "Panel",     path: "/verification-panel",  icon: ShieldCheck },
       ]
     : [
-        { name: "Terminal", path: "/dashboard", icon: LayoutDashboard },
-        { name: "Evidence", path: "/discover", icon: Search },
-        { name: "Exams", path: "/exams", icon: FileText },
-        { name: "Skill_Tree", path: "/skill-tree", icon: GitBranch },
-        { name: "Requests", path: "/verification-requests", icon: ShieldCheck },
+        { name: "Terminal",  path: "/dashboard",             icon: LayoutDashboard },
+        { name: "Evidence",  path: "/discover",              icon: Search },
+        { name: "Exams",     path: "/exams",                 icon: FileText },
+        { name: "Skill_Tree",path: "/skill-tree",            icon: GitBranch },
+        { name: "Requests",  path: "/verification-requests", icon: ShieldCheck },
       ];
+
 
   // Mobile dock items (5 max — primary nav + Home)
   const dockItems = [

@@ -507,7 +507,7 @@
   .vp-depth-surface {
     position: relative;
     isolation: isolate;
-    transform-style: preserve-3d;
+    will-change: transform;
     transform: perspective(1200px) rotateX(var(--vp-tilt-x, 0deg)) rotateY(var(--vp-tilt-y, 0deg)) translateY(0);
     background-color: var(--vp-glass-bg);
     border: 1px solid var(--vp-glass-border);
@@ -556,6 +556,13 @@
   .vp-reveal-visible {
     opacity: 1;
     transform: translateY(0);
+  }
+
+  /* ─── Custom cursor hover state (CSS-driven, no JS per frame) ─── */
+  .vp-cursor-ring.cursor-hover {
+    width: 44px !important;
+    height: 44px !important;
+    border-color: rgba(255, 255, 255, 0.55);
   }
 }
 

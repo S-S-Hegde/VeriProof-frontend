@@ -71,16 +71,30 @@ const Login = () => {
 
         if (!fromPath) {
           fromPath =
-            data.role === "recruiter" ? "/verification-requests" : "/dashboard";
+            data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
         }
 
         navigate(fromPath, { replace: true });
       }, 1800);
     } catch (err) {
-      setError(err.response?.data?.message || "Authentication_Failed");
-      setLoading(false);
+      const status = err.response?.status;
+      const msg = err.response?.data?.message || "Authentication_Failed";
+
+      if (status === 403 && err.response?.data?.redirectTo) {
+        // Role-mismatch: guide user to register
+        setError(msg);
+        setLoading(false);
+        // After 2.5s auto-navigate to register with pre-filled email
+        timeoutRef.current = setTimeout(() => {
+          navigate(`/register?email=${encodeURIComponent(email)}&role=${role}`);
+        }, 2500);
+      } else {
+        setError(msg);
+        setLoading(false);
+      }
     }
   };
+
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">

@@ -162,8 +162,7 @@ const ForensicShaderBackgroundInner = () => {
 
     const handlePointerMove = (event) => {
       pointerRef.current = { x: event.clientX, y: event.clientY };
-      document.documentElement.style.setProperty("--vp-cursor-x", `${event.clientX}px`);
-      document.documentElement.style.setProperty("--vp-cursor-y", `${event.clientY}px`);
+      // Note: --vp-cursor-x/y CSS vars are set by CursorTracker's rAF loop — no duplication needed here
     };
 
     const handleScroll = () => {

@@ -60,6 +60,7 @@ const CandidateVerificationRequests = lazy(
   () => import("./pages/VerificationRequests"),
 );
 const InvestigatorJobFlow = lazy(() => import("./pages/VerificationPanel"));
+const VerdictsPage = lazy(() => import("./pages/VerdictsPage"));
 
 // Premium loading screen
 const LoadingScreen = () => (
@@ -319,6 +320,16 @@ const AnimatedRoutes = () => {
             </Suspense>
           }
         />
+        <Route
+          path="/verdicts"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <VerdictsPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
 
         {/* Core Shared Domain */}
         <Route
@@ -375,10 +386,12 @@ const AppContent = () => {
   useEffect(() => {
     window.history.scrollRestoration = "manual";
     const lenis = new Lenis({
-      duration: 1.1,
-      lerp: 0.085,
+      duration: 1.0,
+      lerp: 0.1,
       smoothWheel: true,
-      syncTouch: false,
+      syncTouch: true,
+      wheelMultiplier: 1.1,
+      touchMultiplier: 1.6,
       easing: (t) => 1 - Math.pow(1 - t, 4),
     });
 
@@ -404,6 +417,7 @@ const AppContent = () => {
         className="fixed top-0 left-0 right-0 h-[2px] z-[9999] origin-left"
         style={{
           scaleX,
+          willChange: "transform",
           background:
             "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, white))",
           boxShadow: "0 0 12px var(--vp-glow)",
@@ -426,9 +440,9 @@ const AppContent = () => {
         <ArchiveBackground />
 
         <div
-          className={`relative z-10 flex flex-col font-sans transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            isAppVisible ? "opacity-100 blur-0" : "opacity-0 blur-xl"
-          } min-h-screen`}
+          className={`relative z-10 flex flex-col font-sans min-h-screen transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isAppVisible ? "opacity-100" : "opacity-0"
+          }`}
         >
           <Navbar />
           <main className="flex-grow w-full mx-auto pt-24 pb-8 px-4 sm:px-6 lg:px-8 relative z-10">

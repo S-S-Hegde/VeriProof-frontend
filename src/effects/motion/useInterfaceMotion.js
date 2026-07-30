@@ -62,9 +62,14 @@ export const useInterfaceMotion = () => {
       surface.style.setProperty("--vp-tilt-y", "0deg");
     };
 
+    // Debounce DOM mutations — querySelectorAll on every mutation is expensive
+    let mutationTimer;
     const mutationObserver = new MutationObserver(() => {
-      hydrateSurfaces();
-      observeReveals();
+      clearTimeout(mutationTimer);
+      mutationTimer = setTimeout(() => {
+        hydrateSurfaces();
+        observeReveals();
+      }, 150);
     });
 
     hydrateSurfaces();
@@ -74,6 +79,7 @@ export const useInterfaceMotion = () => {
     mutationObserver.observe(document.body, { childList: true, subtree: true });
 
     return () => {
+      clearTimeout(mutationTimer);
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerleave", handlePointerLeave, true);
       mutationObserver.disconnect();
