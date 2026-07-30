@@ -39,6 +39,7 @@ export default function Intake() {
   const [results, setResults]         = useState([]);
   const [error, setError]             = useState("");
   const [emailsSent, setEmailsSent]   = useState(0);
+  const [strictMode, setStrictMode]   = useState(false);
   const fileInputRef = useRef(null);
 
   const fetchJobs = useCallback(async () => {
@@ -83,6 +84,7 @@ export default function Intake() {
 
     const fd = new FormData();
     fd.append("jobId", selectedJobId);
+    fd.append("strictMode", strictMode);
     files.forEach(f => fd.append("resumes", f));
 
     try {
@@ -161,6 +163,18 @@ export default function Intake() {
                 Matching against: {selectedJob.targetSkills.slice(0, 5).join(" · ")}{selectedJob.targetSkills.length > 5 ? ` +${selectedJob.targetSkills.length - 5} more` : ""}
               </p>
             )}
+            <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[var(--color-border)]">
+              <input
+                type="checkbox"
+                id="strictMode"
+                checked={strictMode}
+                onChange={e => setStrictMode(e.target.checked)}
+                className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-sunken)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] cursor-pointer"
+              />
+              <label htmlFor="strictMode" className="text-xs font-mono text-[var(--color-text-secondary)] cursor-pointer select-none">
+                Enable Double-Verification (Strict Claim Check)
+              </label>
+            </div>
           </div>
 
           {/* Drop zone */}

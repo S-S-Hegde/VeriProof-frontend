@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3, Download, RefreshCw, Filter, ChevronDown,
   ChevronUp, Mail, AlertCircle, Loader2, FileText,
-  CheckCircle, X, ArrowUpDown, Trophy,
+  CheckCircle, X, ArrowUpDown, Trophy, Trash2,
 } from "lucide-react";
 import api from "../utils/api";
+
 
 /* ═══════════════════════════════════════════════════
    VERDICTS — Ranked Results & Export
@@ -126,6 +127,17 @@ export default function Verdicts() {
     if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortField(field); setSortDir("desc"); }
   };
+
+  const handleDeleteApplicant = async (id) => {
+    if (!window.confirm("Are you sure you want to remove this applicant from the ranking list?")) return;
+    try {
+      await api.delete(`/api/verify/applicants/${id}`);
+      setApplicants(prev => prev.filter(app => app._id !== id));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to remove applicant.");
+    }
+  };
+
 
   // Sort + filter
   const sorted = useMemo(() => {
@@ -254,6 +266,7 @@ export default function Verdicts() {
                   <SortHeader label="Status"     field="status"           sortField={sortField} sortDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Email"      field="emailStatus"      sortField={sortField} sortDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Processed"  field="processedAt"      sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)] w-20">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -297,6 +310,15 @@ export default function Verdicts() {
                     <td className="px-4 py-3"><EmailBadge status={r.emailStatus} /></td>
                     <td className="px-4 py-3 font-mono text-[10px] text-[var(--color-muted)]">
                       {r.processedAt ? new Date(r.processedAt).toLocaleDateString() : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteApplicant(r._id)}
+                        className="p-1.5 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/8 transition-all"
+                        title="Remove applicant"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </motion.tr>
                 ))}
