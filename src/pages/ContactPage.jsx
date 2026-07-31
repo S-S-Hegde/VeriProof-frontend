@@ -160,13 +160,13 @@ export default function Contact() {
                     key: "name",
                     label: "Full Name",
                     type: "text",
-                    placeholder: "JOHN DOE",
+                    placeholder: "AARAV SHARMA",
                   },
                   {
                     key: "email",
                     label: "Email Address",
                     type: "email",
-                    placeholder: "NAME@DOMAIN.COM",
+                    placeholder: "NAME@DOMAIN.IN",
                   },
                   {
                     key: "subject",

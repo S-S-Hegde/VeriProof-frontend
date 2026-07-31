@@ -542,7 +542,7 @@ const Settings = () => {
                         className={inputCls}
                         value={form.phone}
                         onChange={f("phone")}
-                        placeholder="+X XXXXXXXXXX"
+                        placeholder="+91 98765 43210"
                       />
                     </div>
 
@@ -555,7 +555,7 @@ const Settings = () => {
                         className={inputCls}
                         value={form.location}
                         onChange={f("location")}
-                        placeholder="CITY // COUNTRY"
+                        placeholder="BENGALURU // INDIA"
                       />
                     </div>
 

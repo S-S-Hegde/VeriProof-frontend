@@ -392,7 +392,7 @@ export default function RecruiterSettings() {
                         value={form.name}
                         onChange={handleInputChange}
                         className={inputCls}
-                        placeholder="Sarah Connor"
+                        placeholder="Aarav Sharma"
                         required
                       />
                     </div>
@@ -424,7 +424,7 @@ export default function RecruiterSettings() {
                         value={form.phone}
                         onChange={handleInputChange}
                         className={inputCls}
-                        placeholder="+1 (555) 019-2834"
+                        placeholder="+91 98765 43210"
                       />
                     </div>
 
@@ -439,7 +439,7 @@ export default function RecruiterSettings() {
                         value={form.location}
                         onChange={handleInputChange}
                         className={inputCls}
-                        placeholder="San Francisco, CA"
+                        placeholder="Bengaluru, Karnataka"
                       />
                     </div>
                   </div>
@@ -455,7 +455,7 @@ export default function RecruiterSettings() {
                       value={form.bio}
                       onChange={handleInputChange}
                       className={inputCls}
-                      placeholder="Lead Technical Recruiter specializing in Distributed Systems and Cryptography."
+                      placeholder="Lead Technical Recruiter specializing in Distributed Systems and Cloud Architecture."
                     />
                   </div>
                 </motion.div>
@@ -489,7 +489,7 @@ export default function RecruiterSettings() {
                         value={form.company}
                         onChange={handleInputChange}
                         className={inputCls}
-                        placeholder="Cyberdyne Forensics Inc."
+                        placeholder="Infosys Technologies Ltd."
                       />
                     </div>
 
@@ -521,7 +521,7 @@ export default function RecruiterSettings() {
                         value={form.website}
                         onChange={handleInputChange}
                         className={inputCls}
-                        placeholder="https://company.com"
+                        placeholder="https://company.in"
                       />
                     </div>
 
@@ -551,7 +551,7 @@ export default function RecruiterSettings() {
                         value={form.twitter}
                         onChange={handleInputChange}
                         className={inputCls}
-                        placeholder="@recruiter_node"
+                        placeholder="@recruiter_india"
                       />
                     </div>
                   </div>

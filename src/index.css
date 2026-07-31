@@ -156,10 +156,10 @@
                 color var(--duration-slower) var(--ease-out-expo);
   }
 
-  /* ─── Light mode: Frosted atmospheric depth ─── */
-  .theme-light body,
-  .theme-light {
-    background:
+  /* ─── Light mode: Frosted atmospheric depth (Fixed background layer for 60fps Lenis scroll) ─── */
+  .theme-light body {
+    background-color: #E8F2F6;
+    background-image:
       radial-gradient(ellipse at 20% 0%, rgba(160, 210, 230, 0.25) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 10%, rgba(130, 195, 220, 0.18) 0%, transparent 45%),
       radial-gradient(ellipse at 50% 100%, rgba(170, 215, 235, 0.2) 0%, transparent 55%),

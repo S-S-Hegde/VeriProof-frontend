@@ -203,7 +203,7 @@ const Register = () => {
                       required
                       disabled={loading}
                       placeholder={
-                        role === "student" ? "John_Doe" : "Sarah_Connor"
+                        role === "student" ? "Aarav_Sharma" : "Priya_Patel"
                       }
                       className="vp-input disabled:opacity-50"
                       value={name}
@@ -224,7 +224,7 @@ const Register = () => {
                       type="email"
                       required
                       disabled={loading}
-                      placeholder="identity@protocol.com"
+                      placeholder="identity@protocol.in"
                       className="vp-input disabled:opacity-50"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
