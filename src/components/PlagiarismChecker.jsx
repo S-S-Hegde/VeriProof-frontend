@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import {
   ShieldAlert, ShieldCheck, ShieldX, Shield,
@@ -44,8 +44,7 @@ export default function PlagiarismChecker({ projectId }) {
     setError("");
     setResult(null);
     try {
-      const cfg = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get(`/api/projects/${projectId}/plagiarism`, cfg);
+      const { data } = await api.get(`/api/projects/${projectId}/plagiarism`);
       setResult(data);
     } catch (err) {
       setError(err.response?.data?.message || "Check failed — try again");

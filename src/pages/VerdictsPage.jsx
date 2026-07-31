@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3, Download, RefreshCw, Filter, ChevronDown,
   ChevronUp, Mail, AlertCircle, Loader2, FileText,
-  CheckCircle, X, ArrowUpDown, Trophy, Trash2,
+  CheckCircle, X, ArrowUpDown, Trophy, Trash2, GraduationCap, Clock,
 } from "lucide-react";
 import api from "../utils/api";
 import ConfirmModal from "../components/ConfirmModal";
@@ -14,6 +14,38 @@ import ConfirmModal from "../components/ConfirmModal";
    Shows all applicants ranked by alignment score.
    Filter by job, sort any column, export to CSV.
    ═══════════════════════════════════════════════════ */
+
+const ExamBadge = ({ status, score }) => {
+  if (status === "Attended") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[9px] uppercase font-bold">
+        <GraduationCap className="w-3 h-3" />
+        Attended ({score ?? 0}%)
+      </span>
+    );
+  }
+  if (status === "In Progress") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-500/30 bg-blue-500/10 text-blue-400 font-mono text-[9px] uppercase font-bold">
+        <Loader2 className="w-3 h-3 animate-spin" />
+        In Progress
+      </span>
+    );
+  }
+  if (status === "Not Attended") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono text-[9px] uppercase font-bold">
+        <Clock className="w-3 h-3" />
+        Not Attended
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-500/30 bg-slate-500/10 text-slate-400 font-mono text-[9px] uppercase">
+      Unregistered
+    </span>
+  );
+};
 
 // ── Score bar ──────────────────────────────────────────────────────────
 const ScoreBar = ({ score }) => {
@@ -279,6 +311,7 @@ export default function Verdicts() {
                   <SortHeader label="Score"      field="alignmentScore"   sortField={sortField} sortDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Status"     field="status"           sortField={sortField} sortDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Email"      field="emailStatus"      sortField={sortField} sortDir={sortDir} onSort={handleSort} />
+                  <SortHeader label="Exam Status" field="examStatus"      sortField={sortField} sortDir={sortDir} onSort={handleSort} />
                   <SortHeader label="Processed"  field="processedAt"      sortField={sortField} sortDir={sortDir} onSort={handleSort} />
                   <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)] w-20">Actions</th>
                 </tr>
@@ -323,6 +356,7 @@ export default function Verdicts() {
                         }
                       </td>
                       <td className="px-4 py-3"><EmailBadge status={r.emailStatus} /></td>
+                      <td className="px-4 py-3"><ExamBadge status={r.examStatus} score={r.examScore} /></td>
                       <td className="px-4 py-3 font-mono text-[10px] text-[var(--color-muted)]">
                         {r.processedAt ? new Date(r.processedAt).toLocaleDateString() : "—"}
                       </td>
@@ -338,7 +372,7 @@ export default function Verdicts() {
                     </motion.tr>
                     {expandedId === r._id && (
                       <tr>
-                        <td colSpan={9} className="px-6 py-4 bg-[var(--color-bg-sunken)]/30 border-b border-[var(--color-border)]">
+                        <td colSpan={10} className="px-6 py-4 bg-[var(--color-bg-sunken)]/30 border-b border-[var(--color-border)]">
                           <div className="space-y-3 font-mono text-xs">
                             <div>
                               <p className="text-[10px] uppercase font-bold text-[var(--color-accent)] mb-1">Ranking Verdict Reason</p>
