@@ -99,7 +99,6 @@ const Navbar = () => {
         { name: "Job Roles",       path: "/recruiter-jobs",      icon: Briefcase },
         { name: "Upload Resumes",  path: "/bulk-screening",      icon: Users },
         { name: "Rankings",        path: "/verdicts",            icon: BarChart3 },
-        { name: "Manual Verify",   path: "/verification-panel",  icon: ShieldCheck },
       ]
     : [
         { name: "Dashboard", path: "/dashboard",             icon: LayoutDashboard },
@@ -126,7 +125,7 @@ const Navbar = () => {
   const overflowNav = [
     ...(primaryNav.length > 3 ? primaryNav.slice(3) : []),
     { name: "Analytics", path: "/analytics", icon: BarChart3 },
-    { name: "Settings", path: "/settings", icon: Settings },
+    { name: "Settings", path: isRecruiter ? "/recruiter-settings" : "/settings", icon: Settings },
     { name: "About", path: "/about", icon: Info },
     { name: "Contact", path: "/contact", icon: Mail },
     { name: "Support", path: "/support", icon: HelpCircle },
@@ -134,7 +133,7 @@ const Navbar = () => {
 
   // Profile dropdown items
   const profileActions = [
-    { name: "Protocols", path: "/settings", icon: Settings },
+    { name: "Protocols", path: isRecruiter ? "/recruiter-settings" : "/settings", icon: Settings },
     { name: "Analytics", path: "/analytics", icon: BarChart3 },
     { name: "About_VeriProof", path: "/about", icon: Info },
     { name: "Contact_Us", path: "/contact", icon: Mail },

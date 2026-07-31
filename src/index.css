@@ -167,6 +167,27 @@
       linear-gradient(180deg, #E8F2F6 0%, #DEF0F5 40%, #D4EBF2 70%, #CCE4ED 100%);
   }
 
+  /* ─── Lenis Smooth Scroll Core Rules ─── */
+  html.lenis, html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+
   /* ─── Hidden Scrollbar (Lenis handles scroll) ─── */
   ::-webkit-scrollbar {
     display: none;
@@ -186,7 +207,6 @@
     background-size: 48px 48px;
     opacity: var(--grid-opacity);
     transition: opacity var(--duration-slower) ease;
-    animation: vp-grid-breathe 12s ease-in-out infinite;
   }
   /* Light mode: shader contours replace the CSS grid */
   .theme-light body::before {

@@ -6,6 +6,7 @@ import {
   AlertCircle, RefreshCw,
 } from "lucide-react";
 import api from "../utils/api";
+import ConfirmModal from "../components/ConfirmModal";
 
 /* ═══════════════════════════════════════════════════
    BLUEPRINT — Job Creation & Management
@@ -119,13 +120,24 @@ export default function Blueprint() {
     }
   };
 
-  const handleDelete = async (jobId) => {
-    if (!window.confirm("Delete this job role?")) return;
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting]     = useState(false);
+
+  const handleDelete = (job) => {
+    setDeleteTarget(job);
+  };
+
+  const confirmDeleteJob = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/verify/job/${jobId}`);
-      setJobs(prev => prev.filter(j => j._id !== jobId));
+      await api.delete(`/api/verify/job/${deleteTarget._id}`);
+      setJobs(prev => prev.filter(j => j._id !== deleteTarget._id));
+      setDeleteTarget(null);
     } catch {
-      setError("Failed to delete.");
+      setError("Failed to delete job role.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -337,7 +349,7 @@ export default function Blueprint() {
                       <ChevronDown className={`w-4 h-4 transition-transform ${expandedJob === job._id ? "rotate-180" : ""}`} />
                     </button>
                     <button
-                      onClick={() => handleDelete(job._id)}
+                      onClick={() => handleDelete(job)}
                       className="p-2 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-[var(--color-error)] hover:bg-red-500/8 transition-all"
                       title="Delete"
                     >
@@ -350,6 +362,20 @@ export default function Blueprint() {
           </div>
         )}
       </div>
+
+      {/* Delete Job Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => !isDeleting && setDeleteTarget(null)}
+        onConfirm={confirmDeleteJob}
+        title="Delete Job Role"
+        message="Are you sure you want to delete this job role blueprint?"
+        subtitle={deleteTarget ? deleteTarget.title : ""}
+        confirmText="Delete Job"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+      />
     </div>
   );
 }

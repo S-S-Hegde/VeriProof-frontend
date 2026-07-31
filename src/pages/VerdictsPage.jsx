@@ -6,6 +6,7 @@ import {
   CheckCircle, X, ArrowUpDown, Trophy, Trash2,
 } from "lucide-react";
 import api from "../utils/api";
+import ConfirmModal from "../components/ConfirmModal";
 
 
 /* ═══════════════════════════════════════════════════
@@ -103,6 +104,10 @@ export default function Verdicts() {
   const [sortDir, setSortDir]       = useState("desc");
   const [expandedId, setExpandedId] = useState(null);
 
+  // Modal deletion state
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting]     = useState(false);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -129,13 +134,21 @@ export default function Verdicts() {
     else { setSortField(field); setSortDir("desc"); }
   };
 
-  const handleDeleteApplicant = async (id) => {
-    if (!window.confirm("Are you sure you want to remove this applicant from the ranking list?")) return;
+  const handleDeleteApplicant = (app) => {
+    setDeleteTarget(app);
+  };
+
+  const confirmDeleteApplicant = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/verify/applicants/${id}`);
-      setApplicants(prev => prev.filter(app => app._id !== id));
+      await api.delete(`/api/verify/applicants/${deleteTarget._id}`);
+      setApplicants(prev => prev.filter(app => app._id !== deleteTarget._id));
+      setDeleteTarget(null);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to remove applicant.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -315,7 +328,7 @@ export default function Verdicts() {
                       </td>
                       <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => handleDeleteApplicant(r._id)}
+                          onClick={() => handleDeleteApplicant(r)}
                           className="p-1.5 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/8 transition-all"
                           title="Remove applicant"
                         >
@@ -373,6 +386,20 @@ export default function Verdicts() {
           {sorted.length} candidates ranked by {sortField} ({sortDir}) · Click column headers to re-sort · CSV export includes all data
         </p>
       )}
+
+      {/* Remove Applicant Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => !isDeleting && setDeleteTarget(null)}
+        onConfirm={confirmDeleteApplicant}
+        title="Remove Applicant"
+        message="Are you sure you want to remove this applicant from the ranking list?"
+        subtitle={deleteTarget ? `${deleteTarget.extractedName || "Unknown Candidate"} — ${deleteTarget.originalFileName}` : ""}
+        confirmText="Remove Applicant"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+      />
     </div>
   );
 }

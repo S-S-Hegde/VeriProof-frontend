@@ -180,7 +180,7 @@ const VerificationRequests = () => {
               {/* Action */}
               <div className="col-span-2 flex justify-end">
                 <Link
-                  to="/verification-panel"
+                  to="/verdicts"
                   className="vp-btn vp-btn-primary px-4 py-2 text-[10px] flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   Inspect <ArrowRight className="w-3 h-3" />

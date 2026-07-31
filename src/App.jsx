@@ -40,6 +40,7 @@ const CandidateSkillAnalytics = lazy(
   () => import("./pages/CandidateSkillAnalytics"),
 );
 const SystemConfiguration = lazy(() => import("./pages/Settings"));
+const RecruiterSettings = lazy(() => import("./pages/RecruiterSettings"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const BulkScreening = lazy(() => import("./pages/BulkScreening"));
@@ -54,13 +55,18 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 const CandidateHub = lazy(() => import("./pages/StudentDashboard"));
 const InvestigatorHub = lazy(() => import("./pages/InvestigatorHub"));
 const Exams = lazy(() => import("./pages/Exams"));
-const DynamicSkillGraph = lazy(() => import("./pages/DynamicSkillGraph"));
+const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
 
 const CandidateVerificationRequests = lazy(
   () => import("./pages/VerificationRequests"),
 );
-const InvestigatorJobFlow = lazy(() => import("./pages/VerificationPanel"));
 const VerdictsPage = lazy(() => import("./pages/VerdictsPage"));
+
+// Smart router for /settings based on role
+const SettingsRouter = () => {
+  const { user } = useAuth();
+  return user?.role === "recruiter" ? <RecruiterSettings /> : <SystemConfiguration />;
+};
 
 // Premium loading screen
 const LoadingScreen = () => (
@@ -243,7 +249,7 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <DynamicSkillGraph />
+                <SkillTreePage />
               </PageTransition>
             </Suspense>
           }
@@ -311,16 +317,6 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/verification-panel"
-          element={
-            <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <InvestigatorJobFlow />
-              </PageTransition>
-            </Suspense>
-          }
-        />
-        <Route
           path="/verdicts"
           element={
             <Suspense fallback={<LoadingScreen />}>
@@ -347,7 +343,17 @@ const AnimatedRoutes = () => {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
-                <SystemConfiguration />
+                <SettingsRouter />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/recruiter-settings"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <RecruiterSettings />
               </PageTransition>
             </Suspense>
           }
@@ -385,27 +391,28 @@ const AppContent = () => {
 
   useEffect(() => {
     window.history.scrollRestoration = "manual";
+
     const lenis = new Lenis({
-      duration: 1.0,
-      lerp: 0.1,
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
       smoothWheel: true,
-      syncTouch: true,
-      wheelMultiplier: 1.1,
-      touchMultiplier: 1.6,
-      easing: (t) => 1 - Math.pow(1 - t, 4),
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.5,
     });
 
     lenis.on("scroll", ScrollTrigger.update);
 
-    const update = (time) => {
-      lenis.raf(time * 1000);
-    };
-
-    gsap.ticker.add(update);
-    gsap.ticker.lagSmoothing(0);
+    let rafId;
+    function raf(time) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+    rafId = requestAnimationFrame(raf);
 
     return () => {
-      gsap.ticker.remove(update);
+      cancelAnimationFrame(rafId);
       lenis.destroy();
     };
   }, []);

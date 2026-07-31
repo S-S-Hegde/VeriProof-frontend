@@ -26,6 +26,7 @@ const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("student");
   const [githubUsername, setGithubUsername] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,7 @@ const Register = () => {
     setName("");
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setGithubUsername("");
     setError("");
     setStep(1);
@@ -53,6 +55,11 @@ const Register = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match. Please ensure both fields are identical.");
+      return;
+    }
+    
     setError("");
     setLoading(true);
     try {
@@ -260,6 +267,27 @@ const Register = () => {
                         )}
                       </button>
                     </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="confirmPassword"
+                      className="vp-label mb-2 block"
+                    >
+                      <Lock className="w-3 h-3 inline mr-1.5" />
+                      Confirm Access_Key
+                    </label>
+                    <input
+                      id="confirmPassword"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={8}
+                      disabled={loading}
+                      placeholder="••••••••"
+                      className="vp-input disabled:opacity-50"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                   </div>
 
                   <AnimatePresence>
