@@ -157,19 +157,19 @@ const StudentDashboard = () => {
 
   const stats = [
     {
-      label: "Authenticated_Nodes",
+      label: "Uploaded Projects",
       val: projects.length,
       icon: Database,
       id: "01",
     },
     {
-      label: "Verification_Level",
+      label: "Resume Status",
       val: resumeStatus.toUpperCase(),
       icon: Shield,
       id: "02",
     },
-    { label: "Talent_Signal", val: "ALPHA", icon: Activity, id: "03" },
-    { label: "Global_Integrity", val: "99.2%", icon: Award, id: "04" },
+    { label: "Certifications", val: certificates.length, icon: Award, id: "03" },
+    { label: "Skill Level", val: "Intermediate", icon: Activity, id: "04" },
   ];
 
   return (
@@ -180,8 +180,8 @@ const StudentDashboard = () => {
             <div className="flex items-center gap-3 mb-4">
               <Terminal className="w-4 h-4 text-[var(--color-accent)]" />
               <span className="vp-label-accent">
-                Terminal_Authorized //{" "}
-                {user?.name?.replace(" ", "_").toUpperCase()}
+                Welcome back,{" "}
+                {user?.name?.toUpperCase()}
               </span>
             </div>
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
@@ -191,7 +191,7 @@ const StudentDashboard = () => {
               >
                 Candidate{" "}
                 <span className="text-[var(--color-accent)] not-italic">
-                  Terminal.
+                  Dashboard.
                 </span>
               </h1>
               <div className="flex gap-3">
@@ -201,7 +201,7 @@ const StudentDashboard = () => {
                   onClick={() => navigate("/skill-tree")}
                   className="vp-btn vp-btn-secondary text-[10px] py-3 px-6 gap-2"
                 >
-                  <GitBranch className="w-3.5 h-3.5" /> Skill_Tree
+                  <GitBranch className="w-3.5 h-3.5" /> Skills
                 </motion.button>
                 <motion.button
                   whileHover={
@@ -222,17 +222,17 @@ const StudentDashboard = () => {
                       : ""
                   }
                 >
-                  <Plus className="w-3.5 h-3.5" /> Upload_Evidence
+                  <Plus className="w-3.5 h-3.5" /> Upload Projects
                 </motion.button>
               </div>
             </div>
             <div className="flex items-center gap-3 mt-4">
               <span className="vp-status-dot" />
               <span className="vp-label">
-                System_Status:{" "}
+                System Status:{" "}
                 {workflowState?.hasResume
-                  ? "Pipeline_Active"
-                  : "Awaiting_Resume"}
+                  ? "Active"
+                  : "Awaiting Resume"}
               </span>
             </div>
           </div>

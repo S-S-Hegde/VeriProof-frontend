@@ -93,7 +93,7 @@ const Discover = () => {
                 className="mb-6 inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg)]/60"
               >
                 <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent)]" />
-                <span className="vp-label-accent">Curated_Discovery_System</span>
+                <span className="vp-label-accent">Candidate Search</span>
               </motion.div>
 
               <motion.h1
@@ -103,8 +103,8 @@ const Discover = () => {
                 className="max-w-4xl font-black uppercase tracking-tighter leading-[0.85]"
                 style={{ fontSize: "clamp(2.5rem, 5vw, 5rem)" }}
               >
-                Talent signals,<br />
-                <span className="text-[var(--color-accent)] not-italic">not noisy portfolios.</span>
+                Find candidates,<br />
+                <span className="text-[var(--color-accent)] not-italic">based on real skills.</span>
               </motion.h1>
 
               <motion.p
@@ -113,7 +113,7 @@ const Discover = () => {
                 transition={{ duration: 0.7, delay: 0.16 }}
                 className="mt-6 max-w-xl text-sm text-[var(--color-muted)] leading-relaxed"
               >
-                The recruiter-facing archive layer: verified builds, searchable stacks, shortlist-ready cards, and high-confidence candidates.
+                Search across all candidate profiles, technologies, and verified resumes.
               </motion.p>
 
               {/* Tech filter pills */}
@@ -137,7 +137,7 @@ const Discover = () => {
                     {tech}
                   </button>
                 )) : (
-                  <span className="vp-tag opacity-40">Indexing_Technologies...</span>
+                  <span className="vp-tag opacity-40">Loading technologies...</span>
                 )}
               </motion.div>
             </div>
@@ -150,9 +150,9 @@ const Discover = () => {
               className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1"
             >
               {[
-                { label: "Live_Archive", val: projects.length, accent: "Networked" },
-                { label: "Verified_Signal", val: verifiedCount, accent: "Trust-first" },
-                { label: "Stack_Coverage", val: availableTechnologies.length, accent: "Cross-indexed" },
+                { label: "Total Candidates", val: projects.length, accent: "Networked" },
+                { label: "Verified Resumes", val: verifiedCount, accent: "Trust-first" },
+                { label: "Technologies", val: availableTechnologies.length, accent: "Cross-indexed" },
               ].map((stat) => (
                 <div key={stat.label} className="vp-surface-1 p-5">
                   <p className="vp-label">{stat.label}</p>
@@ -177,7 +177,7 @@ const Discover = () => {
           >
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <p className="vp-label-accent">Filter_Matrix</p>
+                <p className="vp-label-accent">Filters</p>
                 <h2 className="mt-1 text-lg font-black uppercase tracking-tight">Refine</h2>
               </div>
               <ScanSearch className="h-5 w-5 text-[var(--color-accent)]" />
@@ -227,7 +227,7 @@ const Discover = () => {
 
             <label className="flex items-center gap-3 vp-surface-1 px-4 py-3 text-sm font-bold uppercase tracking-[0.1em] cursor-pointer">
               <input type="checkbox" checked={verifiedOnly} onChange={(e) => setVerifiedOnly(e.target.checked)} className="h-4 w-4 accent-[var(--color-accent)]" />
-              Verified_Only
+              Verified Only
             </label>
 
             <button
@@ -235,7 +235,7 @@ const Discover = () => {
               onClick={() => { setSearch(""); setSelectedTech(""); setVerifiedOnly(false); setSort("latest"); }}
               className="vp-btn vp-btn-secondary w-full text-[10px] py-2.5"
             >
-              Reset_Filters
+              Reset Filters
             </button>
           </motion.aside>
 
@@ -244,9 +244,9 @@ const Discover = () => {
             {/* Results header */}
             <div className="vp-surface-1 p-6 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="vp-label-accent">Discovery_Pulse</p>
+                <p className="vp-label-accent">Search Results</p>
                 <h2 className="mt-1 text-2xl font-black uppercase tracking-tight">
-                  {loading ? "Scanning_Archive..." : `${projects.length} Projects_Ready`}
+                  {loading ? "Searching..." : `${projects.length} Candidates Found`}
                 </h2>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -271,7 +271,7 @@ const Discover = () => {
             ) : projects.length === 0 ? (
               <div className="vp-surface-1 p-16 text-center">
                 <Orbit className="mx-auto h-10 w-10 text-[var(--color-accent)] opacity-50 mb-5" />
-                <h3 className="text-2xl font-black uppercase tracking-tight opacity-50 mb-3">No_Matching_Records</h3>
+                <h3 className="text-2xl font-black uppercase tracking-tight opacity-50 mb-3">No Results Found</h3>
                 <p className="text-sm text-[var(--color-muted)]">
                   Try a broader search, a different stack, or switch off verified-only mode.
                 </p>

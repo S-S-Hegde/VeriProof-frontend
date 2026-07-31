@@ -173,14 +173,14 @@ const Login = () => {
           {/* Role Selection Section */}
           <div className="mb-8">
             <label className="vp-label mb-3 block text-center tracking-widest uppercase text-[var(--color-muted)]">
-              Select Your Destination Portal
+              Select Your Portal
             </label>
             <div className="flex p-1 rounded-[var(--radius-md)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]">
               {[
                 { value: "student", label: "Candidate", icon: UserCircle },
                 {
                   value: "recruiter",
-                  label: "Investigator",
+                  label: "Recruiter",
                   icon: ShieldCheck,
                 },
               ].map(({ value, label, icon: Icon }) => (
@@ -213,7 +213,7 @@ const Login = () => {
           <form onSubmit={submitHandler} className="space-y-5">
             <div>
               <label htmlFor="login-email" className="vp-label mb-2 block">
-                <Mail className="w-3 h-3 inline mr-1.5" /> Network_Address
+                <Mail className="w-3 h-3 inline mr-1.5" /> Email Address
               </label>
               <input
                 id="login-email"
@@ -222,7 +222,7 @@ const Login = () => {
                 ref={emailRef}
                 type="email"
                 required
-                placeholder="identity@protocol.com"
+                placeholder="you@company.com"
                 className="vp-input w-full"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -231,7 +231,7 @@ const Login = () => {
 
             <div>
               <label htmlFor="login-password" className="vp-label mb-2 block">
-                <Lock className="w-3 h-3 inline mr-1.5" /> Access_Key
+                <Lock className="w-3 h-3 inline mr-1.5" /> Password
               </label>
               <div className="relative">
                 <input

@@ -109,7 +109,7 @@ const Register = () => {
                 </div>
               </motion.button>
 
-              {/* Investigator Card - Now an accessible button */}
+              {/* Recruiter Card - Now an accessible button */}
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.02 }}
@@ -119,13 +119,13 @@ const Register = () => {
               >
                 <ShieldCheck className="w-14 h-14 md:w-16 md:h-16 mb-6 text-white/60 group-hover:text-white transition-colors" />
                 <h2 className="text-3xl lg:text-4xl font-black italic uppercase tracking-tighter text-white text-center leading-none">
-                  Investigator
+                  Recruiter
                 </h2>
                 <p className="mt-4 text-sm text-white/70 text-center max-w-[220px]">
-                  Audit portfolios and source truth
+                  Evaluate candidates and manage job roles
                 </p>
                 <div className="mt-8 px-6 py-2 bg-white text-[var(--color-accent)] text-[10px] font-bold uppercase tracking-[0.2em] rounded-[var(--radius-md)]">
-                  Grant_Access
+                  Select
                 </div>
               </motion.button>
             </motion.div>
@@ -160,7 +160,7 @@ const Register = () => {
                   >
                     {role === "student"
                       ? "Candidate_Protocol"
-                      : "Investigator_Protocol"}
+                      : "Recruiter_Protocol"}
                   </span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter">

@@ -95,17 +95,17 @@ const Navbar = () => {
   // Primary nav (desktop top bar + mobile bottom dock)
   const primaryNav = isRecruiter
     ? [
-        { name: "Command",   path: "/recruiter-dashboard", icon: LayoutDashboard },
-        { name: "Blueprint", path: "/recruiter-jobs",      icon: Briefcase },
-        { name: "Intake",    path: "/bulk-screening",      icon: Users },
-        { name: "Verdicts",  path: "/verdicts",            icon: BarChart3 },
-        { name: "Panel",     path: "/verification-panel",  icon: ShieldCheck },
+        { name: "Dashboard",       path: "/recruiter-dashboard", icon: LayoutDashboard },
+        { name: "Job Roles",       path: "/recruiter-jobs",      icon: Briefcase },
+        { name: "Upload Resumes",  path: "/bulk-screening",      icon: Users },
+        { name: "Rankings",        path: "/verdicts",            icon: BarChart3 },
+        { name: "Manual Verify",   path: "/verification-panel",  icon: ShieldCheck },
       ]
     : [
-        { name: "Terminal",  path: "/dashboard",             icon: LayoutDashboard },
-        { name: "Evidence",  path: "/discover",              icon: Search },
+        { name: "Dashboard", path: "/dashboard",             icon: LayoutDashboard },
+        { name: "Search",    path: "/discover",              icon: Search },
         { name: "Exams",     path: "/exams",                 icon: FileText },
-        { name: "Skill_Tree",path: "/skill-tree",            icon: GitBranch },
+        { name: "Skills",    path: "/skill-tree",            icon: GitBranch },
         { name: "Requests",  path: "/verification-requests", icon: ShieldCheck },
       ];
 
@@ -301,14 +301,14 @@ const Navbar = () => {
                       {/* User info header */}
                       <div className="px-3 py-3 mb-1 border-b border-[var(--color-border)]">
                         <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">
-                          Authorized_User
+                          Logged In As
                         </p>
                         <p className="text-sm font-bold uppercase tracking-wider text-[var(--color-text)] truncate mt-0.5">
                           {user.name}
                         </p>
                         <p className="font-mono text-[10px] tracking-wider text-[var(--color-muted)] mt-0.5">
                           {user.role === "recruiter"
-                            ? "INVESTIGATOR"
+                            ? "RECRUITER"
                             : "CANDIDATE"}
                         </p>
                       </div>

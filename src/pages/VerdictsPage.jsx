@@ -101,6 +101,7 @@ export default function Verdicts() {
   const [error, setError]           = useState("");
   const [sortField, setSortField]   = useState("alignmentScore");
   const [sortDir, setSortDir]       = useState("desc");
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -271,56 +272,94 @@ export default function Verdicts() {
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
                 {sorted.map((r, idx) => (
-                  <motion.tr
-                    key={r._id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
-                    className="hover:bg-[var(--color-bg-sunken)]/40 transition-colors"
-                  >
-                    <td className="px-4 py-3 font-mono text-xs text-[var(--color-muted)]">
-                      {idx === 0 && <Trophy className="w-3.5 h-3.5 text-yellow-400 inline mr-1" />}
-                      {idx + 1}
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-bold text-xs truncate max-w-[140px]">
-                        {r.extractedName || <span className="text-[var(--color-muted)]">Unknown</span>}
-                      </p>
-                      {r.emailSentTo && (
-                        <p className="text-[10px] font-mono text-[var(--color-muted)] truncate max-w-[140px]">{r.emailSentTo}</p>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-[10px] text-[var(--color-muted)] max-w-[160px]">
-                      <p className="truncate">{r.originalFileName}</p>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-[120px]">
-                      <p className="truncate">{r.jobId?.title || "—"}</p>
-                    </td>
-                    <td className="px-4 py-3 min-w-[120px]">
-                      <ScoreBar score={r.alignmentScore || 0} />
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.status === "Completed"
-                        ? <span className="flex items-center gap-1 text-emerald-400 text-[10px] font-mono uppercase"><CheckCircle className="w-3 h-3" /> Done</span>
-                        : r.status === "Failed"
-                        ? <span className="flex items-center gap-1 text-red-400 text-[10px] font-mono uppercase"><AlertCircle className="w-3 h-3" /> Failed</span>
-                        : <span className="flex items-center gap-1 text-yellow-400 text-[10px] font-mono uppercase"><Loader2 className="w-3 h-3 animate-spin" /> Processing</span>
-                      }
-                    </td>
-                    <td className="px-4 py-3"><EmailBadge status={r.emailStatus} /></td>
-                    <td className="px-4 py-3 font-mono text-[10px] text-[var(--color-muted)]">
-                      {r.processedAt ? new Date(r.processedAt).toLocaleDateString() : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDeleteApplicant(r._id)}
-                        className="p-1.5 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/8 transition-all"
-                        title="Remove applicant"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </motion.tr>
+                  <React.Fragment key={r._id}>
+                    <motion.tr
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      onClick={() => setExpandedId(expandedId === r._id ? null : r._id)}
+                      className="hover:bg-[var(--color-bg-sunken)]/40 transition-colors cursor-pointer"
+                    >
+                      <td className="px-4 py-3 font-mono text-xs text-[var(--color-muted)]">
+                        {idx === 0 && <Trophy className="w-3.5 h-3.5 text-yellow-400 inline mr-1" />}
+                        {idx + 1}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-bold text-xs truncate max-w-[140px]">
+                          {r.extractedName || <span className="text-[var(--color-muted)]">Unknown</span>}
+                        </p>
+                        {r.emailSentTo && (
+                          <p className="text-[10px] font-mono text-[var(--color-muted)] truncate max-w-[140px]">{r.emailSentTo}</p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-[10px] text-[var(--color-muted)] max-w-[160px]">
+                        <p className="truncate">{r.originalFileName}</p>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-[120px]">
+                        <p className="truncate">{r.jobId?.title || "—"}</p>
+                      </td>
+                      <td className="px-4 py-3 min-w-[120px]">
+                        <ScoreBar score={r.alignmentScore || 0} />
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.status === "Completed"
+                          ? <span className="flex items-center gap-1 text-emerald-400 text-[10px] font-mono uppercase"><CheckCircle className="w-3 h-3" /> Done</span>
+                          : r.status === "Failed"
+                          ? <span className="flex items-center gap-1 text-red-400 text-[10px] font-mono uppercase"><AlertCircle className="w-3 h-3" /> Failed</span>
+                          : <span className="flex items-center gap-1 text-yellow-400 text-[10px] font-mono uppercase"><Loader2 className="w-3 h-3 animate-spin" /> Processing</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3"><EmailBadge status={r.emailStatus} /></td>
+                      <td className="px-4 py-3 font-mono text-[10px] text-[var(--color-muted)]">
+                        {r.processedAt ? new Date(r.processedAt).toLocaleDateString() : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleDeleteApplicant(r._id)}
+                          className="p-1.5 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/8 transition-all"
+                          title="Remove applicant"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </motion.tr>
+                    {expandedId === r._id && (
+                      <tr>
+                        <td colSpan={9} className="px-6 py-4 bg-[var(--color-bg-sunken)]/30 border-b border-[var(--color-border)]">
+                          <div className="space-y-3 font-mono text-xs">
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-[var(--color-accent)] mb-1">Ranking Verdict Reason</p>
+                              <p className="text-[var(--color-text)] leading-relaxed">
+                                {r.reasoning || "No reasoning generated for this applicant."}
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                              <div>
+                                <p className="text-[10px] uppercase font-bold text-emerald-400 mb-1">Matched Skills</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {r.matchedSkills?.length > 0 ? (
+                                    r.matchedSkills.map((s, i) => (
+                                      <span key={i} className="px-1.5 py-0.5 rounded border border-emerald-400/20 bg-emerald-400/5 text-emerald-400 text-[9px]">{s}</span>
+                                    ))
+                                  ) : <span className="text-[var(--color-muted)] text-[9px]">None</span>}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-[10px] uppercase font-bold text-red-400 mb-1">Missing Required Skills</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {r.missingSkills?.length > 0 ? (
+                                    r.missingSkills.map((s, i) => (
+                                      <span key={i} className="px-1.5 py-0.5 rounded border border-red-400/20 bg-red-400/5 text-red-400 text-[9px]">{s}</span>
+                                    ))
+                                  ) : <span className="text-[var(--color-muted)] text-[9px]">None</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

@@ -84,14 +84,14 @@ const RecruiterDashboard = () => {
             <div className="flex items-center gap-4 mb-6">
               <span className="w-8 h-[1px] bg-[var(--color-accent)]" />
               <p className="text-sm font-mono tracking-[0.5em] uppercase text-[var(--color-accent)] font-bold">
-                Investigator_Authed // {user.name?.replace(" ", "_").toUpperCase()}
+                Recruiter Dashboard // {user.name?.toUpperCase()}
               </p>
             </div>
             <h2 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none mb-4">
-              Talent <span className="text-[var(--color-accent)] not-italic">Forensics.</span>
+              Over<span className="text-[var(--color-accent)] not-italic">view.</span>
             </h2>
             <p className="text-sm font-medium opacity-40 uppercase tracking-widest flex items-center gap-3">
-              <Activity className="w-4 h-4 animate-pulse" /> Network_Status: Scanning_Deep_Evidence...
+              <Activity className="w-4 h-4 animate-pulse" /> Live Status: Tracking Candidates
             </p>
           </motion.div>
 
@@ -108,9 +108,9 @@ const RecruiterDashboard = () => {
         {/* Global Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mb-20 border border-[var(--color-border)] bg-[var(--color-bg)]/40 backdrop-blur-md">
           {[
-            { label: "Authenticated_Talent", val: "1,204", id: "01" },
-            { label: "Pending_Checks", val: pendingResumes.length, id: "02" },
-            { label: "Integrity_Index", val: "99.8%", id: "03" }
+            { label: "Total Candidates", val: projects.length, id: "01" },
+            { label: "Pending Checks", val: pendingResumes.length, id: "02" },
+            { label: "Saved Profiles", val: savedProjects.length, id: "03" }
           ].map((stat, i) => (
             <div key={i} className="p-10 border-r border-b md:border-b-0 last:border-r-0 border-[var(--color-border)] group hover:bg-[var(--color-text)]/[0.02] transition-colors relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 font-mono text-[10px] opacity-20 group-hover:text-[var(--color-accent)] group-hover:opacity-100 transition-all">STAT_{stat.id}</div>

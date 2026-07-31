@@ -110,9 +110,9 @@ export default function Intake() {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* ── Header ── */}
       <div>
-        <p className="vp-label-accent mb-1">Recruiter / Intake</p>
+        <p className="vp-label-accent mb-1">Recruiter / Upload Resumes</p>
         <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-          In<span className="text-[var(--color-accent)] not-italic">take</span>
+          Upload <span className="text-[var(--color-accent)] not-italic">Resumes</span>
         </h1>
         <p className="text-sm text-[var(--color-muted)] mt-1">
           Drop resumes in bulk. AI parses each one and sends an invite email to the candidate.
@@ -139,10 +139,10 @@ export default function Intake() {
         <div className="lg:col-span-2 space-y-4">
           {/* Job selector */}
           <div className="vp-glass p-4 rounded-[var(--radius-xl)]">
-            <label className="vp-label mb-2 block">Select Blueprint (Job Role)</label>
+            <label className="vp-label mb-2 block">Select Job Role</label>
             {jobs.length === 0 ? (
               <p className="text-xs text-[var(--color-muted)] font-mono py-2">
-                No blueprints found — create one in the Blueprint page first.
+                No job roles found — create one in the Job Roles page first.
               </p>
             ) : (
               <div className="relative">
@@ -270,7 +270,7 @@ export default function Intake() {
             >
               {isProcessing
                 ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing Batch…</>
-                : <><UploadCloud className="w-3.5 h-3.5" /> Initiate Intake</>
+                : <><UploadCloud className="w-3.5 h-3.5" /> Upload Resumes</>
               }
             </button>
           </div>
@@ -289,7 +289,7 @@ export default function Intake() {
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-5 h-5 text-emerald-400" />
                 <div>
-                  <p className="text-sm font-bold">Intake Complete</p>
+                  <p className="text-sm font-bold">Upload Complete</p>
                   <p className="text-xs text-[var(--color-muted)] font-mono">
                     {results.filter(r => r.status === "Completed").length}/{results.length} processed ·{" "}
                     <span className="text-emerald-400 flex items-center gap-1 inline-flex">

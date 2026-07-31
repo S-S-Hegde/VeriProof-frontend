@@ -86,7 +86,7 @@ export default function Blueprint() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setJobs(prev => [data, ...prev]);
-      setSuccessMsg(`Blueprint "${data.title}" created — ${data.targetSkills?.length || 0} skills extracted.`);
+      setSuccessMsg(`Job Role "${data.title}" created — ${data.targetSkills?.length || 0} skills extracted.`);
       setMode("list");
       setUploadFile(null);
       setUploadTitle("");
@@ -109,7 +109,7 @@ export default function Blueprint() {
         description: manualForm.description.trim(),
       });
       setJobs(prev => [data, ...prev]);
-      setSuccessMsg(`Blueprint "${data.title}" saved.`);
+      setSuccessMsg(`Job Role "${data.title}" saved.`);
       setMode("list");
       setManualForm({ title: "", description: "" });
     } catch (err) {
@@ -120,7 +120,7 @@ export default function Blueprint() {
   };
 
   const handleDelete = async (jobId) => {
-    if (!window.confirm("Delete this blueprint?")) return;
+    if (!window.confirm("Delete this job role?")) return;
     try {
       await api.delete(`/api/verify/job/${jobId}`);
       setJobs(prev => prev.filter(j => j._id !== jobId));
@@ -134,9 +134,9 @@ export default function Blueprint() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="vp-label-accent mb-1">Recruiter / Blueprint</p>
+          <p className="vp-label-accent mb-1">Recruiter / Job Roles</p>
           <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-            Blue<span className="text-[var(--color-accent)] not-italic">print</span>
+            Job <span className="text-[var(--color-accent)] not-italic">Roles</span>
           </h1>
           <p className="text-sm text-[var(--color-muted)] mt-1">
             Create job roles from PDF descriptions or manually. Skills are auto-extracted.
