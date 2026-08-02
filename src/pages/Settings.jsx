@@ -36,6 +36,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cldProfilePhoto } from "../utils/cloudinaryImage";
+import LocationAutoSuggest from "../components/LocationAutoSuggest";
 
 // Redesigned styling constants
 const inputCls =
@@ -241,17 +242,16 @@ const Settings = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!allowed.includes(file.type)) {
+    if (!file.type.startsWith("image/")) {
       setToast({
         type: "error",
-        msg: "Invalid image. Use JPG, PNG, WEBP, or GIF.",
+        msg: "Invalid image format. Please select an image file (JPG, PNG, WEBP, GIF).",
       });
       e.target.value = "";
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setToast({ type: "error", msg: "Image too large. Maximum size is 2MB." });
+    if (file.size > 5 * 1024 * 1024) {
+      setToast({ type: "error", msg: "Image too large. Maximum supported size is 5MB." });
       e.target.value = "";
       return;
     }
@@ -273,14 +273,15 @@ const Settings = () => {
         formData,
         cfg,
       );
-      setForm((p) => ({ ...p, profileImage: data.profileImage }));
-      setUser((prev) => ({ ...prev, profileImage: data.profileImage }));
-      setToast({ type: "success", msg: "Image: Protocol Secured" });
+      const newImg = data.profileImage || data.user?.profileImage;
+      setForm((p) => ({ ...p, profileImage: newImg }));
+      setUser((prev) => ({ ...prev, profileImage: newImg }));
+      setToast({ type: "success", msg: "Image Stored Successfully in Database" });
       setSystemStatus("Sync_Success");
     } catch (err) {
       setToast({
         type: "error",
-        msg: err.response?.data?.message || "Image: Uplink Failed",
+        msg: err.response?.data?.message || "Image Uplink Failed. Please check file size and format.",
       });
       setSystemStatus("Fatal_Error");
     } finally {
@@ -523,19 +524,22 @@ const Settings = () => {
 
                     <div>
                       <label className={labelCls}>
-                        <Mail className="w-3 h-3" />
-                        Network_Address
+                        <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                        Gmail / Email Address
                       </label>
                       <input
-                        className={`${inputCls} opacity-30 cursor-not-allowed`}
-                        value={form.email}
-                        disabled
+                        type="email"
+                        className={inputCls}
+                        value={form.email || ""}
+                        onChange={f("email")}
+                        placeholder="user@gmail.com"
+                        required
                       />
                     </div>
 
                     <div>
                       <label className={labelCls}>
-                        <Phone className="w-3 h-3" />
+                        <Phone className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Voice_Comms
                       </label>
                       <input
@@ -547,15 +551,15 @@ const Settings = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className={labelCls}>
-                        <MapPin className="w-3 h-3" />
-                        Geographic_Origin
-                      </label>
-                      <input
+                      <LocationAutoSuggest
+                        labelCls={labelCls}
                         className={inputCls}
-                        value={form.location}
-                        onChange={f("location")}
-                        placeholder="BENGALURU // INDIA"
+                        value={form.location || ""}
+                        onChange={(val) => {
+                          setForm((p) => ({ ...p, location: val }));
+                          setSystemStatus("Awaiting_Save");
+                        }}
+                        placeholder="Select or type geographic origin (e.g. Bengaluru, India)"
                       />
                     </div>
 

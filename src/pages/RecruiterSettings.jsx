@@ -29,6 +29,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cldProfilePhoto } from "../utils/cloudinaryImage";
+import LocationAutoSuggest from "../components/LocationAutoSuggest";
 import ConfirmModal from "../components/ConfirmModal";
 
 /* ═══════════════════════════════════════════════════
@@ -400,14 +401,16 @@ export default function RecruiterSettings() {
                     <div>
                       <label className={labelCls}>
                         <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                        Network_Address
+                        Gmail / Email Address
                       </label>
                       <input
                         type="email"
                         name="email"
-                        value={form.email}
-                        readOnly
-                        className={`${inputCls} opacity-60 cursor-not-allowed`}
+                        value={form.email || ""}
+                        onChange={handleInputChange}
+                        className={inputCls}
+                        placeholder="recruiter@gmail.com"
+                        required
                       />
                     </div>
                   </div>
@@ -429,17 +432,14 @@ export default function RecruiterSettings() {
                     </div>
 
                     <div>
-                      <label className={labelCls}>
-                        <MapPin className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                        HQ_Location
-                      </label>
-                      <input
-                        type="text"
-                        name="location"
-                        value={form.location}
-                        onChange={handleInputChange}
+                      <LocationAutoSuggest
+                        labelCls={labelCls}
                         className={inputCls}
-                        placeholder="Bengaluru, Karnataka"
+                        value={form.location || ""}
+                        onChange={(val) => {
+                          setForm((p) => ({ ...p, location: val }));
+                        }}
+                        placeholder="Select or type HQ Location (e.g. Bengaluru, India)"
                       />
                     </div>
                   </div>
