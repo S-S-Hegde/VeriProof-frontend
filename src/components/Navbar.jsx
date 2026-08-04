@@ -100,9 +100,11 @@ const Navbar = () => {
         { name: "Rankings",        path: "/verdicts",            icon: BarChart3 },
       ]
     : [
-        { name: "Dashboard", path: "/dashboard",  icon: LayoutDashboard },
-        { name: "Exams",     path: "/exams",      icon: FileText },
-        { name: "Skills",    path: "/skill-tree", icon: GitBranch },
+        { name: "Dashboard", path: "/dashboard",      icon: LayoutDashboard },
+        { name: "Upload Resume", path: "/resume-upload", icon: FileText },
+        { name: "Upload Projects", path: "/add-project", icon: ShieldCheck },
+        { name: "Exams",     path: "/exams",          icon: FileText },
+        { name: "Skills",    path: "/skill-tree",     icon: GitBranch },
       ];
 
 

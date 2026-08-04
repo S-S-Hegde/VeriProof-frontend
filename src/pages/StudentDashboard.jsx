@@ -15,6 +15,7 @@ import { useSkillTree } from "../context/SkillTreeContext";
 import { motion } from "framer-motion";
 import {
   Plus,
+  Upload,
   Database,
   Shield,
   Award,
@@ -195,7 +196,23 @@ const StudentDashboard = () => {
                   Dashboard.
                 </span>
               </h1>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate("/resume-upload")}
+                  className="vp-btn vp-btn-accent text-[10px] py-3 px-6 gap-2 cursor-pointer shadow-md"
+                >
+                  <Upload className="w-3.5 h-3.5" /> Upload Resume
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate("/add-project")}
+                  className="vp-btn vp-btn-secondary text-[10px] py-3 px-6 gap-2 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Upload Projects
+                </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
@@ -203,27 +220,6 @@ const StudentDashboard = () => {
                   className="vp-btn vp-btn-secondary text-[10px] py-3 px-6 gap-2"
                 >
                   <GitBranch className="w-3.5 h-3.5" /> Skills
-                </motion.button>
-                <motion.button
-                  whileHover={
-                    workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}
-                  }
-                  whileTap={
-                    workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}
-                  }
-                  onClick={() =>
-                    workflowState?.isResumeAnalyzed
-                      ? navigate("/add-project")
-                      : null
-                  }
-                  className={`vp-btn text-[10px] py-3 px-6 gap-2 ${workflowState?.isResumeAnalyzed ? "vp-btn-accent" : "bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50"}`}
-                  title={
-                    !workflowState?.isResumeAnalyzed
-                      ? "Complete Resume Analysis to unlock"
-                      : ""
-                  }
-                >
-                  <Plus className="w-3.5 h-3.5" /> Upload Projects
                 </motion.button>
               </div>
             </div>
@@ -250,14 +246,14 @@ const StudentDashboard = () => {
               <VerificationPipeline 
                 workflowState={workflowState} 
                 onStepClick={(stepId) => {
-                  if (stepId === "resume" && !workflowState?.hasVerificationRequest) {
+                  if (stepId === "resume" || stepId === "analysis") {
                     navigate("/resume-upload");
-                  } else if (stepId === "analysis") {
-                    // Navigate to analysis page (future stage)
                   } else if (stepId === "repo") {
-                    // Navigate to repo page (future stage)
+                    navigate("/add-project");
                   } else if (stepId === "assessment") {
-                    // Navigate to assessment page (future stage)
+                    navigate("/exams");
+                  } else if (stepId === "verified") {
+                    navigate("/analytics");
                   }
                 }}
               />

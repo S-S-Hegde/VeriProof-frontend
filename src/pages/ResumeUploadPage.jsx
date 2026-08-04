@@ -5,12 +5,13 @@ import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import {
-  Upload, FileText, AlertCircle, CheckCircle, XCircle, Clock, Loader2, Sparkles, Eye, ArrowLeft
+  Upload, FileText, AlertCircle, CheckCircle, XCircle, Clock, Loader2, Sparkles, Eye, ArrowLeft,
+  FolderOpen, Cloud, FileCheck, RefreshCw
 } from "lucide-react";
 
 const RESUME_STATUS_MAP = {
   "Pending Evaluation": { label: "Under Analysis", color: "text-yellow-500", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: Clock },
-  "Verified":          { label: "Successfully Analyzed", color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/20", icon: CheckCircle },
+  "Verified":          { label: "Successfully Analyzed", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: CheckCircle },
   "Rejected":          { label: "Needs Re-upload", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", icon: XCircle },
 };
 
@@ -19,8 +20,12 @@ const ResumeUploadPage = () => {
   const navigate = useNavigate();
   
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFileName, setSelectedFileName] = useState("");
+  const [selectedFileSize, setSelectedFileSize] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef(null);
 
   const [profileData, setProfileData] = useState(null);
@@ -57,34 +62,57 @@ const ResumeUploadPage = () => {
     }
   };
 
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
   const handleUpload = useCallback(async (file) => {
     if (!file) return;
 
-    const allowed = [
+    const allowedMime = [
       "application/pdf",
+      "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
     ];
-    if (!allowed.includes(file.type)) {
-      setError("Invalid file type. Please upload PDF, DOCX, or TXT.");
+    const ext = file.name.split(".").pop().toLowerCase();
+    const isAllowedExt = ["pdf", "doc", "docx", "txt"].includes(ext);
+
+    if (!allowedMime.includes(file.type) && !isAllowedExt) {
+      setError("Invalid file type. Please upload a PDF, DOC, DOCX, or TXT file.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError("File too large. Maximum size is 5MB.");
+      setError("File size exceeds 5MB limit. Please upload a smaller file.");
       return;
     }
 
     setError(null);
+    setSelectedFileName(file.name);
+    setSelectedFileSize(formatBytes(file.size));
     setUploading(true);
+    setUploadProgress(20);
 
     try {
       const formData = new FormData();
       formData.append("resume", file);
 
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => (prev < 90 ? prev + 15 : prev));
+      }, 150);
+
       const { data } = await api.post("/api/users/profile/resume-file", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setUploadSuccess(true);
       
       // Update local state
       setProfileData((prev) => ({
@@ -101,17 +129,16 @@ const ResumeUploadPage = () => {
         workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
       }));
 
-      // Start polling analysis state
+      // Start polling analysis state automatically
       fetchAnalysisState();
       
-      // Navigate back after a short delay
-      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed. Please try again.");
+      setUploadSuccess(false);
     } finally {
       setUploading(false);
     }
-  }, [navigate, setUser]);
+  }, [setUser]);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -138,7 +165,6 @@ const ResumeUploadPage = () => {
   const resumeStatus = profileData?.resumeStatus;
   const hasResume = !!resumeUrl;
   
-  // Strict check: if they have a verification request, they are locked and shouldn't be here.
   if (workflowState?.hasVerificationRequest) {
     navigate("/dashboard");
     return null;
@@ -153,7 +179,7 @@ const ResumeUploadPage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 lg:py-12 pb-28 lg:pb-12">
         <button 
           onClick={() => navigate("/dashboard")}
-          className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-2 mb-8"
+          className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-2 mb-8 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
         </button>
@@ -177,8 +203,7 @@ const ResumeUploadPage = () => {
               Analyzing Your <span className="text-[var(--color-accent)]">Resume.</span>
             </h3>
             <p className="text-sm text-[var(--color-muted)] mb-6 max-w-lg leading-relaxed">
-              VeriProof is parsing your resume to identify claimed skills, projects, and education. 
-              You will be redirected shortly.
+              VeriProof is parsing your resume to identify claimed skills, projects, and education.
             </p>
             <div className="space-y-4">
               <div className="flex justify-between items-end text-xs font-mono">
@@ -195,6 +220,43 @@ const ResumeUploadPage = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Upload Success Card */}
+        {uploadSuccess && !isAnalyzing && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden mb-8 border border-emerald-500/30 bg-emerald-500/5"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <FileCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black uppercase tracking-tight text-emerald-400">
+                  Resume Uploaded Successfully
+                </h3>
+                <p className="text-xs text-[var(--color-muted)] font-mono">
+                  {selectedFileName} ({selectedFileSize})
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-2 cursor-pointer"
+              >
+                Go to Dashboard
+              </button>
+              <button
+                onClick={() => { setUploadSuccess(false); fileInputRef.current?.click(); }}
+                className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-2 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Replace Resume
+              </button>
+            </div>
+          </motion.div>
         )}
 
         {/* Upload Interface */}
@@ -233,7 +295,7 @@ const ResumeUploadPage = () => {
                         className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       >
                         <span className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-2">
-                          <Eye className="w-3.5 h-3.5" /> View PDF
+                          <Eye className="w-3.5 h-3.5" /> View Resume PDF
                         </span>
                       </a>
                     </div>
@@ -250,15 +312,15 @@ const ResumeUploadPage = () => {
 
                 <p className="text-sm text-[var(--color-muted)] mb-6 leading-relaxed">
                   Upload your latest resume to update your candidate claim repository.
-                  This will trigger a new analysis and update your skill tree.
                 </p>
 
+                {/* Dropzone */}
                 <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`relative w-full border-2 border-dashed rounded-[var(--radius-md)] p-8 sm:p-12 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
+                  className={`relative w-full border-2 border-dashed rounded-[var(--radius-md)] p-8 sm:p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
                     dragActive
                       ? "border-[var(--color-accent)] bg-[var(--color-accent)]/8 scale-[1.01]"
                       : "border-[var(--color-border)] hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-accent)]/3"
@@ -267,29 +329,52 @@ const ResumeUploadPage = () => {
                   <input
                     type="file"
                     ref={fileInputRef}
-                    onChange={(e) => handleUpload(e.target.files?.[0])}
+                    onClick={(e) => { e.target.value = null; }}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleUpload(e.target.files[0]);
+                      }
+                    }}
                     className="hidden"
-                    accept=".pdf,.docx,.txt"
+                    accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
                   />
 
                   {uploading ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <Loader2 className="w-10 h-10 animate-spin text-[var(--color-accent)]" />
-                      <p className="text-sm font-bold uppercase tracking-widest text-[var(--color-accent)]">
-                        Uploading...
-                      </p>
+                    <div className="flex flex-col items-center gap-3 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+                      <Loader2 className="w-10 h-10 animate-spin text-[var(--color-accent)] mb-2" />
+                      <div className="flex justify-between w-full text-xs font-mono text-[var(--color-accent)]">
+                        <span>Uploading File...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
+                        <div className="h-full bg-[var(--color-accent)] transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                      <p className="text-[10px] text-[var(--color-muted)] font-mono mt-1">{selectedFileName}</p>
                     </div>
                   ) : (
                     <>
                       <Upload className={`w-10 h-10 mb-4 transition-colors ${
                         dragActive ? "text-[var(--color-accent)]" : "text-[var(--color-muted)] opacity-40"
                       }`} />
+                      
                       <p className="text-sm font-bold uppercase tracking-widest mb-1 text-center">
-                        {dragActive ? "Drop to Upload" : "Drag & Drop or Click"}
+                        {dragActive ? "Drop File Here" : "Drag & Drop Resume Here"}
                       </p>
-                      <p className="text-[10px] text-[var(--color-muted)] uppercase tracking-wider text-center">
-                        PDF • DOCX • TXT (Max 5MB)
+                      
+                      <p className="text-xs text-[var(--color-muted)] mb-4 text-center">
+                        Supported Formats: <strong className="text-[var(--color-text)]">PDF, DOC, DOCX, TXT</strong> (Max file size: <strong className="text-[var(--color-text)]">5MB</strong>)
                       </p>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                        className="vp-btn vp-btn-accent text-xs py-2.5 px-5 gap-2 cursor-pointer shadow-md"
+                      >
+                        <FolderOpen className="w-4 h-4" /> Browse Files (Explorer)
+                      </button>
                     </>
                   )}
                 </div>
@@ -307,6 +392,51 @@ const ResumeUploadPage = () => {
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Cloud Integrations Section (Requirement 2) */}
+                <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Cloud className="w-3.5 h-3.5 text-[var(--color-muted)]" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
+                      Cloud Storage Imports
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      disabled
+                      className="flex flex-col items-center justify-center p-3 rounded-[var(--radius-md)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]/50 opacity-50 cursor-not-allowed relative group"
+                      title="Google Drive import coming soon"
+                    >
+                      <span className="text-xs font-bold">Google Drive</span>
+                      <span className="text-[9px] font-mono text-[var(--color-accent)] tracking-wider mt-1">
+                        Coming Soon
+                      </span>
+                    </button>
+
+                    <button
+                      disabled
+                      className="flex flex-col items-center justify-center p-3 rounded-[var(--radius-md)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]/50 opacity-50 cursor-not-allowed relative group"
+                      title="OneDrive import coming soon"
+                    >
+                      <span className="text-xs font-bold">OneDrive</span>
+                      <span className="text-[9px] font-mono text-[var(--color-accent)] tracking-wider mt-1">
+                        Coming Soon
+                      </span>
+                    </button>
+
+                    <button
+                      disabled
+                      className="flex flex-col items-center justify-center p-3 rounded-[var(--radius-md)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]/50 opacity-50 cursor-not-allowed relative group"
+                      title="Dropbox import coming soon"
+                    >
+                      <span className="text-xs font-bold">Dropbox</span>
+                      <span className="text-[9px] font-mono text-[var(--color-accent)] tracking-wider mt-1">
+                        Coming Soon
+                      </span>
+                    </button>
+                  </div>
+                </div>
 
                 <div className="flex items-center gap-2 mt-6">
                   <Sparkles className="w-3 h-3 text-[var(--color-accent)] opacity-60" />
