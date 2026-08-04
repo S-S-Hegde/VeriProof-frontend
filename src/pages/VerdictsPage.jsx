@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3, Download, RefreshCw, Filter, ChevronDown,
   ChevronUp, Mail, AlertCircle, Loader2, FileText,
-  CheckCircle, X, ArrowUpDown, Trophy, Trash2, GraduationCap, Clock,
+  CheckCircle, X, ArrowUpDown, Trophy, Trash2, GraduationCap, Clock, ShieldCheck
 } from "lucide-react";
 import api from "../utils/api";
 import ConfirmModal from "../components/ConfirmModal";
@@ -139,6 +139,23 @@ export default function Verdicts() {
   // Modal deletion state
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting]     = useState(false);
+
+  // V2 Pipeline state
+  const [runningPipelines, setRunningPipelines] = useState({});
+
+  const runVerificationPipeline = async (candidateId, force = false) => {
+    setRunningPipelines(prev => ({ ...prev, [candidateId]: true }));
+    try {
+      const { data } = await api.post(`/api/verify/candidate/${candidateId}`, { force });
+      setApplicants(prev => prev.map(app => 
+        app._id === candidateId ? { ...app, v2Report: data } : app
+      ));
+    } catch (err) {
+      setError(err.response?.data?.message || "Verification pipeline failed.");
+    } finally {
+      setRunningPipelines(prev => ({ ...prev, [candidateId]: false }));
+    }
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -373,35 +390,150 @@ export default function Verdicts() {
                     {expandedId === r._id && (
                       <tr>
                         <td colSpan={10} className="px-6 py-4 bg-[var(--color-bg-sunken)]/30 border-b border-[var(--color-border)]">
-                          <div className="space-y-3 font-mono text-xs">
-                            <div>
-                              <p className="text-[10px] uppercase font-bold text-[var(--color-accent)] mb-1">Ranking Verdict Reason</p>
-                              <p className="text-[var(--color-text)] leading-relaxed">
-                                {r.reasoning || "No reasoning generated for this applicant."}
-                              </p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                              <div>
-                                <p className="text-[10px] uppercase font-bold text-emerald-400 mb-1">Matched Skills</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {r.matchedSkills?.length > 0 ? (
-                                    r.matchedSkills.map((s, i) => (
-                                      <span key={i} className="px-1.5 py-0.5 rounded border border-emerald-400/20 bg-emerald-400/5 text-emerald-400 text-[9px]">{s}</span>
-                                    ))
-                                  ) : <span className="text-[var(--color-muted)] text-[9px]">None</span>}
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-[10px] uppercase font-bold text-red-400 mb-1">Missing Required Skills</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {r.missingSkills?.length > 0 ? (
-                                    r.missingSkills.map((s, i) => (
-                                      <span key={i} className="px-1.5 py-0.5 rounded border border-red-400/20 bg-red-400/5 text-red-400 text-[9px]">{s}</span>
-                                    ))
-                                  ) : <span className="text-[var(--color-muted)] text-[9px]">None</span>}
-                                </div>
+                          <div className="space-y-4 font-mono text-xs">
+                            <div className="flex justify-between items-center border-b border-[var(--color-border)] pb-2">
+                              <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--color-muted)]">V2 Pipeline Intelligence</span>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); runVerificationPipeline(r._id, true); }}
+                                  disabled={runningPipelines[r._id]}
+                                  className="vp-btn vp-btn-secondary px-3 py-1 text-[10px]"
+                                >
+                                  {runningPipelines[r._id] ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                                  {r.v2Report ? "Re-run Verification" : "Run Verification"}
+                                </button>
                               </div>
                             </div>
+                            
+                            {!r.v2Report && !runningPipelines[r._id] && (
+                              <div className="py-6 text-center text-[var(--color-muted)] flex flex-col items-center">
+                                <ShieldCheck className="w-8 h-8 mb-2 opacity-30" />
+                                <p className="uppercase tracking-widest text-[10px]">No verification report generated.</p>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); runVerificationPipeline(r._id, false); }}
+                                  className="mt-3 vp-btn vp-btn-accent px-4 py-2 text-[10px]"
+                                >
+                                  Run V2 Verification Pipeline
+                                </button>
+                              </div>
+                            )}
+
+                            {runningPipelines[r._id] && (
+                              <div className="py-8 flex flex-col items-center justify-center text-[var(--color-accent)] gap-3">
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                                <span className="uppercase tracking-[0.2em] text-[10px] animate-pulse">Running Modules 1-12...</span>
+                              </div>
+                            )}
+
+                            {r.v2Report && !runningPipelines[r._id] && (
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                                {/* Left Column */}
+                                <div className="space-y-6">
+                                  {/* Trust Score & Decision */}
+                                  <div className="vp-glass p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
+                                    <div className="flex justify-between items-start mb-4">
+                                      <div>
+                                        <p className="text-[10px] uppercase font-bold text-[var(--color-accent)]">Recruiter Decision</p>
+                                        <p className={`text-xl font-black italic tracking-tight ${r.v2Report.recruiter_decision?.recommendation === 'Strong Hire' ? 'text-emerald-400' : r.v2Report.recruiter_decision?.recommendation === 'Reject' ? 'text-red-400' : 'text-yellow-400'}`}>
+                                          {r.v2Report.recruiter_decision?.recommendation || "N/A"}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--color-muted)]">Trust Score</p>
+                                        <p className="text-2xl font-black">{r.v2Report.trust_score?.final_trust_score || 0}%</p>
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      {r.v2Report.recruiter_decision?.supported_by?.map((sup, i) => (
+                                        <p key={i} className="text-[9px] text-[var(--color-muted)] flex items-center gap-1">
+                                          <CheckCircle className="w-3 h-3 text-emerald-500/50" /> {sup}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Candidate Profile */}
+                                  <div>
+                                    <p className="text-[10px] uppercase font-bold text-[var(--color-accent)] mb-2">Candidate Profile</p>
+                                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                      <div className="bg-[var(--color-bg-sunken)] p-2 rounded">
+                                        <span className="text-[var(--color-muted)]">Persona:</span> {r.v2Report.candidate_profile?.classification || "Unknown"}
+                                      </div>
+                                      <div className="bg-[var(--color-bg-sunken)] p-2 rounded">
+                                        <span className="text-[var(--color-muted)]">Seniority:</span> {r.v2Report.candidate_profile?.seniority || "Unknown"}
+                                      </div>
+                                      <div className="bg-[var(--color-bg-sunken)] p-2 rounded col-span-2">
+                                        <span className="text-[var(--color-muted)]">Strengths:</span> {r.v2Report.candidate_profile?.primary_strengths?.join(", ") || "None detected"}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Evidence */}
+                                  <div>
+                                    <p className="text-[10px] uppercase font-bold text-[var(--color-accent)] mb-2">Evidence Processed</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {r.v2Report.pipeline_execution?.filter(x => x.status === "Completed").map((exec, i) => (
+                                        <span key={i} className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] rounded-full">
+                                          {exec.module}
+                                        </span>
+                                      ))}
+                                      {r.v2Report.pipeline_execution?.filter(x => x.status === "Skipped").map((exec, i) => (
+                                        <span key={i} className="px-2 py-1 bg-[var(--color-muted)]/10 border border-[var(--color-muted)]/20 text-[var(--color-muted)] text-[9px] rounded-full" title={exec.reason}>
+                                          {exec.module} (Skipped)
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right Column */}
+                                <div className="space-y-6">
+                                  {/* Competencies */}
+                                  <div>
+                                    <p className="text-[10px] uppercase font-bold text-[var(--color-accent)] mb-2">Competencies & Capabilities</p>
+                                    <div className="space-y-2">
+                                      {Object.entries(r.v2Report.competencies?.scores || {}).map(([comp, score], i) => (
+                                        <div key={i} className="flex items-center gap-2">
+                                          <span className="text-[9px] uppercase tracking-wider w-24 truncate" title={comp}>{comp.replace(/_/g, ' ')}</span>
+                                          <div className="flex-1 h-1.5 bg-[var(--color-bg-sunken)] rounded-full overflow-hidden">
+                                            <div className="h-full bg-sky-400 rounded-full" style={{ width: `${score}%` }} />
+                                          </div>
+                                          <span className="text-[9px] w-6 text-right font-bold">{score}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Risks & Recommendations */}
+                                  <div>
+                                    <p className="text-[10px] uppercase font-bold text-red-400 mb-2">Identified Risks</p>
+                                    {r.v2Report.recruiter_decision?.risk_flags?.length > 0 ? (
+                                      <ul className="space-y-1">
+                                        {r.v2Report.recruiter_decision.risk_flags.map((risk, i) => (
+                                          <li key={i} className="text-[9px] text-[var(--color-text)] flex items-start gap-1">
+                                            <AlertCircle className="w-3 h-3 text-red-400 shrink-0" /> {risk.description || risk}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-[9px] text-[var(--color-muted)]">No critical risks identified.</p>
+                                    )}
+                                  </div>
+
+                                  {/* Audit Trail */}
+                                  <div className="border-t border-[var(--color-border)] pt-4 mt-2">
+                                    <p className="text-[9px] uppercase tracking-widest text-[var(--color-muted)] mb-1 flex items-center gap-1">
+                                      <FileText className="w-3 h-3" /> System Audit Trail
+                                    </p>
+                                    <p className="text-[9px] text-[var(--color-muted)]/70">
+                                      Pipeline Version: {r.v2Report.recruiter_decision?.audit_trail?.pipeline_version || "2.0"} <br/>
+                                      Processed At: {r.v2Report.recruiter_decision?.audit_trail?.decision_timestamp ? new Date(r.v2Report.recruiter_decision.audit_trail.decision_timestamp).toLocaleString() : "Unknown"} <br/>
+                                      Req ID: {r.v2Report.request_id || "N/A"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
