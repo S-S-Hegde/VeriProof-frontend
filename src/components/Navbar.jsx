@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import { cldAvatar } from "../utils/cloudinaryImage";
 
+import ConfirmModal from "./ConfirmModal";
+
 /* ═══════════════════════════════════════════════════
    VeriProof Navbar v5.0
    Desktop: Glass bar + pill indicators + forensic status
@@ -44,6 +46,7 @@ const Navbar = () => {
   const [time, setTime] = useState(new Date());
   const [profileOpen, setProfileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const profileRef = useRef(null);
   const moreRef = useRef(null);
 
@@ -86,7 +89,7 @@ const Navbar = () => {
     }
   };
 
-  const handleLogout = () => setIsExiting(true);
+  const handleLogout = () => setShowLogoutModal(true);
 
   // ─── NAVIGATION DEFINITIONS ───
   const isRecruiter = user?.role === "recruiter";
@@ -588,6 +591,21 @@ const Navbar = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/* ─── Logout Confirmation Modal ─── */}
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          setIsExiting(true);
+        }}
+        title="Terminate Session"
+        message="Are you sure you want to log out of your VeriProof candidate workspace? Your active session data is saved."
+        confirmText="Logout"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </>
   );
 };

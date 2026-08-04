@@ -44,6 +44,14 @@ const getStepStatus = (stepId, workflowState) => {
   }
 };
 
+const PREREQUISITES = {
+  resume: "Step 1: Upload candidate resume",
+  analysis: "Complete resume upload to unlock automated claim extraction",
+  repo: "Complete resume analysis to unlock repository intelligence",
+  assessment: "Complete repository analysis to unlock technical assessments",
+  verified: "Pass technical assessments to unlock final verification report",
+};
+
 export const VerificationPipeline = ({ workflowState, onStepClick }) => {
   const completedCount = PIPELINE_STEPS.filter(
     (s) => getStepStatus(s.id, workflowState) === "complete"
@@ -67,9 +75,9 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
         </div>
         <div className="flex items-center gap-3">
           <span className="vp-label">{completedCount}/{PIPELINE_STEPS.length} Complete</span>
-          <div className="w-24 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
+          <div className="w-28 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-[var(--color-accent)] rounded-full"
+              className="h-full bg-emerald-500 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -78,11 +86,12 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
         </div>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         {PIPELINE_STEPS.map((step, i) => {
           const status = getStepStatus(step.id, workflowState);
           const Icon = step.icon;
-          const isClickable = status === "active" || status === "complete";
+          const prerequisiteHint = PREREQUISITES[step.id];
+
           return (
             <motion.div
               key={step.id}
@@ -90,61 +99,87 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.08 }}
               onClick={() => {
-                if (isClickable && onStepClick) {
+                if (onStepClick) {
                   onStepClick(step.id);
                 }
               }}
-              whileHover={isClickable ? { scale: 1.01 } : {}}
-              whileTap={isClickable ? { scale: 0.99 } : {}}
-              className={`flex items-center gap-4 p-3 sm:p-4 rounded-[var(--radius-md)] transition-all duration-300 ${
-                isClickable ? "cursor-pointer hover:bg-[var(--color-bg-sunken)]" : ""
-              } ${
-                status === "active"
-                  ? "bg-[var(--color-accent)]/8 border border-[var(--color-accent)]/20"
-                  : status === "complete"
-                  ? "opacity-70"
-                  : "opacity-30"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              title={status === "locked" ? `Locked: ${prerequisiteHint}` : `Navigate to ${step.label}`}
+              className={`flex items-center gap-4 p-3.5 sm:p-4 rounded-[var(--radius-md)] cursor-pointer transition-all duration-300 relative group ${
+                status === "complete"
+                  ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+                  : status === "active"
+                  ? "bg-[var(--color-accent)]/15 border-2 border-[var(--color-accent)] shadow-md shadow-[var(--color-accent)]/10"
+                  : "bg-[var(--color-bg-sunken)] border border-[var(--color-border)]/60 opacity-50 hover:opacity-80"
               }`}
             >
-              {/* Status indicator */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              {/* Status icon */}
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
                 status === "complete"
-                  ? "bg-green-500/15 text-green-500"
+                  ? "bg-emerald-500/20 text-emerald-400"
                   : status === "active"
-                  ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)]"
+                  ? "bg-[var(--color-accent)] text-white shadow-sm"
                   : "bg-[var(--color-border)] text-[var(--color-muted)]"
               }`}>
                 {status === "complete" ? (
-                  <CheckCircle className="w-4 h-4" />
+                  <CheckCircle className="w-4.5 h-4.5" />
                 ) : status === "active" ? (
-                  <Icon className="w-4 h-4" />
+                  <div className="relative flex items-center justify-center">
+                    <Icon className="w-4 h-4 z-10" />
+                    <span className="absolute inset-0 rounded-full bg-white animate-ping opacity-30" />
+                  </div>
                 ) : (
                   <Lock className="w-3.5 h-3.5" />
                 )}
               </div>
 
-              {/* Label */}
+              {/* Step info */}
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-bold uppercase tracking-[0.12em] truncate ${
-                  status === "active" ? "text-[var(--color-text)]" : ""
-                }`}>
-                  {step.label}
-                </p>
-                {status === "active" && (
-                  <p className="text-[10px] text-[var(--color-accent)] font-mono tracking-wider mt-0.5">
-                    Next Step
+                <div className="flex items-center gap-2">
+                  <p className={`text-xs font-bold uppercase tracking-[0.12em] truncate ${
+                    status === "complete" ? "text-emerald-400" : status === "active" ? "text-[var(--color-text)] font-extrabold" : "text-[var(--color-muted)]"
+                  }`}>
+                    {step.label}
                   </p>
-                )}
+                  {status === "active" && (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent)] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent)]"></span>
+                    </span>
+                  )}
+                </div>
+                <p className={`text-[10px] font-mono tracking-wider mt-0.5 ${
+                  status === "complete"
+                    ? "text-emerald-500/80"
+                    : status === "active"
+                    ? "text-[var(--color-accent)] font-bold"
+                    : "text-[var(--color-muted)] opacity-70"
+                }`}>
+                  {status === "complete"
+                    ? "Completed Stage"
+                    : status === "active"
+                    ? "Current Active Step • Click to Action"
+                    : `Locked: ${prerequisiteHint}`}
+                </p>
               </div>
 
-              {/* XP badge (UI-ready, inactive) */}
-              <span className={`text-[9px] font-mono tracking-wider px-2 py-0.5 rounded-sm ${
-                status === "complete"
-                  ? "bg-green-500/10 text-green-500"
-                  : "bg-[var(--color-border)] text-[var(--color-muted)]"
-              }`}>
-                +{step.xp} XP
-              </span>
+              {/* Status Badge */}
+              <div className="flex items-center gap-2">
+                {status === "complete" ? (
+                  <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-sm font-bold">
+                    Completed • +{step.xp} XP
+                  </span>
+                ) : status === "active" ? (
+                  <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-[var(--color-accent)] text-white rounded-sm font-bold animate-pulse">
+                    Active Step
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-mono tracking-wider px-2 py-0.5 bg-[var(--color-border)] text-[var(--color-muted)] rounded-sm">
+                    Locked
+                  </span>
+                )}
+              </div>
             </motion.div>
           );
         })}
@@ -221,8 +256,8 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
   const handleDragLeave = () => setDragActive(false);
 
   // ─── Resume under analysis / processing status ───
-  const isAnalyzing = resumeStatus === "Pending Evaluation" || 
-    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status));
+  const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
+    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
   if (isAnalyzing) {
     const progress = analysisState?.progress || 10;
@@ -445,13 +480,14 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
 };
 
 // ─── Resume Status Card (Read-Only) ────────────────────────
-export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState }) => {
+export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, onOpenUploadModal }) => {
+  const navigate = useNavigate();
   const hasResume = !!resumeUrl;
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
 
   // ─── Resume under analysis / processing status ───
-  const isAnalyzing = resumeStatus === "Pending Evaluation" || 
-    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status));
+  const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
+    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
   if (isAnalyzing) {
     const progress = analysisState?.progress || 10;
@@ -539,6 +575,13 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState }) => 
                   <Eye className="w-3 h-3" /> View_Resume
                 </a>
               )}
+              <button
+                type="button"
+                onClick={() => onOpenUploadModal ? onOpenUploadModal() : navigate("/resume-upload")}
+                className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 cursor-pointer"
+              >
+                <Upload className="w-3 h-3" /> Replace_Resume
+              </button>
             </div>
           </div>
 
@@ -568,8 +611,18 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState }) => 
       </h3>
 
       <p className="text-sm text-[var(--color-muted)] mb-6 max-w-lg leading-relaxed">
-        Your verified candidate profile cannot be built without a resume. Please upload your resume by clicking the Upload Resume step in the Verification Journey pipeline below.
+        Your verified candidate profile cannot be built without a resume. Click below to open the Resume Upload modal.
       </p>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onOpenUploadModal ? onOpenUploadModal() : navigate("/resume-upload")}
+          className="vp-btn vp-btn-accent text-xs py-3 px-6 gap-2 cursor-pointer shadow-md"
+        >
+          <Upload className="w-4 h-4" /> Go to Resume Upload Page
+        </button>
+      </div>
     </div>
   );
 };
