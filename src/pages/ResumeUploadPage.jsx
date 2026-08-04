@@ -171,8 +171,8 @@ const ResumeUploadPage = () => {
   }
 
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
-  const isAnalyzing = resumeStatus === "Pending Evaluation" || 
-    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status));
+  const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
+    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
   return (
     <PageTransition>

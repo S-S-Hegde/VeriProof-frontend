@@ -11,6 +11,7 @@ import {
   ResumeStatusCard,
   ProfileCompletionCard,
 } from "../components/OnboardingComponents";
+import ResumeUploadModal from "../components/ResumeUploadModal";
 import { useSkillTree } from "../context/SkillTreeContext";
 import { motion } from "framer-motion";
 import {
@@ -57,6 +58,7 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState(null);
   const [analysisState, setAnalysisState] = useState(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const navigate = useNavigate();
   const { progress } = useSkillTree();
 
@@ -196,20 +198,12 @@ const StudentDashboard = () => {
                   Dashboard.
                 </span>
               </h1>
-              <div className="flex flex-wrap gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/resume-upload")}
-                  className="vp-btn vp-btn-accent text-[10px] py-3 px-6 gap-2 cursor-pointer shadow-md"
-                >
-                  <Upload className="w-3.5 h-3.5" /> Upload Resume
-                </motion.button>
+              <div className="flex gap-3">
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigate("/add-project")}
-                  className="vp-btn vp-btn-secondary text-[10px] py-3 px-6 gap-2 cursor-pointer"
+                  className="vp-btn vp-btn-accent text-[10px] py-3 px-6 gap-2 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Upload Projects
                 </motion.button>
@@ -242,12 +236,13 @@ const StudentDashboard = () => {
                 resumeUrl={resumeUrl}
                 resumeStatus={resumeStatus}
                 analysisState={analysisState}
+                onOpenUploadModal={() => setIsUploadModalOpen(true)}
               />
               <VerificationPipeline 
                 workflowState={workflowState} 
                 onStepClick={(stepId) => {
                   if (stepId === "resume" || stepId === "analysis") {
-                    navigate("/resume-upload");
+                    setIsUploadModalOpen(true);
                   } else if (stepId === "repo") {
                     navigate("/add-project");
                   } else if (stepId === "assessment") {
@@ -415,6 +410,14 @@ const StudentDashboard = () => {
           </div>
         )}
       </div>
+
+      <ResumeUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={() => {
+          api.get("/api/users/profile").then(({ data }) => setProfileData(data)).catch(console.error);
+        }}
+      />
     </PageTransition>
   );
 };

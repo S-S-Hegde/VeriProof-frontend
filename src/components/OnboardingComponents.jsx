@@ -256,8 +256,8 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
   const handleDragLeave = () => setDragActive(false);
 
   // ─── Resume under analysis / processing status ───
-  const isAnalyzing = resumeStatus === "Pending Evaluation" || 
-    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status));
+  const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
+    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
   if (isAnalyzing) {
     const progress = analysisState?.progress || 10;
@@ -480,13 +480,14 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
 };
 
 // ─── Resume Status Card (Read-Only) ────────────────────────
-export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState }) => {
+export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, onOpenUploadModal }) => {
+  const navigate = useNavigate();
   const hasResume = !!resumeUrl;
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
 
   // ─── Resume under analysis / processing status ───
-  const isAnalyzing = resumeStatus === "Pending Evaluation" || 
-    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status));
+  const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
+    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
   if (isAnalyzing) {
     const progress = analysisState?.progress || 10;
@@ -576,8 +577,8 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState }) => 
               )}
               <button
                 type="button"
-                onClick={() => navigate("/resume-upload")}
-                className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5"
+                onClick={() => onOpenUploadModal ? onOpenUploadModal() : navigate("/resume-upload")}
+                className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 cursor-pointer"
               >
                 <Upload className="w-3 h-3" /> Replace_Resume
               </button>
@@ -610,13 +611,13 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState }) => 
       </h3>
 
       <p className="text-sm text-[var(--color-muted)] mb-6 max-w-lg leading-relaxed">
-        Your verified candidate profile cannot be built without a resume. Click below to go to the dedicated Resume Upload page.
+        Your verified candidate profile cannot be built without a resume. Click below to open the Resume Upload modal.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={() => navigate("/resume-upload")}
+          onClick={() => onOpenUploadModal ? onOpenUploadModal() : navigate("/resume-upload")}
           className="vp-btn vp-btn-accent text-xs py-3 px-6 gap-2 cursor-pointer shadow-md"
         >
           <Upload className="w-4 h-4" /> Go to Resume Upload Page
