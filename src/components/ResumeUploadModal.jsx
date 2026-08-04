@@ -168,6 +168,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   const resumeUrl = profileData?.resumeUrl;
   const resumeStatus = profileData?.resumeStatus;
   const hasResume = !!resumeUrl;
+  const isInvited = profileData?.origin === "recruiter_invited";
   const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
     (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
@@ -274,11 +275,21 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
 
               {/* Upload Dropzone (ALWAYS VISIBLE & ACCESSIBLE) */}
               <div>
-                <p className="text-xs text-[var(--color-muted)] mb-4 leading-relaxed">
-                  Select or drag your candidate resume file (PDF, DOCX, TXT) to upload and build your verified skill repository.
-                </p>
+                {isInvited ? (
+                  <div className="flex flex-col items-center justify-center p-6 text-center bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-[var(--radius-lg)]">
+                    <FileCheck className="w-10 h-10 text-[var(--color-accent)] mb-3 opacity-70" />
+                    <p className="font-bold text-sm uppercase tracking-widest text-[var(--color-accent)] mb-2">Resume Submitted</p>
+                    <p className="text-xs text-[var(--color-muted)]">
+                      Your resume has already been submitted by your recruiter. Upload and replacement is disabled.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-[var(--color-muted)] mb-4 leading-relaxed">
+                      Select or drag your candidate resume file (PDF, DOCX, TXT) to upload and build your verified skill repository.
+                    </p>
 
-                <div
+                    <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -341,6 +352,8 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
                     </>
                   )}
                 </div>
+                </>
+                )}
 
                 {/* Error Notification */}
                 <AnimatePresence>

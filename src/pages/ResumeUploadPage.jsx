@@ -160,15 +160,11 @@ const ResumeUploadPage = () => {
     );
   }
 
-  const workflowState = profileData?.workflowState;
   const resumeUrl = profileData?.resumeUrl;
   const resumeStatus = profileData?.resumeStatus;
   const hasResume = !!resumeUrl;
   
-  if (workflowState?.hasVerificationRequest) {
-    navigate("/dashboard");
-    return null;
-  }
+  const isInvited = profileData?.origin === "recruiter_invited";
 
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
   const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
@@ -305,16 +301,26 @@ const ResumeUploadPage = () => {
 
               {/* Upload Dropzone */}
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-6">
-                  <Upload className="w-4 h-4 text-[var(--color-accent)]" />
-                  <span className="vp-label-accent">{hasResume ? "Replace_Resume" : "Action_Required"}</span>
-                </div>
+                {isInvited ? (
+                  <div className="h-full flex flex-col items-center justify-center p-8 sm:p-12 text-center bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-[var(--radius-md)]">
+                    <FileCheck className="w-12 h-12 text-[var(--color-accent)] mb-4 opacity-70" />
+                    <p className="font-bold text-lg uppercase tracking-widest text-[var(--color-accent)] mb-2">Resume Submitted</p>
+                    <p className="text-sm text-[var(--color-muted)] max-w-sm">
+                      Your resume has already been submitted by your recruiter. Upload and replacement is disabled.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-6">
+                      <Upload className="w-4 h-4 text-[var(--color-accent)]" />
+                      <span className="vp-label-accent">{hasResume ? "Replace_Resume" : "Action_Required"}</span>
+                    </div>
 
-                <p className="text-sm text-[var(--color-muted)] mb-6 leading-relaxed">
-                  Upload your latest resume to update your candidate claim repository.
-                </p>
+                    <p className="text-sm text-[var(--color-muted)] mb-6 leading-relaxed">
+                      Upload your latest resume to update your candidate claim repository.
+                    </p>
 
-                {/* Dropzone */}
+                    {/* Dropzone */}
                 <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -444,7 +450,9 @@ const ResumeUploadPage = () => {
                     Upload unlocks Resume Analysis (+40 XP)
                   </span>
                 </div>
-              </div>
+              </>
+              )}
+            </div>
             </div>
           </div>
         )}

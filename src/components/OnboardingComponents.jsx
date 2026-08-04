@@ -52,11 +52,13 @@ const PREREQUISITES = {
   verified: "Pass technical assessments to unlock final verification report",
 };
 
-export const VerificationPipeline = ({ workflowState, onStepClick }) => {
+export const VerificationPipeline = ({ workflowState, githubAnalysisState, onStepClick }) => {
   const completedCount = PIPELINE_STEPS.filter(
     (s) => getStepStatus(s.id, workflowState) === "complete"
   ).length;
   const progressPercent = Math.round((completedCount / PIPELINE_STEPS.length) * 100);
+
+  const isGitHubRunning = githubAnalysisState?.status === "running";
 
   return (
     <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
@@ -92,6 +94,11 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
           const Icon = step.icon;
           const prerequisiteHint = PREREQUISITES[step.id];
 
+          // Live GitHub analysis state on the repo step
+          const isRepoStepRunning = step.id === "repo" && isGitHubRunning;
+          const reposProcessed = githubAnalysisState?.reposProcessed || 0;
+          const totalRepos = githubAnalysisState?.totalRepos || 3;
+
           return (
             <motion.div
               key={step.id}
@@ -110,7 +117,9 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
                 status === "complete"
                   ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
                   : status === "active"
-                  ? "bg-[var(--color-accent)]/15 border-2 border-[var(--color-accent)] shadow-md shadow-[var(--color-accent)]/10"
+                  ? isRepoStepRunning
+                    ? "bg-blue-500/10 border-2 border-blue-400/60 shadow-md shadow-blue-500/10"
+                    : "bg-[var(--color-accent)]/15 border-2 border-[var(--color-accent)] shadow-md shadow-[var(--color-accent)]/10"
                   : "bg-[var(--color-bg-sunken)] border border-[var(--color-border)]/60 opacity-50 hover:opacity-80"
               }`}
             >
@@ -119,16 +128,27 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
                 status === "complete"
                   ? "bg-emerald-500/20 text-emerald-400"
                   : status === "active"
-                  ? "bg-[var(--color-accent)] text-white shadow-sm"
+                  ? isRepoStepRunning
+                    ? "bg-blue-500/20 text-blue-300"
+                    : "bg-[var(--color-accent)] text-white shadow-sm"
                   : "bg-[var(--color-border)] text-[var(--color-muted)]"
               }`}>
                 {status === "complete" ? (
                   <CheckCircle className="w-4.5 h-4.5" />
                 ) : status === "active" ? (
-                  <div className="relative flex items-center justify-center">
-                    <Icon className="w-4 h-4 z-10" />
-                    <span className="absolute inset-0 rounded-full bg-white animate-ping opacity-30" />
-                  </div>
+                  isRepoStepRunning ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Loader2 className="w-4 h-4" />
+                    </motion.div>
+                  ) : (
+                    <div className="relative flex items-center justify-center">
+                      <Icon className="w-4 h-4 z-10" />
+                      <span className="absolute inset-0 rounded-full bg-white animate-ping opacity-30" />
+                    </div>
+                  )
                 ) : (
                   <Lock className="w-3.5 h-3.5" />
                 )}
@@ -142,7 +162,7 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
                   }`}>
                     {step.label}
                   </p>
-                  {status === "active" && (
+                  {status === "active" && !isRepoStepRunning && (
                     <span className="flex h-2 w-2 relative">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent)] opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent)]"></span>
@@ -153,13 +173,17 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
                   status === "complete"
                     ? "text-emerald-500/80"
                     : status === "active"
-                    ? "text-[var(--color-accent)] font-bold"
+                    ? isRepoStepRunning
+                      ? "text-blue-300"
+                      : "text-[var(--color-accent)] font-bold"
                     : "text-[var(--color-muted)] opacity-70"
                 }`}>
                   {status === "complete"
                     ? "Completed Stage"
                     : status === "active"
-                    ? "Current Active Step • Click to Action"
+                    ? isRepoStepRunning
+                      ? `Analyzing repo ${reposProcessed}/${totalRepos} — AI processing...`
+                      : "Current Active Step • Click to Action"
                     : `Locked: ${prerequisiteHint}`}
                 </p>
               </div>
@@ -171,9 +195,15 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
                     Completed • +{step.xp} XP
                   </span>
                 ) : status === "active" ? (
-                  <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-[var(--color-accent)] text-white rounded-sm font-bold animate-pulse">
-                    Active Step
-                  </span>
+                  isRepoStepRunning ? (
+                    <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-sm font-bold">
+                      {reposProcessed}/{totalRepos} Repos
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-[var(--color-accent)] text-white rounded-sm font-bold animate-pulse">
+                      Active Step
+                    </span>
+                  )
                 ) : (
                   <span className="text-[9px] font-mono tracking-wider px-2 py-0.5 bg-[var(--color-border)] text-[var(--color-muted)] rounded-sm">
                     Locked
@@ -187,6 +217,7 @@ export const VerificationPipeline = ({ workflowState, onStepClick }) => {
     </div>
   );
 };
+
 
 // ─── Resume Upload Card ─────────────────────────────────────
 const RESUME_STATUS_MAP = {
