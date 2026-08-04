@@ -168,6 +168,10 @@ const Settings = () => {
           resumeUrl: data.resumeUrl || "",
           resumeStatus: data.resumeStatus || "Not_Found",
         });
+        setUser((prev) => ({
+          ...prev,
+          profileImage: data.profileImage || prev?.profileImage || "",
+        }));
         setSystemStatus("Sync_Complete");
       } catch {
         setSystemStatus("Sync_Error");

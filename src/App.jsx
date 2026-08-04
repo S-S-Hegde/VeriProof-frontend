@@ -56,6 +56,7 @@ const CandidateHub = lazy(() => import("./pages/StudentDashboard"));
 const InvestigatorHub = lazy(() => import("./pages/InvestigatorHub"));
 const Exams = lazy(() => import("./pages/Exams"));
 const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
+const ResumeUploadPage = lazy(() => import("./pages/ResumeUploadPage"));
 
 const CandidateVerificationRequests = lazy(
   () => import("./pages/VerificationRequests"),
@@ -218,9 +219,23 @@ const AnimatedRoutes = () => {
           path="/student-dashboard"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <CandidateHub />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <CandidateHub />
+                </PageTransition>
+              </RoleBasedRouter>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/resume-upload"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <ResumeUploadPage />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />

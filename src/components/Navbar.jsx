@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Settings,
-  Search,
   ShieldCheck,
   Moon,
   Sun,
@@ -101,11 +100,9 @@ const Navbar = () => {
         { name: "Rankings",        path: "/verdicts",            icon: BarChart3 },
       ]
     : [
-        { name: "Dashboard", path: "/dashboard",             icon: LayoutDashboard },
-        { name: "Search",    path: "/discover",              icon: Search },
-        { name: "Exams",     path: "/exams",                 icon: FileText },
-        { name: "Skills",    path: "/skill-tree",            icon: GitBranch },
-        { name: "Requests",  path: "/verification-requests", icon: ShieldCheck },
+        { name: "Dashboard", path: "/dashboard",  icon: LayoutDashboard },
+        { name: "Exams",     path: "/exams",      icon: FileText },
+        { name: "Skills",    path: "/skill-tree", icon: GitBranch },
       ];
 
 

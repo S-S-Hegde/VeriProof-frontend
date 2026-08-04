@@ -8,6 +8,7 @@ import SkillProgressPanel from "../components/SkillProgressPanel";
 import {
   VerificationPipeline,
   ResumeUploadCard,
+  ResumeStatusCard,
   ProfileCompletionCard,
 } from "../components/OnboardingComponents";
 import { useSkillTree } from "../context/SkillTreeContext";
@@ -241,14 +242,25 @@ const StudentDashboard = () => {
         <Reveal delay={0.1}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 lg:mb-16">
             <div className="lg:col-span-8 space-y-4">
-              <ResumeUploadCard
-                user={user}
+              <ResumeStatusCard
                 resumeUrl={resumeUrl}
                 resumeStatus={resumeStatus}
-                onUploadComplete={handleResumeUploadComplete}
                 analysisState={analysisState}
               />
-              <VerificationPipeline workflowState={workflowState} />
+              <VerificationPipeline 
+                workflowState={workflowState} 
+                onStepClick={(stepId) => {
+                  if (stepId === "resume" && !workflowState?.hasVerificationRequest) {
+                    navigate("/resume-upload");
+                  } else if (stepId === "analysis") {
+                    // Navigate to analysis page (future stage)
+                  } else if (stepId === "repo") {
+                    // Navigate to repo page (future stage)
+                  } else if (stepId === "assessment") {
+                    // Navigate to assessment page (future stage)
+                  }
+                }}
+              />
             </div>
             <div className="lg:col-span-4">
               <ProfileCompletionCard

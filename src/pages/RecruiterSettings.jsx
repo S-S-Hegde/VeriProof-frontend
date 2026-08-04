@@ -106,6 +106,10 @@ export default function RecruiterSettings() {
           confirmPassword: "",
           profileImage: data.profileImage || "",
         });
+        setUser((prev) => ({
+          ...prev,
+          profileImage: data.profileImage || prev?.profileImage || "",
+        }));
       } catch (err) {
         console.error("Failed to load recruiter profile:", err);
       }

@@ -36,7 +36,7 @@ const Login = () => {
   useEffect(() => {
     if (user) {
       const redirectPath =
-        user.role === "recruiter" ? "/verification-requests" : "/dashboard";
+        user.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
       navigate(redirectPath, { replace: true });
     }
   }, [user, navigate]);

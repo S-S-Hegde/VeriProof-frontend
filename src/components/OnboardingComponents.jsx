@@ -44,7 +44,7 @@ const getStepStatus = (stepId, workflowState) => {
   }
 };
 
-export const VerificationPipeline = ({ workflowState }) => {
+export const VerificationPipeline = ({ workflowState, onStepClick }) => {
   const completedCount = PIPELINE_STEPS.filter(
     (s) => getStepStatus(s.id, workflowState) === "complete"
   ).length;
@@ -82,13 +82,23 @@ export const VerificationPipeline = ({ workflowState }) => {
         {PIPELINE_STEPS.map((step, i) => {
           const status = getStepStatus(step.id, workflowState);
           const Icon = step.icon;
+          const isClickable = status === "active" || status === "complete";
           return (
             <motion.div
               key={step.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.08 }}
+              onClick={() => {
+                if (isClickable && onStepClick) {
+                  onStepClick(step.id);
+                }
+              }}
+              whileHover={isClickable ? { scale: 1.01 } : {}}
+              whileTap={isClickable ? { scale: 0.99 } : {}}
               className={`flex items-center gap-4 p-3 sm:p-4 rounded-[var(--radius-md)] transition-all duration-300 ${
+                isClickable ? "cursor-pointer hover:bg-[var(--color-bg-sunken)]" : ""
+              } ${
                 status === "active"
                   ? "bg-[var(--color-accent)]/8 border border-[var(--color-accent)]/20"
                   : status === "complete"
@@ -430,6 +440,136 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
           ))}
         </div>
       </div>
+    </div>
+  );
+};
+
+// ─── Resume Status Card (Read-Only) ────────────────────────
+export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState }) => {
+  const hasResume = !!resumeUrl;
+  const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
+
+  // ─── Resume under analysis / processing status ───
+  const isAnalyzing = resumeStatus === "Pending Evaluation" || 
+    (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status));
+
+  if (isAnalyzing) {
+    const progress = analysisState?.progress || 10;
+    const stage = analysisState?.stage || "Initializing resume analysis pipeline...";
+    const estRemaining = analysisState?.estimatedRemainingStage || "Calculating...";
+
+    return (
+      <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-60" />
+
+        <div className="flex items-center gap-2 mb-6">
+          <Loader2 className="w-4 h-4 text-[var(--color-accent)] animate-spin" />
+          <span className="vp-label-accent">Analysis_In_Progress</span>
+        </div>
+
+        <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight mb-3">
+          Analyzing Your <span className="text-[var(--color-accent)]">Resume.</span>
+        </h3>
+
+        <p className="text-sm text-[var(--color-muted)] mb-6 max-w-lg leading-relaxed">
+          VeriProof is parsing your resume to identify claimed skills, projects, and education. 
+          This establishes your Candidate Claim Repository which will later be verified using evidence.
+        </p>
+
+        {/* Progress Bar & Details */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-end text-xs font-mono">
+            <span className="text-[var(--color-accent)] uppercase tracking-wider">{stage}</span>
+            <span className="opacity-70 font-bold">{progress}%</span>
+          </div>
+
+          <div className="w-full h-3 bg-[var(--color-border)] rounded-full overflow-hidden border border-[var(--color-border)]">
+            <motion.div
+              className="h-full bg-[var(--color-accent)] rounded-full"
+              initial={{ width: "0%" }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+
+          <div className="flex justify-between items-center text-[10px] font-mono opacity-50 uppercase tracking-widest pt-2">
+            <span>Est. Remaining: {estRemaining}</span>
+            <span>Status: {analysisState?.status || "Processing"}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Resume already uploaded ───
+  if (hasResume) {
+    const StatusIcon = statusInfo?.icon || AlertCircle;
+    return (
+      <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-30" />
+
+        <div className="flex items-center gap-2 mb-6">
+          <FileText className="w-4 h-4 text-[var(--color-accent)]" />
+          <span className="vp-label-accent">Resume_Status</span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-6">
+          {/* Status */}
+          <div className="flex-1 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center ${statusInfo?.bg || "bg-[var(--color-accent-subtle)]"}`}>
+                <StatusIcon className={`w-5 h-5 ${statusInfo?.color || "text-[var(--color-accent)]"}`} />
+              </div>
+              <div>
+                <p className="text-sm font-black uppercase tracking-tight">
+                  {statusInfo?.label || resumeStatus}
+                </p>
+                <p className="vp-label mt-0.5">Resume on file</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mt-4">
+              {resumeUrl && (
+                <a
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5"
+                >
+                  <Eye className="w-3 h-3" /> View_Resume
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* XP placeholder */}
+          <div className="flex items-start">
+            <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-green-500/10 text-green-500 rounded-sm">
+              +40 XP Earned
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── No resume ───
+  return (
+    <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-60" />
+
+      <div className="flex items-center gap-2 mb-2">
+        <AlertCircle className="w-4 h-4 text-[var(--color-accent)]" />
+        <span className="vp-label-accent">Action_Required</span>
+      </div>
+
+      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight mb-3">
+        Missing <span className="text-[var(--color-accent)]">Resume.</span>
+      </h3>
+
+      <p className="text-sm text-[var(--color-muted)] mb-6 max-w-lg leading-relaxed">
+        Your verified candidate profile cannot be built without a resume. Please upload your resume by clicking the Upload Resume step in the Verification Journey pipeline below.
+      </p>
     </div>
   );
 };
