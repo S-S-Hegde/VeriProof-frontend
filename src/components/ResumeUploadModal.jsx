@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
@@ -116,9 +117,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
         setUploadProgress((prev) => (prev < 90 ? prev + 15 : prev));
       }, 150);
 
-      const { data } = await api.post("/api/users/profile/resume-file", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post("/api/users/profile/resume-file", formData);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -172,7 +171,9 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
     (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
-  return (
+  if (!document.body) return null;
+
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
@@ -419,6 +420,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
           )}
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

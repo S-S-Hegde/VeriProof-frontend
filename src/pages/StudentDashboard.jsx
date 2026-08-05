@@ -7,7 +7,6 @@ import ProjectCard3D from "../components/ProjectCard3D";
 import SkillProgressPanel from "../components/SkillProgressPanel";
 import {
   VerificationPipeline,
-  ResumeUploadCard,
   ResumeStatusCard,
   ProfileCompletionCard,
 } from "../components/OnboardingComponents";

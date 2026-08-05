@@ -106,9 +106,7 @@ const ResumeUploadPage = () => {
         setUploadProgress((prev) => (prev < 90 ? prev + 15 : prev));
       }, 150);
 
-      const { data } = await api.post("/api/users/profile/resume-file", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post("/api/users/profile/resume-file", formData);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
