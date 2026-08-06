@@ -95,6 +95,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+    setIsExiting(false);
     updateCurrentUser(null);
   };
 

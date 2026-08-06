@@ -38,7 +38,7 @@ import ConfirmModal from "./ConfirmModal";
    ═══════════════════════════════════════════════════ */
 
 const Navbar = () => {
-  const { user, setIsExiting } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme, THEMES } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -598,7 +598,8 @@ const Navbar = () => {
         onClose={() => setShowLogoutModal(false)}
         onConfirm={() => {
           setShowLogoutModal(false);
-          setIsExiting(true);
+          logout();
+          navigate("/register", { replace: true });
         }}
         title="Terminate Session"
         message="Are you sure you want to log out of your VeriProof candidate workspace? Your active session data is saved."

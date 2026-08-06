@@ -26,4 +26,9 @@ export const persistUserSession = (user) => {
 export const clearUserSession = () => {
   localStorage.removeItem(USER_INFO_KEY);
   localStorage.removeItem(LOGIN_TIMESTAMP_KEY);
+  try {
+    sessionStorage.clear();
+  } catch {
+    // ignore sessionStorage errors if restricted
+  }
 };

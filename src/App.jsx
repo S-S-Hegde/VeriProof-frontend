@@ -243,9 +243,11 @@ const AnimatedRoutes = () => {
           path="/add-project"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <CandidateEvidenceSubmit />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <CandidateEvidenceSubmit />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -253,9 +255,11 @@ const AnimatedRoutes = () => {
           path="/analytics"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <CandidateSkillAnalytics />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <CandidateSkillAnalytics />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -263,9 +267,11 @@ const AnimatedRoutes = () => {
           path="/skill-tree"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <SkillTreePage />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <SkillTreePage />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -273,9 +279,11 @@ const AnimatedRoutes = () => {
           path="/exams"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <Exams />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <Exams />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -283,9 +291,11 @@ const AnimatedRoutes = () => {
           path="/verification-requests"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <CandidateVerificationRequests />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <CandidateVerificationRequests />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -295,9 +305,11 @@ const AnimatedRoutes = () => {
           path="/recruiter-dashboard"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <InvestigatorHub />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["recruiter"]}>
+                <PageTransition>
+                  <InvestigatorHub />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -305,9 +317,11 @@ const AnimatedRoutes = () => {
           path="/discover"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <InvestigatorSearchHub />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["recruiter"]}>
+                <PageTransition>
+                  <InvestigatorSearchHub />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -315,9 +329,11 @@ const AnimatedRoutes = () => {
           path="/bulk-screening"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <BulkScreening />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["recruiter"]}>
+                <PageTransition>
+                  <BulkScreening />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -325,9 +341,11 @@ const AnimatedRoutes = () => {
           path="/recruiter-jobs"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <JobRolesManager />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["recruiter"]}>
+                <PageTransition>
+                  <JobRolesManager />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -335,9 +353,11 @@ const AnimatedRoutes = () => {
           path="/verdicts"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <VerdictsPage />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["recruiter"]}>
+                <PageTransition>
+                  <VerdictsPage />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -347,9 +367,11 @@ const AnimatedRoutes = () => {
           path="/project/:id"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <ArtifactInspector />
-              </PageTransition>
+              <RoleBasedRouter>
+                <PageTransition>
+                  <ArtifactInspector />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -357,9 +379,11 @@ const AnimatedRoutes = () => {
           path="/settings"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <SettingsRouter />
-              </PageTransition>
+              <RoleBasedRouter>
+                <PageTransition>
+                  <SettingsRouter />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -367,9 +391,11 @@ const AnimatedRoutes = () => {
           path="/recruiter-settings"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <PageTransition>
-                <RecruiterSettings />
-              </PageTransition>
+              <RoleBasedRouter allowedRoles={["recruiter"]}>
+                <PageTransition>
+                  <RecruiterSettings />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />
@@ -401,7 +427,6 @@ const AppContent = () => {
   const handleOutroComplete = () => {
     logout();
     setIsExiting(false);
-    window.location.href = "/login";
   };
 
   useEffect(() => {

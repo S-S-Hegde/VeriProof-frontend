@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import StudentDashboard from "./StudentDashboard";
 import InvestigatorHub from "./InvestigatorHub";
@@ -9,10 +9,8 @@ const RoleBasedRouter = ({ children, allowedRoles }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/login");
-    } else if (!loading && user && allowedRoles && !allowedRoles.includes(user.role)) {
-      navigate("/dashboard");
+    if (!loading && user && allowedRoles && !allowedRoles.includes(user.role)) {
+      navigate("/dashboard", { replace: true });
     }
   }, [user, loading, navigate, allowedRoles]);
 
@@ -23,7 +21,9 @@ const RoleBasedRouter = ({ children, allowedRoles }) => {
       </div>
     );
 
-  if (!user) return null;
+  if (!user) {
+    return <Navigate to="/register" replace />;
+  }
 
   if (children) {
     return children;
