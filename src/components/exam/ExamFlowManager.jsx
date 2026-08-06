@@ -17,13 +17,13 @@ export default function ExamFlowManager() {
   const { user } = useAuth();
   const [stage, setStage] = useState("lobby"); // 'lobby', 'instructions', 'assessment', 'results'
   const [skills, setSkills] = useState([]);
-  
+
   // API State
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [examResult, setExamResult] = useState(null);
   const [examError, setExamError] = useState(null);
-  
+
   // Exam State (with sessionStorage hydration)
   const [answers, setAnswers] = useState(() => {
     const saved = sessionStorage.getItem("exam_answers");
@@ -41,12 +41,15 @@ export default function ExamFlowManager() {
     const saved = sessionStorage.getItem("exam_timeLeft");
     return saved ? parseInt(saved, 10) : 2400; // 40 minutes (2400 seconds)
   });
-  
+
   // Anti-Cheat & Camera State
   const [webcamStream, setWebcamStream] = useState(null);
   const [violationCount, setViolationCount] = useState(0);
   const [showViolationModal, setShowViolationModal] = useState(false);
-  
+
+  // Ref to prevent duplicate submission execution
+  const hasSubmittedRef = useRef(false);
+
   // Handlers
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
@@ -78,38 +81,43 @@ export default function ExamFlowManager() {
   };
 
   const handleSubmitExam = useCallback(async () => {
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+
     try {
       const payload = questions.map(q => ({
         questionId: q._id,
         answerIndex: answers[q._id] !== undefined ? answers[q._id] : null
       }));
-      
+
       const { data } = await api.post("/api/exams/submit", { answers: payload });
       setExamResult(data);
-      
+      setShowViolationModal(false);
+      setStage("results");
+
       // Stop webcam
       if (webcamStream) {
         webcamStream.getTracks().forEach(track => track.stop());
         setWebcamStream(null);
       }
-      
+
       // Exit fullscreen safely
       if (document.fullscreenElement && document.exitFullscreen) {
         try {
           await document.exitFullscreen();
-        } catch (err) {}
+        } catch (err) { }
       }
-      
-      
+
       // Clear autosave
       sessionStorage.removeItem("exam_answers");
       sessionStorage.removeItem("exam_visited");
       sessionStorage.removeItem("exam_currentIndex");
       sessionStorage.removeItem("exam_timeLeft");
-      
+
     } catch (err) {
       console.error("[ExamSubmit] Error:", err);
-      setSubmissionError(err.response?.data?.message || "Failed to submit exam. Please try again.");
+      setExamError(err.response?.data?.message || "Failed to submit exam. Please try again.");
+      hasSubmittedRef.current = false;
     }
   }, [questions, answers, webcamStream]);
 
@@ -160,7 +168,10 @@ export default function ExamFlowManager() {
       setViolationCount(prev => {
         const newCount = prev + 1;
         if (newCount >= MAX_TAB_SWITCHES) {
-          handleSubmitExam();
+          setShowViolationModal(false);
+          setTimeout(() => {
+            handleSubmitExam();
+          }, 0);
         } else {
           setShowViolationModal(true);
         }
@@ -242,7 +253,7 @@ export default function ExamFlowManager() {
                   {formatTime(timeLeft)}
                 </div>
               </div>
-              
+
               {questions.length > 0 && (
                 <div className="flex-1">
                   <ExamQuestionView
@@ -287,7 +298,7 @@ export default function ExamFlowManager() {
         onDismiss={() => {
           setShowViolationModal(false);
           if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {});
+            document.documentElement.requestFullscreen().catch(() => { });
           }
         }}
       />
