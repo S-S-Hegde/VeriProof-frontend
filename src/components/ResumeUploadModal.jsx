@@ -8,6 +8,8 @@ import {
   FolderOpen, Cloud, FileCheck, RefreshCw
 } from "lucide-react";
 
+import CandidateProcessingCenter from "./CandidateProcessingCenter";
+
 const RESUME_STATUS_MAP = {
   "Pending Evaluation": { label: "Under Analysis", color: "text-yellow-500", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: Clock },
   "Verified":          { label: "Successfully Analyzed", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: CheckCircle },
@@ -24,6 +26,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef(null);
 
   const [profileData, setProfileData] = useState(null);
@@ -33,13 +36,13 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen && !uploading) {
+      if (e.key === "Escape" && isOpen && !uploading && !isProcessing) {
         onClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, uploading, onClose]);
+  }, [isOpen, uploading, isProcessing, onClose]);
 
   // Fetch profile when modal opens
   useEffect(() => {
@@ -121,28 +124,9 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-      setUploadSuccess(true);
       
-      // Update local & auth state
-      setProfileData((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-      
-      setUser((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-
-      fetchAnalysisState();
-
-      if (onUploadSuccess) {
-        onUploadSuccess();
-      }
+      // Transition immediately to Candidate Processing Center
+      setIsProcessing(true);
       
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed. Please try again.");
@@ -150,7 +134,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
     } finally {
       setUploading(false);
     }
-  }, [setUser, onUploadSuccess]);
+  }, []);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -218,6 +202,18 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
             <div className="flex justify-center items-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-[var(--color-accent)]" />
             </div>
+          ) : isProcessing ? (
+            <CandidateProcessingCenter
+              initialFileName={selectedFileName}
+              onComplete={(freshData) => {
+                setIsProcessing(false);
+                setUploadSuccess(true);
+                if (onUploadSuccess) {
+                  onUploadSuccess(freshData);
+                }
+                onClose();
+              }}
+            />
           ) : (
             <>
               {/* Compact Active Analysis Banner if previous file is analyzing */}

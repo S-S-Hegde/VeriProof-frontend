@@ -9,6 +9,8 @@ import {
   FolderOpen, Cloud, FileCheck, RefreshCw
 } from "lucide-react";
 
+import CandidateProcessingCenter from "../components/CandidateProcessingCenter";
+
 const RESUME_STATUS_MAP = {
   "Pending Evaluation": { label: "Under Analysis", color: "text-yellow-500", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: Clock },
   "Verified":          { label: "Successfully Analyzed", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: CheckCircle },
@@ -26,16 +28,18 @@ const ResumeUploadPage = () => {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef(null);
 
   const [profileData, setProfileData] = useState(null);
   const [analysisState, setAnalysisState] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Fetch profile on mount
   useEffect(() => {
     let isMounted = true;
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const { data } = await api.get("/api/users/profile");
         if (!isMounted) return;
@@ -110,25 +114,7 @@ const ResumeUploadPage = () => {
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-      setUploadSuccess(true);
-      
-      // Update local state
-      setProfileData((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-      
-      setUser((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-
-      // Start polling analysis state automatically
-      fetchAnalysisState();
+      setIsProcessing(true);
       
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed. Please try again.");
@@ -136,7 +122,7 @@ const ResumeUploadPage = () => {
     } finally {
       setUploading(false);
     }
-  }, [setUser]);
+  }, []);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -185,7 +171,15 @@ const ResumeUploadPage = () => {
           <p className="vp-label">Complete your profile to unlock intelligence analysis</p>
         </div>
 
-        {/* If Analyzing */}
+        {isProcessing ? (
+          <div className="vp-surface-1 rounded-[var(--radius-2xl)] border border-[var(--color-border)] p-6 sm:p-8">
+            <CandidateProcessingCenter
+              initialFileName={selectedFileName}
+              onComplete={() => navigate("/dashboard")}
+            />
+          </div>
+        ) : (
+          <>
         {isAnalyzing && (
           <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden mb-8">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-60" />
@@ -451,11 +445,13 @@ const ResumeUploadPage = () => {
               </>
               )}
             </div>
-            </div>
           </div>
+        </div>
         )}
-      </div>
-    </PageTransition>
+      </>
+      )}
+    </div>
+  </PageTransition>
   );
 };
 

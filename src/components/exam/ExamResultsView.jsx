@@ -8,9 +8,30 @@ import {
   Home,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 
 const ExamResultsView = ({ result, candidateName, onReset }) => {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
+
+  const handleReturnToDashboard = async () => {
+    try {
+      const { data } = await api.get("/api/users/profile");
+      if (data && data.workflowState) {
+        setUser((prev) => ({
+          ...prev,
+          resumeStatus: data.resumeStatus,
+          workflowState: data.workflowState,
+        }));
+      }
+    } catch (err) {
+      console.error("Profile sync error:", err);
+    } finally {
+      navigate("/dashboard");
+    }
+  };
+
   if (!result) return null;
 
   const isPassed =
@@ -104,7 +125,7 @@ const ExamResultsView = ({ result, candidateName, onReset }) => {
 
       <div className="flex flex-wrap gap-4 justify-center">
         <button
-          onClick={() => navigate("/student-dashboard")}
+          onClick={handleReturnToDashboard}
           className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition flex items-center gap-2"
         >
           <Home className="w-4 h-4" /> Return to Dashboard
