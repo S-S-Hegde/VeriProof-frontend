@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
@@ -6,6 +7,8 @@ import {
   Upload, FileText, AlertCircle, CheckCircle, XCircle, Clock, Loader2, Sparkles, Eye, X,
   FolderOpen, Cloud, FileCheck, RefreshCw
 } from "lucide-react";
+
+import CandidateProcessingCenter from "./CandidateProcessingCenter";
 
 const RESUME_STATUS_MAP = {
   "Pending Evaluation": { label: "Under Analysis", color: "text-yellow-500", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: Clock },
@@ -23,6 +26,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef(null);
 
   const [profileData, setProfileData] = useState(null);
@@ -32,13 +36,13 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen && !uploading) {
+      if (e.key === "Escape" && isOpen && !uploading && !isProcessing) {
         onClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, uploading, onClose]);
+  }, [isOpen, uploading, isProcessing, onClose]);
 
   // Fetch profile when modal opens
   useEffect(() => {
@@ -116,34 +120,13 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
         setUploadProgress((prev) => (prev < 90 ? prev + 15 : prev));
       }, 150);
 
-      const { data } = await api.post("/api/users/profile/resume-file", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post("/api/users/profile/resume-file", formData);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-      setUploadSuccess(true);
       
-      // Update local & auth state
-      setProfileData((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-      
-      setUser((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-
-      fetchAnalysisState();
-
-      if (onUploadSuccess) {
-        onUploadSuccess();
-      }
+      // Transition immediately to Candidate Processing Center
+      setIsProcessing(true);
       
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed. Please try again.");
@@ -151,7 +134,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
     } finally {
       setUploading(false);
     }
-  }, [setUser, onUploadSuccess]);
+  }, []);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -168,10 +151,13 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   const resumeUrl = profileData?.resumeUrl;
   const resumeStatus = profileData?.resumeStatus;
   const hasResume = !!resumeUrl;
+  const isInvited = profileData?.origin === "recruiter_invited";
   const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
     (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
-  return (
+  if (!document.body) return null;
+
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
@@ -216,6 +202,18 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
             <div className="flex justify-center items-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-[var(--color-accent)]" />
             </div>
+          ) : isProcessing ? (
+            <CandidateProcessingCenter
+              initialFileName={selectedFileName}
+              onComplete={(freshData) => {
+                setIsProcessing(false);
+                setUploadSuccess(true);
+                if (onUploadSuccess) {
+                  onUploadSuccess(freshData);
+                }
+                onClose();
+              }}
+            />
           ) : (
             <>
               {/* Compact Active Analysis Banner if previous file is analyzing */}
@@ -274,11 +272,21 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
 
               {/* Upload Dropzone (ALWAYS VISIBLE & ACCESSIBLE) */}
               <div>
-                <p className="text-xs text-[var(--color-muted)] mb-4 leading-relaxed">
-                  Select or drag your candidate resume file (PDF, DOCX, TXT) to upload and build your verified skill repository.
-                </p>
+                {isInvited ? (
+                  <div className="flex flex-col items-center justify-center p-6 text-center bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-[var(--radius-lg)]">
+                    <FileCheck className="w-10 h-10 text-[var(--color-accent)] mb-3 opacity-70" />
+                    <p className="font-bold text-sm uppercase tracking-widest text-[var(--color-accent)] mb-2">Resume Submitted</p>
+                    <p className="text-xs text-[var(--color-muted)]">
+                      Your resume has already been submitted by your recruiter. Upload and replacement is disabled.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-[var(--color-muted)] mb-4 leading-relaxed">
+                      Select or drag your candidate resume file (PDF, DOCX, TXT) to upload and build your verified skill repository.
+                    </p>
 
-                <div
+                    <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -341,6 +349,8 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
                     </>
                   )}
                 </div>
+                </>
+                )}
 
                 {/* Error Notification */}
                 <AnimatePresence>
@@ -406,6 +416,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
           )}
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

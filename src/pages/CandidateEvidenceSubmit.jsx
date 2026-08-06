@@ -86,8 +86,9 @@ const AddProject = () => {
         featuredSnippets: snippets,
       });
       navigate("/dashboard");
-    } catch {
-      alert("Protocol Failure: Evidence synchronization failed.");
+    } catch (err) {
+      console.error("[EvidenceSubmit] Error:", err.message);
+      setErrorMsg(err.response?.data?.message || "Protocol Failure: Evidence synchronization failed.");
     } finally {
       setIsSubmitting(false);
     }

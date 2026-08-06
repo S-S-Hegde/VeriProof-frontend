@@ -61,8 +61,8 @@ const RecruiterDashboard = () => {
           ? [...current, projects.find((project) => project._id === projectId)].filter(Boolean)
           : current.filter((project) => project._id !== projectId),
       );
-    } catch {
-      alert("Failed to update shortlist");
+    } catch (err) {
+      console.warn("[Shortlist] Failed to update shortlist:", err.message);
     } finally {
       setSavingProjectId("");
     }

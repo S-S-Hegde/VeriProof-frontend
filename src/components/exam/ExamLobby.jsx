@@ -1,14 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Wand2, AlertCircle, ShieldCheck, FileText, ArrowRight, Clock, HelpCircle, ExternalLink } from "lucide-react";
+import {
+  CheckCircle2,
+  Wand2,
+  AlertCircle,
+  ShieldCheck,
+  FileText,
+  ArrowRight,
+  Clock,
+  HelpCircle,
+  ExternalLink,
+} from "lucide-react";
 import api from "../../utils/api";
 
-const ExamLobby = ({ user, skills, setSkills, onGenerateQuestions, isGenerating }) => {
+const ExamLobby = ({
+  user,
+  skills,
+  setSkills,
+  onGenerateQuestions,
+  isGenerating,
+}) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [resumeData, setResumeData] = useState(null);
   const [isResumeVerified, setIsResumeVerified] = useState(false);
-  const [sourceDescription, setSourceDescription] = useState("Stored Candidate Profile");
+  const [sourceDescription, setSourceDescription] = useState(
+    "Stored Candidate Profile",
+  );
 
   useEffect(() => {
     const fetchDashboardResumeAnalysis = async () => {
@@ -17,7 +35,9 @@ const ExamLobby = ({ user, skills, setSkills, onGenerateQuestions, isGenerating 
         const { data } = await api.get("/api/users/profile/resume-analysis");
         if (data && data.claims?.skills && data.claims.skills.length > 0) {
           setResumeData(data);
-          const extracted = data.claims.skills.map((s) => (typeof s === "string" ? s : s.name)).filter(Boolean);
+          const extracted = data.claims.skills
+            .map((s) => (typeof s === "string" ? s : s.name))
+            .filter(Boolean);
           if (extracted.length > 0) {
             setSkills(extracted);
             setIsResumeVerified(true);
@@ -51,8 +71,12 @@ const ExamLobby = ({ user, skills, setSkills, onGenerateQuestions, isGenerating 
       <div className="max-w-3xl mx-auto py-12 px-4 text-center">
         <div className="glass-card rounded-2xl p-10 shadow-2xl border border-slate-800">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
-          <h3 className="text-xl font-bold text-white mb-2">Loading Assessment Profile...</h3>
-          <p className="text-xs text-blue-400 font-medium">Fetching verified resume analysis from Student Dashboard</p>
+          <h3 className="text-xl font-bold text-white mb-2">
+            Loading Assessment Profile...
+          </h3>
+          <p className="text-xs text-blue-400 font-medium">
+            Fetching verified resume analysis from Student Dashboard
+          </p>
         </div>
       </div>
     );
@@ -65,7 +89,8 @@ const ExamLobby = ({ user, skills, setSkills, onGenerateQuestions, isGenerating 
           Candidate Assessment Lobby
         </h2>
         <p className="text-slate-400 text-sm max-w-xl mx-auto">
-          Your technical examination is automatically generated based on the AI resume analysis stored in your Student Dashboard profile.
+          Your technical examination is automatically generated based on the AI
+          resume analysis stored in your Student Dashboard profile.
         </p>
       </div>
 
@@ -76,9 +101,13 @@ const ExamLobby = ({ user, skills, setSkills, onGenerateQuestions, isGenerating 
             <FileText className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white mb-2">No Resume Analysis Found</h3>
+            <h3 className="text-xl font-bold text-white mb-2">
+              No Resume Analysis Found
+            </h3>
             <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-              No resume analysis or verified technical skills were found on file. Please upload your resume from the Student Dashboard before taking the technical assessment.
+              No resume analysis or verified technical skills were found on
+              file. Please upload your resume from the Student Dashboard before
+              taking the technical assessment.
             </p>
           </div>
 
@@ -100,7 +129,9 @@ const ExamLobby = ({ user, skills, setSkills, onGenerateQuestions, isGenerating 
               <span className="px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
                 Assessment Ready
               </span>
-              <h3 className="text-2xl font-extrabold text-white mt-2">{candidateName}</h3>
+              <h3 className="text-2xl font-extrabold text-white mt-2">
+                {candidateName}
+              </h3>
             </div>
 
             {isResumeVerified ? (
@@ -109,7 +140,8 @@ const ExamLobby = ({ user, skills, setSkills, onGenerateQuestions, isGenerating 
               </span>
             ) : (
               <span className="px-3.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-amber-400" /> Stored Profile Skills
+                <ShieldCheck className="w-4 h-4 text-amber-400" /> Stored
+                Profile Skills
               </span>
             )}
           </div>

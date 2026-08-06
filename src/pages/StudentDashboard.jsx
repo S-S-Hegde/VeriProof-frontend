@@ -7,13 +7,12 @@ import ProjectCard3D from "../components/ProjectCard3D";
 import SkillProgressPanel from "../components/SkillProgressPanel";
 import {
   VerificationPipeline,
-  ResumeUploadCard,
   ResumeStatusCard,
   ProfileCompletionCard,
 } from "../components/OnboardingComponents";
 import ResumeUploadModal from "../components/ResumeUploadModal";
 import { useSkillTree } from "../context/SkillTreeContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
   Upload,
@@ -25,6 +24,9 @@ import {
   ExternalLink,
   GitBranch,
   Terminal,
+  Loader2,
+  Github,
+  Sparkles,
 } from "lucide-react";
 
 const Reveal = ({ children, delay = 0, className = "" }) => (
@@ -51,6 +53,72 @@ const SkeletonCard = () => (
   </div>
 );
 
+/**
+ * GitHubAnalysisBanner — shown while GitHub repo analysis is running.
+ * Appears between Resume Complete and Repos appearing.
+ */
+const GitHubAnalysisBanner = ({ status }) => {
+  if (!status || status.status === "idle" || status.status === "complete") return null;
+
+  const isFailed = status.status === "failed";
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className={`flex items-center gap-4 px-5 py-4 rounded-[var(--radius-md)] border mb-4 ${
+          isFailed
+            ? "border-red-500/30 bg-red-500/10"
+            : "border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5"
+        }`}
+      >
+        <div className="shrink-0">
+          {isFailed ? (
+            <Github className="w-5 h-5 text-red-400" />
+          ) : (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            >
+              <Loader2 className="w-5 h-5 text-[var(--color-accent)]" />
+            </motion.div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-black uppercase tracking-[0.12em]">
+            {isFailed ? "GitHub Analysis Failed" : "GitHub Repository Analysis Running"}
+          </p>
+          <p className="text-[10px] text-[var(--color-muted)] mt-0.5 truncate">
+            {isFailed
+              ? status.error || "Could not connect to analysis engine."
+              : status.reposProcessed > 0
+              ? `Processed ${status.reposProcessed} / ${status.totalRepos || 3} repositories — generating documentation...`
+              : "Fetching top repositories and running intelligence analysis..."}
+          </p>
+        </div>
+        {!isFailed && (
+          <div className="shrink-0 flex gap-1">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className={`w-2 h-2 rounded-full ${
+                  i < (status.reposProcessed || 0)
+                    ? "bg-emerald-500"
+                    : "bg-[var(--color-border)]"
+                }`}
+                animate={i >= (status.reposProcessed || 0) ? { opacity: [0.3, 1, 0.3] } : {}}
+                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
+              />
+            ))}
+          </div>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 const StudentDashboard = () => {
   const { user, setUser } = useAuth();
   const [projects, setProjects] = useState([]);
@@ -58,10 +126,12 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState(null);
   const [analysisState, setAnalysisState] = useState(null);
+  const [githubAnalysisState, setGithubAnalysisState] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const navigate = useNavigate();
   const { progress } = useSkillTree();
 
+  // ── Initial data load ───────────────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
@@ -100,6 +170,7 @@ const StudentDashboard = () => {
   const resumeStatus = profileData?.resumeStatus || "Not Submitted";
   const profileImage = profileData?.profileImage || user?.profileImage || "";
 
+  // ── Resume analysis polling ──────────────────────────────────────────────
   useEffect(() => {
     let intervalId;
     let isMounted = true;
@@ -143,6 +214,63 @@ const StudentDashboard = () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [resumeStatus, setUser]);
+
+  // ── GitHub analysis polling ──────────────────────────────────────────────
+  // Polls every 5s when: resume is analyzed + repos not yet done + user has github
+  useEffect(() => {
+    let intervalId;
+    let isMounted = true;
+
+    const shouldPoll =
+      workflowState?.isResumeAnalyzed &&
+      !workflowState?.hasRepoAnalysis &&
+      (user?.githubUsername || profileData?.githubUsername);
+
+    if (!shouldPoll) return;
+
+    const checkGitHubStatus = async () => {
+      try {
+        const { data } = await api.get("/api/github/status");
+        if (!isMounted) return;
+        setGithubAnalysisState(data);
+
+        if (data.status === "complete") {
+          if (intervalId) clearInterval(intervalId);
+          // Refresh projects and profile to reflect newly auto-created projects
+          const [profileRes, projectsRes] = await Promise.all([
+            api.get("/api/users/profile"),
+            api.get("/api/projects/myprojects"),
+          ]);
+          if (!isMounted) return;
+          setProfileData(profileRes.data);
+          setProjects(projectsRes.data || []);
+          if (profileRes.data.workflowState) {
+            setUser((prev) => ({
+              ...prev,
+              workflowState: profileRes.data.workflowState,
+            }));
+          }
+        }
+      } catch (err) {
+        // Silence — GitHub status is non-critical
+      }
+    };
+
+    // Start polling immediately
+    checkGitHubStatus();
+    intervalId = setInterval(checkGitHubStatus, 5000);
+
+    return () => {
+      isMounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [
+    workflowState?.isResumeAnalyzed,
+    workflowState?.hasRepoAnalysis,
+    user?.githubUsername,
+    profileData?.githubUsername,
+    setUser,
+  ]);
 
   const handleResumeUploadComplete = (data) => {
     setProfileData((prev) => ({
@@ -213,7 +341,7 @@ const StudentDashboard = () => {
                   onClick={() => navigate("/skill-tree")}
                   className="vp-btn vp-btn-secondary text-[10px] py-3 px-6 gap-2"
                 >
-                  <GitBranch className="w-3.5 h-3.5" /> Skills
+                  <GitBranch className="w-3.5 h-3.5" /> Verified Skills
                 </motion.button>
               </div>
             </div>
@@ -221,7 +349,9 @@ const StudentDashboard = () => {
               <span className="vp-status-dot" />
               <span className="vp-label">
                 System Status:{" "}
-                {workflowState?.hasResume
+                {githubAnalysisState?.status === "running"
+                  ? "Analyzing Repositories"
+                  : workflowState?.hasResume
                   ? "Active"
                   : "Awaiting Resume"}
               </span>
@@ -232,18 +362,26 @@ const StudentDashboard = () => {
         <Reveal delay={0.1}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 lg:mb-16">
             <div className="lg:col-span-8 space-y-4">
+              {/* GitHub Analysis Banner */}
+              <GitHubAnalysisBanner status={githubAnalysisState} />
+
               <ResumeStatusCard
                 resumeUrl={resumeUrl}
                 resumeStatus={resumeStatus}
                 analysisState={analysisState}
                 onOpenUploadModal={() => setIsUploadModalOpen(true)}
               />
-              <VerificationPipeline 
-                workflowState={workflowState} 
+              <VerificationPipeline
+                workflowState={workflowState}
+                githubAnalysisState={githubAnalysisState}
                 onStepClick={(stepId) => {
                   if (stepId === "resume" || stepId === "analysis") {
                     setIsUploadModalOpen(true);
                   } else if (stepId === "repo") {
+                    // If GitHub analysis hasn't started yet, trigger it
+                    if (!githubAnalysisState || githubAnalysisState.status === "idle") {
+                      api.post("/api/github/trigger").catch(console.error);
+                    }
                     navigate("/add-project");
                   } else if (stepId === "assessment") {
                     navigate("/exams");
@@ -348,6 +486,11 @@ const StudentDashboard = () => {
             <h3 className="text-xl font-black uppercase tracking-tight">
               Evidence_Archive
             </h3>
+            {githubAnalysisState?.status === "complete" && projects.length > 0 && (
+              <span className="vp-label text-emerald-400 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" /> Auto-generated from GitHub
+              </span>
+            )}
           </div>
         </Reveal>
 
@@ -363,31 +506,37 @@ const StudentDashboard = () => {
               <div className="relative z-10">
                 <Database className="w-12 h-12 mx-auto text-[var(--color-muted)] opacity-20 mb-6" />
                 <h3 className="text-2xl font-black italic uppercase tracking-tighter opacity-30 mb-3">
-                  Empty_Archive
+                  {githubAnalysisState?.status === "running"
+                    ? "Scanning_Repositories"
+                    : "Empty_Archive"}
                 </h3>
                 <p className="text-sm text-[var(--color-muted)] mb-8">
-                  {workflowState?.isResumeAnalyzed
+                  {githubAnalysisState?.status === "running"
+                    ? `Analyzing ${githubAnalysisState.reposProcessed || 0} / ${githubAnalysisState.totalRepos || 3} repositories...`
+                    : workflowState?.isResumeAnalyzed
                     ? "No evidence has been synchronized with this node."
                     : "Complete Resume Analysis to begin uploading project evidence."}
                 </p>
-                <motion.button
-                  whileHover={
-                    workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}
-                  }
-                  whileTap={
-                    workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}
-                  }
-                  onClick={() =>
-                    workflowState?.isResumeAnalyzed
-                      ? navigate("/add-project")
-                      : null
-                  }
-                  className={`vp-btn text-[11px] py-3 px-8 ${workflowState?.isResumeAnalyzed ? "vp-btn-primary" : "bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50"}`}
-                >
-                  {workflowState?.isResumeAnalyzed
-                    ? "Initiate_First_Sync"
-                    : "Awaiting_Resume_Analysis"}
-                </motion.button>
+                {githubAnalysisState?.status !== "running" && (
+                  <motion.button
+                    whileHover={
+                      workflowState?.isResumeAnalyzed ? { scale: 1.03 } : {}
+                    }
+                    whileTap={
+                      workflowState?.isResumeAnalyzed ? { scale: 0.97 } : {}
+                    }
+                    onClick={() =>
+                      workflowState?.isResumeAnalyzed
+                        ? navigate("/add-project")
+                        : null
+                    }
+                    className={`vp-btn text-[11px] py-3 px-8 ${workflowState?.isResumeAnalyzed ? "vp-btn-primary" : "bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50"}`}
+                  >
+                    {workflowState?.isResumeAnalyzed
+                      ? "Initiate_First_Sync"
+                      : "Awaiting_Resume_Analysis"}
+                  </motion.button>
+                )}
               </div>
             </div>
           </Reveal>
@@ -414,7 +563,8 @@ const StudentDashboard = () => {
       <ResumeUploadModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
-        onUploadSuccess={() => {
+        onUploadSuccess={(data) => {
+          handleResumeUploadComplete(data);
           api.get("/api/users/profile").then(({ data }) => setProfileData(data)).catch(console.error);
         }}
       />

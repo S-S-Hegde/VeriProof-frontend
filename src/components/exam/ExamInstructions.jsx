@@ -1,5 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
-import { CheckSquare, Camera, CameraOff, Clock, ShieldAlert, ArrowRight, Maximize, AlertTriangle } from "lucide-react";
+import {
+  CheckSquare,
+  Camera,
+  CameraOff,
+  Clock,
+  ShieldAlert,
+  ArrowRight,
+  Maximize,
+  AlertTriangle,
+} from "lucide-react";
 
 const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
   const [agreed, setAgreed] = useState(false);
@@ -9,7 +18,10 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
   const enableCamera = async () => {
     try {
       setCamStatus("loading");
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
       setWebcamStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -37,14 +49,16 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
           Examination Instructions & Anti-Cheat Setup
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Review proctoring rules and verify your live camera feed before starting the assessment.
+          Review proctoring rules and verify your live camera feed before
+          starting the assessment.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 glass-card rounded-2xl p-6 space-y-4 shadow-xl border border-slate-800">
           <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
-            <CheckSquare className="w-4 h-4 text-blue-400" /> Examination Specifications
+            <CheckSquare className="w-4 h-4 text-blue-400" /> Examination
+            Specifications
           </h3>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -68,21 +82,27 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
             <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start space-x-3">
               <Maximize className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
               <div>
-                <strong className="text-amber-300">Fullscreen Required:</strong> Exam automatically switches to browser fullscreen mode. Exiting fullscreen will trigger a proctoring violation warning.
+                <strong className="text-amber-300">Fullscreen Required:</strong>{" "}
+                Exam automatically switches to browser fullscreen mode. Exiting
+                fullscreen will trigger a proctoring violation warning.
               </div>
             </div>
 
             <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start space-x-3">
               <ShieldAlert className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
               <div>
-                <strong className="text-amber-300">No Tab Switching:</strong> Switching browser tabs or minimizing the window will trigger an anti-cheat event.
+                <strong className="text-amber-300">No Tab Switching:</strong>{" "}
+                Switching browser tabs or minimizing the window will trigger an
+                anti-cheat event.
               </div>
             </div>
 
             <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-start space-x-3">
               <AlertTriangle className="w-4 h-4 text-rose-400 mt-0.5 flex-shrink-0" />
               <div>
-                <strong className="text-rose-300">Maximum 3 Violations:</strong> Accumulating 3 anti-cheat violations will immediately terminate and auto-submit your exam session.
+                <strong className="text-rose-300">Maximum 3 Violations:</strong>{" "}
+                Accumulating 3 anti-cheat violations will immediately terminate
+                and auto-submit your exam session.
               </div>
             </div>
           </div>
@@ -109,8 +129,8 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
                     {camStatus === "error"
                       ? "Camera blocked or permission denied"
                       : camStatus === "loading"
-                      ? "Initializing camera..."
-                      : "Webcam Required"}
+                        ? "Initializing camera..."
+                        : "Webcam Required"}
                   </span>
                 </div>
               )}
@@ -126,7 +146,11 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
               }`}
             >
               <Camera className="w-3.5 h-3.5" />
-              <span>{camStatus === "active" ? "Camera Active (Re-test)" : "Enable Camera (Mandatory)"}</span>
+              <span>
+                {camStatus === "active"
+                  ? "Camera Active (Re-test)"
+                  : "Enable Camera (Mandatory)"}
+              </span>
             </button>
           </div>
 
@@ -144,7 +168,10 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
             onChange={(e) => setAgreed(e.target.checked)}
             className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500"
           />
-          <span>I have read, understood, and agree to follow all examination proctoring rules.</span>
+          <span>
+            I have read, understood, and agree to follow all examination
+            proctoring rules.
+          </span>
         </label>
 
         {!webcamStream && (

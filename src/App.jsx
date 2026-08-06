@@ -66,7 +66,11 @@ const VerdictsPage = lazy(() => import("./pages/VerdictsPage"));
 // Smart router for /settings based on role
 const SettingsRouter = () => {
   const { user } = useAuth();
-  return user?.role === "recruiter" ? <RecruiterSettings /> : <SystemConfiguration />;
+  return user?.role === "recruiter" ? (
+    <RecruiterSettings />
+  ) : (
+    <SystemConfiguration />
+  );
 };
 
 // Premium loading screen

@@ -9,6 +9,8 @@ import {
   FolderOpen, Cloud, FileCheck, RefreshCw
 } from "lucide-react";
 
+import CandidateProcessingCenter from "../components/CandidateProcessingCenter";
+
 const RESUME_STATUS_MAP = {
   "Pending Evaluation": { label: "Under Analysis", color: "text-yellow-500", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: Clock },
   "Verified":          { label: "Successfully Analyzed", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: CheckCircle },
@@ -26,16 +28,18 @@ const ResumeUploadPage = () => {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef(null);
 
   const [profileData, setProfileData] = useState(null);
   const [analysisState, setAnalysisState] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Fetch profile on mount
   useEffect(() => {
     let isMounted = true;
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const { data } = await api.get("/api/users/profile");
         if (!isMounted) return;
@@ -106,31 +110,11 @@ const ResumeUploadPage = () => {
         setUploadProgress((prev) => (prev < 90 ? prev + 15 : prev));
       }, 150);
 
-      const { data } = await api.post("/api/users/profile/resume-file", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post("/api/users/profile/resume-file", formData);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-      setUploadSuccess(true);
-      
-      // Update local state
-      setProfileData((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-      
-      setUser((prev) => ({
-        ...prev,
-        resumeUrl: data.resumeUrl,
-        resumeStatus: data.resumeStatus,
-        workflowState: prev ? { ...prev.workflowState, hasResume: true } : null,
-      }));
-
-      // Start polling analysis state automatically
-      fetchAnalysisState();
+      setIsProcessing(true);
       
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed. Please try again.");
@@ -138,7 +122,7 @@ const ResumeUploadPage = () => {
     } finally {
       setUploading(false);
     }
-  }, [setUser]);
+  }, []);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -160,15 +144,11 @@ const ResumeUploadPage = () => {
     );
   }
 
-  const workflowState = profileData?.workflowState;
   const resumeUrl = profileData?.resumeUrl;
   const resumeStatus = profileData?.resumeStatus;
   const hasResume = !!resumeUrl;
   
-  if (workflowState?.hasVerificationRequest) {
-    navigate("/dashboard");
-    return null;
-  }
+  const isInvited = profileData?.origin === "recruiter_invited";
 
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
   const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
@@ -191,7 +171,15 @@ const ResumeUploadPage = () => {
           <p className="vp-label">Complete your profile to unlock intelligence analysis</p>
         </div>
 
-        {/* If Analyzing */}
+        {isProcessing ? (
+          <div className="vp-surface-1 rounded-[var(--radius-2xl)] border border-[var(--color-border)] p-6 sm:p-8">
+            <CandidateProcessingCenter
+              initialFileName={selectedFileName}
+              onComplete={() => navigate("/dashboard")}
+            />
+          </div>
+        ) : (
+          <>
         {isAnalyzing && (
           <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden mb-8">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-60" />
@@ -305,16 +293,26 @@ const ResumeUploadPage = () => {
 
               {/* Upload Dropzone */}
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-6">
-                  <Upload className="w-4 h-4 text-[var(--color-accent)]" />
-                  <span className="vp-label-accent">{hasResume ? "Replace_Resume" : "Action_Required"}</span>
-                </div>
+                {isInvited ? (
+                  <div className="h-full flex flex-col items-center justify-center p-8 sm:p-12 text-center bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-[var(--radius-md)]">
+                    <FileCheck className="w-12 h-12 text-[var(--color-accent)] mb-4 opacity-70" />
+                    <p className="font-bold text-lg uppercase tracking-widest text-[var(--color-accent)] mb-2">Resume Submitted</p>
+                    <p className="text-sm text-[var(--color-muted)] max-w-sm">
+                      Your resume has already been submitted by your recruiter. Upload and replacement is disabled.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-6">
+                      <Upload className="w-4 h-4 text-[var(--color-accent)]" />
+                      <span className="vp-label-accent">{hasResume ? "Replace_Resume" : "Action_Required"}</span>
+                    </div>
 
-                <p className="text-sm text-[var(--color-muted)] mb-6 leading-relaxed">
-                  Upload your latest resume to update your candidate claim repository.
-                </p>
+                    <p className="text-sm text-[var(--color-muted)] mb-6 leading-relaxed">
+                      Upload your latest resume to update your candidate claim repository.
+                    </p>
 
-                {/* Dropzone */}
+                    {/* Dropzone */}
                 <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -444,12 +442,16 @@ const ResumeUploadPage = () => {
                     Upload unlocks Resume Analysis (+40 XP)
                   </span>
                 </div>
-              </div>
+              </>
+              )}
             </div>
           </div>
+        </div>
         )}
-      </div>
-    </PageTransition>
+      </>
+      )}
+    </div>
+  </PageTransition>
   );
 };
 

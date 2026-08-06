@@ -56,7 +56,9 @@ const ExamQuestionView = ({
                     </span>
                     <span className="text-sm font-medium">{opt}</span>
                   </div>
-                  {isSelected && <CheckCircle className="w-5 h-5 text-blue-400" />}
+                  {isSelected && (
+                    <CheckCircle className="w-5 h-5 text-blue-400" />
+                  )}
                 </div>
               );
             })}
