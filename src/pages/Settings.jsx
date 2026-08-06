@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
+import ConfirmationModal from "../components/common/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
 import {
@@ -93,47 +94,50 @@ const Settings = () => {
   const resumeInputRef = useRef(null);
 
   // Danger Zone States
-  const [deletePassword, setDeletePassword] = useState("");
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteStepIndex, setDeleteStepIndex] = useState(-1);
+  const [deleteError, setDeleteError] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
   const navigate = useNavigate();
 
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== "DELETE" || !deletePassword) return;
+  const progressSteps = [
+    "Removing Resume & File Artifacts...",
+    "Removing Extracted Claims & Projects...",
+    "Removing Exams & Verification Results...",
+    "Annihilating Account Record..."
+  ];
 
-    const confirmFirst = window.confirm(
-      "Are you absolutely sure you want to permanently delete your VeriProof account? This action is irreversible.",
-    );
-    if (!confirmFirst) return;
-
-    const confirmSecond = window.confirm(
-      "FINAL WARNING: All evidence, claims, and verified nodes will be lost. Click OK to proceed with permanent destruction.",
-    );
-    if (!confirmSecond) return;
-
+  const executeAccountDeletion = async ({ password }) => {
     setDeletingAccount(true);
-    setSystemStatus("Annihilating_Node...");
+    setDeleteError("");
+    setDeleteStepIndex(0);
 
     try {
+      await new Promise((r) => setTimeout(r, 400));
+      setDeleteStepIndex(1);
+
+      await new Promise((r) => setTimeout(r, 400));
+      setDeleteStepIndex(2);
+
+      await new Promise((r) => setTimeout(r, 400));
+      setDeleteStepIndex(3);
+
       await api.delete("/api/users/profile", {
-        data: { password: deletePassword },
+        data: { password },
       });
 
       localStorage.clear();
       setUser(null);
-      setToast({ type: "success", msg: "Success: Protocols Wiped" });
+      setToast({ type: "success", msg: "Success: Protocols Wiped. Account Deleted." });
 
       setTimeout(() => {
         navigate("/");
-      }, 1500);
+      }, 1200);
     } catch (err) {
-      setToast({
-        type: "error",
-        msg: err.response?.data?.message || "Destruction: Authorization Failed",
-      });
-      setSystemStatus("Fatal_Error");
+      const errorMsg = err.response?.data?.message || "Destruction: Authorization Failed";
+      setDeleteError(errorMsg);
       setDeletingAccount(false);
-      setTimeout(() => setSystemStatus("Idle"), 2000);
+      setDeleteStepIndex(-1);
     }
   };
 
@@ -1021,57 +1025,13 @@ const Settings = () => {
                         </div>
                       </div>
 
-                      <div className="space-y-4 pt-4 border-t border-red-500/20">
-                        <div>
-                          <label className="block text-xs uppercase tracking-widest font-bold text-red-400 mb-2">
-                            Confirm Password
-                          </label>
-                          <input
-                            type="password"
-                            value={deletePassword}
-                            onChange={(e) => setDeletePassword(e.target.value)}
-                            placeholder="ENTER YOUR ACCOUNT PASSWORD"
-                            className="block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-red-500/20 focus:outline-none focus:border-red-500 text-[var(--color-text)] placeholder-[var(--color-muted)]/30 font-mono text-xs tracking-wider"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs uppercase tracking-widest font-bold text-red-400 mb-2">
-                            To confirm, type{" "}
-                            <span className="text-white font-black">
-                              DELETE
-                            </span>{" "}
-                            below:
-                          </label>
-                          <input
-                            type="text"
-                            value={deleteConfirmText}
-                            onChange={(e) =>
-                              setDeleteConfirmText(e.target.value)
-                            }
-                            placeholder="TYPE DELETE"
-                            className="block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-red-500/20 focus:outline-none focus:border-red-500 text-[var(--color-text)] placeholder-[var(--color-muted)]/30 font-mono text-xs tracking-wider"
-                          />
-                        </div>
-
+                      <div className="pt-4 border-t border-red-500/20">
                         <button
                           type="button"
-                          disabled={
-                            deletePassword.trim() === "" ||
-                            deleteConfirmText !== "DELETE" ||
-                            deletingAccount
-                          }
-                          onClick={handleDeleteAccount}
-                          className={`w-full py-4 border font-mono text-xs font-bold uppercase tracking-widest transition-all ${
-                            deletePassword.trim() === "" ||
-                            deleteConfirmText !== "DELETE"
-                              ? "border-red-500/10 text-red-500/30 cursor-not-allowed"
-                              : "border-red-500 hover:bg-red-500 hover:text-white text-red-500"
-                          }`}
+                          onClick={() => setShowDeleteModal(true)}
+                          className="w-full py-4 border border-red-500 hover:bg-red-500 hover:text-white text-red-500 font-mono text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-red-500/10"
                         >
-                          {deletingAccount
-                            ? "DELETING PROTOCOLS..."
-                            : "INITIATE ACCOUNT ANNIHILATION"}
+                          INITIATE ACCOUNT ANNIHILATION
                         </button>
                       </div>
                     </div>
@@ -1110,6 +1070,26 @@ const Settings = () => {
                 </div>
               )}
             </form>
+
+            {/* Confirmation Modal Component (Rendered outside outer form to prevent nested form submit) */}
+            <ConfirmationModal
+              isOpen={showDeleteModal}
+              onClose={() => {
+                if (!deletingAccount) setShowDeleteModal(false);
+              }}
+              onConfirm={executeAccountDeletion}
+              title="Permanent Account Annihilation"
+              subtitle="All evidence claims, GitHub nodes, assessment histories, and verified credentials will be permanently erased. This operation cannot be reversed."
+              confirmText="DELETE"
+              confirmButtonText="Annihilate Account"
+              requirePassword={true}
+              requireConfirmText={true}
+              variant="danger"
+              progressSteps={progressSteps}
+              currentStepIndex={deleteStepIndex}
+              isProcessing={deletingAccount}
+              error={deleteError}
+            />
           </main>
         </div>
       </div>

@@ -107,10 +107,9 @@ export default function ExamFlowManager() {
       sessionStorage.removeItem("exam_currentIndex");
       sessionStorage.removeItem("exam_timeLeft");
       
-      setStage("results");
     } catch (err) {
-      console.error(err);
-      alert("Failed to submit exam. Please try again.");
+      console.error("[ExamSubmit] Error:", err);
+      setSubmissionError(err.response?.data?.message || "Failed to submit exam. Please try again.");
     }
   }, [questions, answers, webcamStream]);
 
