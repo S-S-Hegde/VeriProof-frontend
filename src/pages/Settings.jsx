@@ -126,13 +126,14 @@ const Settings = () => {
         data: { password },
       });
 
+      logout();
       localStorage.clear();
-      setUser(null);
+      sessionStorage.clear();
       setToast({ type: "success", msg: "Success: Protocols Wiped. Account Deleted." });
 
       setTimeout(() => {
-        navigate("/");
-      }, 1200);
+        navigate("/", { replace: true });
+      }, 500);
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Destruction: Authorization Failed";
       setDeleteError(errorMsg);

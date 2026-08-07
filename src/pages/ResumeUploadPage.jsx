@@ -37,6 +37,11 @@ const ResumeUploadPage = () => {
 
   // Fetch profile on mount
   useEffect(() => {
+    if (user?.origin === "recruiter_invited") {
+      navigate("/student-dashboard", { replace: true });
+      return;
+    }
+
     let isMounted = true;
     const fetchProfile = async () => {
       setLoading(true);

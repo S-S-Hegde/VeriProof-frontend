@@ -207,8 +207,10 @@ export default function RecruiterSettings() {
     setDeleteError("");
     try {
       await api.delete("/api/users/profile");
-      setUser(null);
-      navigate("/login");
+      logout();
+      localStorage.clear();
+      sessionStorage.clear();
+      navigate("/", { replace: true });
     } catch (err) {
       setDeleteError(
         err.response?.data?.message || "Failed to delete recruiter account."

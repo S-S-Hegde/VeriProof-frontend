@@ -77,7 +77,13 @@ export default function ExamFlowManager() {
     }
   };
 
+  const isSubmittingRef = useRef(false);
+
   const handleSubmitExam = useCallback(async () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    setStage("results");
+
     try {
       const payload = questions.map(q => ({
         questionId: q._id,
@@ -100,7 +106,6 @@ export default function ExamFlowManager() {
         } catch (err) {}
       }
       
-      
       // Clear autosave
       sessionStorage.removeItem("exam_answers");
       sessionStorage.removeItem("exam_visited");
@@ -109,36 +114,23 @@ export default function ExamFlowManager() {
       
     } catch (err) {
       console.error("[ExamSubmit] Error:", err);
-      setSubmissionError(err.response?.data?.message || "Failed to submit exam. Please try again.");
+      setExamError(err.response?.data?.message || "Failed to submit exam. Please try again.");
     }
   }, [questions, answers, webcamStream]);
 
-  // Timer Effect & Autosave
-  useEffect(() => {
-    if (stage === "assessment" && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft(prev => {
-          const newTime = prev - 1;
-          sessionStorage.setItem("exam_timeLeft", newTime);
-          return newTime;
-        });
-      }, 1000);
-      return () => clearInterval(timer);
-    } else if (stage === "assessment" && timeLeft <= 0) {
-      handleSubmitExam();
-    }
-  }, [stage, timeLeft, handleSubmitExam]);
+  const triggerViolation = useCallback((reason = "Security Violation") => {
+    if (stage !== "assessment" || isSubmittingRef.current) return;
 
-  // Persist answers, visited, and index
-  useEffect(() => {
-    sessionStorage.setItem("exam_answers", JSON.stringify(answers));
-  }, [answers]);
-  useEffect(() => {
-    sessionStorage.setItem("exam_visited", JSON.stringify(visited));
-  }, [visited]);
-  useEffect(() => {
-    sessionStorage.setItem("exam_currentIndex", currentIndex);
-  }, [currentIndex]);
+    setViolationCount(prev => {
+      const newCount = prev + 1;
+      setShowViolationModal(true);
+
+      if (newCount >= MAX_TAB_SWITCHES) {
+        handleSubmitExam();
+      }
+      return newCount;
+    });
+  }, [stage, handleSubmitExam]);
 
   // Anti-cheat Listeners
   useEffect(() => {
@@ -146,36 +138,111 @@ export default function ExamFlowManager() {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        triggerViolation();
+        triggerViolation("Tab Switch / Window Hidden");
       }
+    };
+
+    const handleWindowBlur = () => {
+      triggerViolation("Window Blur / App Switch / External Screen Interaction");
     };
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        triggerViolation();
+      if (!document.fullscreenElement && stage === "assessment") {
+        triggerViolation("Fullscreen Exit");
       }
     };
 
-    const triggerViolation = () => {
-      setViolationCount(prev => {
-        const newCount = prev + 1;
-        if (newCount >= MAX_TAB_SWITCHES) {
-          handleSubmitExam();
-        } else {
-          setShowViolationModal(true);
-        }
-        return newCount;
-      });
+    const handleMouseLeave = (e) => {
+      if (e.clientY <= 0 || e.clientX <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
+        triggerViolation("Cursor Left Assessment Viewport");
+      }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    const handleResize = () => {
+      if (window.outerWidth < window.screen.availWidth * 0.75 || window.outerHeight < window.screen.availHeight * 0.75) {
+        triggerViolation("Split-Screen / Window Resizing Detected");
+      }
+    };
+
+    const checkMultiDisplay = () => {
+      if (window.screen && window.screen.isExtended) {
+        triggerViolation("Multiple Displays / Extended Monitor Detected");
+      }
+    };
+
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+      triggerViolation("Context Menu / Inspect Element Attempt");
+    };
+
+    const handleCopyPaste = (e) => {
+      e.preventDefault();
+      triggerViolation("Copy / Paste Attempt");
+    };
+
+    const handleKeyDown = (e) => {
+      // Allow numerical 1-4 for option selection, ArrowLeft/Right for nav
+      if (["1", "2", "3", "4"].includes(e.key)) {
+        const optionIdx = parseInt(e.key, 10) - 1;
+        if (questions[currentIndex]) {
+          handleSelectOption(optionIdx);
+        }
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        handleNext();
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        handlePrev();
+        return;
+      }
+
+      // Block all non-essential shortcuts and navigation keys
+      if (
+        e.key === "F12" ||
+        e.key === "Tab" ||
+        e.key === "Meta" ||
+        e.key === "Alt" ||
+        e.key === "PrintScreen" ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c")) ||
+        (e.ctrlKey && (e.key === "u" || e.key === "U")) ||
+        (e.ctrlKey && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V" || e.key === "x" || e.key === "X" || e.key === "a" || e.key === "A"))
+      ) {
+        e.preventDefault();
+        triggerViolation(`Restricted System Input (${e.key})`);
+      }
+    };
+
+    // Check display configuration on mount & interval
+    checkMultiDisplay();
+    const displayInterval = setInterval(checkMultiDisplay, 3000);
+
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("mouseleave", handleMouseLeave);
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("contextmenu", handleContextMenu);
+    window.addEventListener("copy", handleCopyPaste);
+    window.addEventListener("cut", handleCopyPaste);
+    window.addEventListener("paste", handleCopyPaste);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(displayInterval);
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleWindowBlur);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("contextmenu", handleContextMenu);
+      window.removeEventListener("copy", handleCopyPaste);
+      window.removeEventListener("cut", handleCopyPaste);
+      window.removeEventListener("paste", handleCopyPaste);
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [stage, handleSubmitExam]);
+  }, [stage, triggerViolation, currentIndex, questions]);
 
   const handleSelectOption = (optionIndex) => {
     const qId = questions[currentIndex]._id;
@@ -254,6 +321,7 @@ export default function ExamFlowManager() {
                     onNext={handleNext}
                     onPrev={handlePrev}
                     onSubmit={handleSubmitExam}
+                    user={user}
                   />
                 </div>
               )}

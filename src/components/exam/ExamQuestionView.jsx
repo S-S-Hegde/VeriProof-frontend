@@ -10,12 +10,23 @@ const ExamQuestionView = ({
   onNext,
   onPrev,
   onSubmit,
+  user,
 }) => {
   if (!question) return null;
 
+  const candidateInfo = user ? `${user.name || "Candidate"} (${user.email || "Proctored"})` : "VeriProof Anti-Cheat Forensic Watermark";
+
   return (
-    <div className="glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between min-h-[420px] shadow-2xl border border-slate-800">
-      <div>
+    <div className="relative glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between min-h-[420px] shadow-2xl border border-slate-800 select-none overflow-hidden">
+      {/* ── Dynamic Forensic Anti-Leak Watermark Overlay ── */}
+      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-around opacity-[0.06] rotate-[-18deg] select-none font-mono text-xs uppercase tracking-widest text-white leading-loose overflow-hidden">
+        <div>PROCTORED ASSESSMENT • {candidateInfo} • SECURE SESSION</div>
+        <div>PROCTORED ASSESSMENT • {candidateInfo} • SECURE SESSION</div>
+        <div>PROCTORED ASSESSMENT • {candidateInfo} • SECURE SESSION</div>
+        <div>PROCTORED ASSESSMENT • {candidateInfo} • SECURE SESSION</div>
+      </div>
+
+      <div className="relative z-20">
         <div className="flex items-center justify-between mb-4">
           <span className="px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
             Question {currentIndex + 1} of {totalQuestions}
@@ -25,7 +36,7 @@ const ExamQuestionView = ({
           </span>
         </div>
 
-        <h3 className="text-lg sm:text-xl font-semibold text-slate-100 mb-6 leading-relaxed">
+        <h3 className="text-lg sm:text-xl font-semibold text-slate-100 mb-6 leading-relaxed select-none">
           {question.text || question.questionText}
         </h3>
 
