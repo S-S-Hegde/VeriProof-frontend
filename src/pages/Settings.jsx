@@ -112,18 +112,29 @@ const Settings = () => {
     setDeleteError("");
     setDeleteStepIndex(0);
 
+    const activeToken = user?.token || localStorage.getItem("token");
+    if (!activeToken) {
+      setDeleteError("Session expired or unauthenticated. Please log out and log back in.");
+      setDeletingAccount(false);
+      return;
+    }
+
     try {
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 300));
       setDeleteStepIndex(1);
 
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 300));
       setDeleteStepIndex(2);
 
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 300));
       setDeleteStepIndex(3);
 
       await api.delete("/api/users/profile", {
         data: { password },
+        headers: {
+          Authorization: `Bearer ${activeToken}`,
+          "x-confirm-password": password,
+        },
       });
 
       logout();
@@ -136,7 +147,11 @@ const Settings = () => {
       }, 500);
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Destruction: Authorization Failed";
-      setDeleteError(errorMsg);
+      if (err.response?.status === 401 && errorMsg.includes("no token")) {
+        setDeleteError("Session expired. Please log out and log back in to confirm deletion.");
+      } else {
+        setDeleteError(errorMsg);
+      }
       setDeletingAccount(false);
       setDeleteStepIndex(-1);
     }

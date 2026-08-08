@@ -12,8 +12,10 @@ import {
   UserCircle,
   RefreshCw,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import api from "../utils/api";
+import ConfirmModal from "../components/ConfirmModal";
 
 const VerificationRequests = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +23,22 @@ const VerificationRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/api/verify/applicants/${deleteTarget._id}`);
+      setRequests((prev) => prev.filter((r) => r._id !== deleteTarget._id));
+      setDeleteTarget(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to remove applicant.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -229,13 +247,20 @@ const VerificationRequests = () => {
                 </div>
 
                 {/* Action */}
-                <div className="col-span-2 flex justify-end">
+                <div className="col-span-2 flex justify-end items-center gap-2">
                   <Link
                     to="/verdicts"
-                    className="vp-btn vp-btn-primary px-4 py-2 text-[10px] flex items-center gap-2 opacity-90 group-hover:opacity-100 transition-opacity"
+                    className="vp-btn vp-btn-primary px-3 py-2 text-[10px] flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity"
                   >
                     Inspect <ArrowRight className="w-3 h-3" />
                   </Link>
+                  <button
+                    onClick={() => setDeleteTarget(req)}
+                    className="p-2 rounded text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    title="Remove Applicant"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -251,6 +276,19 @@ const VerificationRequests = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => !isDeleting && setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Remove Applicant"
+        message="Remove this applicant from the audit queue?"
+        subtitle={deleteTarget ? `${deleteTarget.extractedName || "Unknown"} — ${deleteTarget.originalFileName}` : ""}
+        confirmText="Remove"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+      />
     </div>
   );
 };

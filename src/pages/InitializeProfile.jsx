@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +35,18 @@ const Register = () => {
   const { setUser } = useAuth();
   useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const qEmail = params.get("email");
+    const qRole = params.get("role");
+    if (qEmail) {
+      setEmail(qEmail);
+      if (qRole) setRole(qRole);
+      setStep(2);
+    }
+  }, [location]);
 
   const handleRoleSelection = (selectedRole) => {
     setRole(selectedRole);

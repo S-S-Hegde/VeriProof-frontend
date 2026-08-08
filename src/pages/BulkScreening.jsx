@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   UploadCloud, FileText, X, AlertCircle, CheckCircle,
-  Users, Loader2, Mail, Clock, RefreshCw, ChevronDown,
+  Users, Loader2, Mail, Clock, RefreshCw, ChevronDown, Trash2,
 } from "lucide-react";
 import api from "../utils/api";
 
@@ -56,10 +56,16 @@ export default function Intake() {
 
   // ── File handling ──────────────────────────────────────────────────────
   const addFiles = (incoming) => {
-    const valid = Array.from(incoming).filter(
-      f => f.type === "application/pdf" ||
-           f.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    );
+    const valid = Array.from(incoming).filter(f => {
+      const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
+      return (
+        f.type.includes("pdf") ||
+        f.type.includes("wordprocessingml") ||
+        f.type.includes("msword") ||
+        f.type.includes("text") ||
+        [".pdf", ".docx", ".doc", ".txt"].includes(ext)
+      );
+    });
     setFiles(prev => {
       const names = new Set(prev.map(f => f.name));
       return [...prev, ...valid.filter(f => !names.has(f.name))];
@@ -101,6 +107,16 @@ export default function Intake() {
       setError(err.response?.data?.message || "Upload failed. Check your connection and try again.");
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteApplicant = async (applicantId) => {
+    if (!applicantId) return;
+    try {
+      await api.delete(`/api/verify/applicants/${applicantId}`);
+      setResults(prev => prev.filter(r => r._id !== applicantId));
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to remove applicant.");
     }
   };
 
@@ -193,7 +209,7 @@ export default function Intake() {
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".pdf,.docx"
+              accept=".pdf,.docx,.doc,.txt"
               className="hidden"
               onChange={e => addFiles(e.target.files)}
             />
@@ -202,18 +218,18 @@ export default function Intake() {
             </motion.div>
             <p className="font-bold text-[var(--color-text)] mb-1">Drop Resumes Here</p>
             <p className="text-xs text-[var(--color-muted)] mb-4">
-              PDF or DOCX · up to 5MB each · duplicates ignored
+              PDF, DOCX, TXT · Select multiple files at once · Duplicates ignored
             </p>
             <button className="vp-btn vp-btn-secondary text-xs px-5 py-2" onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-              Browse Files
+              Browse Files (Multiple)
             </button>
           </div>
 
-          {/* Rate-limit note */}
-          <div className="flex items-start gap-2 px-3 py-2 rounded-[var(--radius-md)] bg-yellow-500/8 border border-yellow-500/20">
-            <Clock className="w-3.5 h-3.5 text-yellow-400 mt-0.5 shrink-0" />
-            <p className="text-[10px] font-mono text-yellow-400/80 leading-relaxed">
-              Resumes are processed one-at-a-time (free-tier AI rate-limit). Allow ~{files.length > 0 ? files.length * 5 : 5}–{files.length > 0 ? files.length * 10 : 10}s per file. Do not close the page.
+          {/* High-speed intake note */}
+          <div className="flex items-start gap-2 px-3 py-2 rounded-[var(--radius-md)] bg-emerald-500/8 border border-emerald-500/20">
+            <Clock className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+            <p className="text-[10px] font-mono text-emerald-400/90 leading-relaxed">
+              ⚡ High-Speed Engine: Resumes are uploaded &amp; parsed simultaneously in parallel.
             </p>
           </div>
         </div>
@@ -320,6 +336,15 @@ export default function Intake() {
                   </span>
                   {r.status === "Failed" && (
                     <span className="text-[10px] text-red-400 font-mono max-w-[160px] truncate">{r.error}</span>
+                  )}
+                  {r._id && (
+                    <button
+                      onClick={() => handleDeleteApplicant(r._id)}
+                      className="p-1.5 rounded text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                      title="Remove applicant & resume"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               ))}
