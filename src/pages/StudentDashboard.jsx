@@ -369,6 +369,7 @@ const StudentDashboard = () => {
                 resumeUrl={resumeUrl}
                 resumeStatus={resumeStatus}
                 analysisState={analysisState}
+                user={user}
                 onOpenUploadModal={() => setIsUploadModalOpen(true)}
               />
               <VerificationPipeline

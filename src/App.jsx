@@ -196,6 +196,16 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/reset-password"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <PassphraseReset />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
           path="/reset-password/:resettoken"
           element={
             <Suspense fallback={<LoadingScreen />}>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PageTransition from "../components/PageTransition";
 import {
   Mail,
@@ -7,6 +7,8 @@ import {
   TerminalSquare,
   AlertTriangle,
   Loader2,
+  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import api from "../utils/api";
 
@@ -15,6 +17,7 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,9 +27,12 @@ const ForgotPassword = () => {
 
     try {
       const { data } = await api.post("/api/users/forgotpassword", { email });
-      setMessage(data.message);
+      setMessage(data.message || "A 6-digit verification code has been sent to your email address.");
+      setTimeout(() => {
+        navigate("/reset-password", { state: { email } });
+      }, 1500);
     } catch (err) {
-      setError(err.response?.data?.message || "Error generating reset token.");
+      setError(err.response?.data?.message || "Error dispatching verification code.");
     } finally {
       setLoading(false);
     }

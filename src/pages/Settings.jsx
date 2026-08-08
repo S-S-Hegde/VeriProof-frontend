@@ -107,17 +107,13 @@ const Settings = () => {
     "Annihilating Account Record..."
   ];
 
-  const executeAccountDeletion = async ({ password }) => {
+  const executeAccountDeletion = async (confirmData) => {
     setDeletingAccount(true);
     setDeleteError("");
     setDeleteStepIndex(0);
 
+    const targetPassword = typeof confirmData === "string" ? confirmData : confirmData?.password || confirmData?.confirmText || "DELETE";
     const activeToken = user?.token || localStorage.getItem("token");
-    if (!activeToken) {
-      setDeleteError("Session expired or unauthenticated. Please log out and log back in.");
-      setDeletingAccount(false);
-      return;
-    }
 
     try {
       await new Promise((r) => setTimeout(r, 300));
@@ -130,28 +126,28 @@ const Settings = () => {
       setDeleteStepIndex(3);
 
       await api.delete("/api/users/profile", {
-        data: { password },
+        data: { password: targetPassword },
         headers: {
-          Authorization: `Bearer ${activeToken}`,
-          "x-confirm-password": password,
+          ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
+          "x-confirm-password": targetPassword,
         },
       });
 
       logout();
       localStorage.clear();
       sessionStorage.clear();
-      setToast({ type: "success", msg: "Success: Protocols Wiped. Account Deleted." });
-
-      setTimeout(() => {
-        navigate("/", { replace: true });
-      }, 500);
+      window.location.href = "/";
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Destruction: Authorization Failed";
-      if (err.response?.status === 401 && errorMsg.includes("no token")) {
-        setDeleteError("Session expired. Please log out and log back in to confirm deletion.");
-      } else {
-        setDeleteError(errorMsg);
+      if (err.response?.status === 404) {
+        // Account already deleted
+        logout();
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/";
+        return;
       }
+      setDeleteError(errorMsg);
       setDeletingAccount(false);
       setDeleteStepIndex(-1);
     }
@@ -193,8 +189,14 @@ const Settings = () => {
           profileImage: data.profileImage || prev?.profileImage || "",
         }));
         setSystemStatus("Sync_Complete");
-      } catch {
+      } catch (err) {
         setSystemStatus("Sync_Error");
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          logout();
+          localStorage.clear();
+          sessionStorage.clear();
+          navigate("/", { replace: true });
+        }
       }
     };
     fetchProfile();

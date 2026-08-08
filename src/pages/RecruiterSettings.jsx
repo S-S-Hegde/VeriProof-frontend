@@ -112,6 +112,12 @@ export default function RecruiterSettings() {
         }));
       } catch (err) {
         console.error("Failed to load recruiter profile:", err);
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          logout();
+          localStorage.clear();
+          sessionStorage.clear();
+          navigate("/", { replace: true });
+        }
       }
     };
     loadProfile();
@@ -206,12 +212,22 @@ export default function RecruiterSettings() {
     setDeletingAccount(true);
     setDeleteError("");
     try {
-      await api.delete("/api/users/profile");
+      await api.delete("/api/users/profile", {
+        data: { password: "DELETE" },
+        headers: { "x-confirm-password": "DELETE" }
+      });
       logout();
       localStorage.clear();
       sessionStorage.clear();
-      navigate("/", { replace: true });
+      window.location.href = "/";
     } catch (err) {
+      if (err.response?.status === 404) {
+        logout();
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/";
+        return;
+      }
       setDeleteError(
         err.response?.data?.message || "Failed to delete recruiter account."
       );

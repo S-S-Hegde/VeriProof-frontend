@@ -511,13 +511,14 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
 };
 
 // ─── Resume Status Card (Read-Only) ────────────────────────
-export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, onOpenUploadModal }) => {
+export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user, onOpenUploadModal }) => {
   const navigate = useNavigate();
-  const hasResume = !!resumeUrl;
+  const isInvited = user?.origin === "recruiter_invited";
+  const hasResume = !!resumeUrl || isInvited;
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
 
   // ─── Resume under analysis / processing status ───
-  const isAnalyzing = hasResume && (resumeStatus === "Pending Evaluation" || 
+  const isAnalyzing = !isInvited && hasResume && (resumeStatus === "Pending Evaluation" || 
     (analysisState && ["Queued", "Parsing", "Extracting Information", "Updating Skill Tree"].includes(analysisState.status)));
 
   if (isAnalyzing) {
@@ -568,34 +569,44 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, onOpe
     );
   }
 
-  // ─── Resume already uploaded ───
+  // ─── Resume already uploaded or Recruiter Invited ───
   if (hasResume) {
-    const StatusIcon = statusInfo?.icon || AlertCircle;
+    const StatusIcon = isInvited ? CheckCircle : (statusInfo?.icon || AlertCircle);
     return (
       <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-30" />
 
         <div className="flex items-center gap-2 mb-6">
           <FileText className="w-4 h-4 text-[var(--color-accent)]" />
-          <span className="vp-label-accent">Resume_Status</span>
+          <span className="vp-label-accent">{isInvited ? "RECRUITER_INVITED_PROFILE" : "Resume_Status"}</span>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6">
           {/* Status */}
           <div className="flex-1 space-y-4">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center ${statusInfo?.bg || "bg-[var(--color-accent-subtle)]"}`}>
-                <StatusIcon className={`w-5 h-5 ${statusInfo?.color || "text-[var(--color-accent)]"}`} />
+              <div className={`w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center ${isInvited ? "bg-emerald-500/10" : (statusInfo?.bg || "bg-[var(--color-accent-subtle)]")}`}>
+                <StatusIcon className={`w-5 h-5 ${isInvited ? "text-emerald-400" : (statusInfo?.color || "text-[var(--color-accent)]")}`} />
               </div>
               <div>
                 <p className="text-sm font-black uppercase tracking-tight">
-                  {statusInfo?.label || resumeStatus}
+                  {isInvited ? "Pre-Verified Candidate Profile" : (statusInfo?.label || resumeStatus)}
                 </p>
-                <p className="vp-label mt-0.5">Resume on file</p>
+                <p className="vp-label mt-0.5">
+                  {isInvited ? "Uploaded & pre-analyzed by recruiter during intake" : "Resume on file"}
+                </p>
               </div>
             </div>
             
             <div className="flex flex-wrap gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => navigate("/exams")}
+                className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-1.5 cursor-pointer shadow-md"
+              >
+                <Shield className="w-3 h-3" /> Attend Technical Assessment
+              </button>
+
               {resumeUrl && (
                 <a
                   href={resumeUrl}
@@ -606,20 +617,13 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, onOpe
                   <Eye className="w-3 h-3" /> View_Resume
                 </a>
               )}
-              <button
-                type="button"
-                onClick={() => onOpenUploadModal ? onOpenUploadModal() : navigate("/resume-upload")}
-                className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 cursor-pointer"
-              >
-                <Upload className="w-3 h-3" /> Replace_Resume
-              </button>
             </div>
           </div>
 
-          {/* XP placeholder */}
+          {/* XP badge */}
           <div className="flex items-start">
             <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-green-500/10 text-green-500 rounded-sm">
-              +40 XP Earned
+              +100 XP Pre-Verified
             </span>
           </div>
         </div>
