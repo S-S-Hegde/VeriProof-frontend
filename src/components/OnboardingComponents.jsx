@@ -571,6 +571,7 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
 
   // ─── Resume already uploaded or Recruiter Invited ───
   if (hasResume) {
+    const isAssessmentCompleted = user?.pipelineStage === "verification_complete" || user?.examStatus === "Attended" || user?.examStatus === "Completed";
     const StatusIcon = isInvited ? CheckCircle : (statusInfo?.icon || AlertCircle);
     return (
       <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
@@ -599,13 +600,23 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
             </div>
             
             <div className="flex flex-wrap gap-2 mt-4">
-              <button
-                type="button"
-                onClick={() => navigate("/exams")}
-                className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-1.5 cursor-pointer shadow-md"
-              >
-                <Shield className="w-3 h-3" /> Attend Technical Assessment
-              </button>
+              {isAssessmentCompleted ? (
+                <button
+                  type="button"
+                  disabled
+                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 opacity-80 cursor-not-allowed border border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
+                >
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Assessment Completed (Single Attempt)
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate("/exams")}
+                  className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-1.5 cursor-pointer shadow-md"
+                >
+                  <Shield className="w-3 h-3" /> Attend Technical Assessment
+                </button>
+              )}
 
               {resumeUrl && (
                 <a

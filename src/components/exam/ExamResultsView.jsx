@@ -123,20 +123,17 @@ const ExamResultsView = ({ result, candidateName, onReset }) => {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-4 justify-center">
+      <div className="flex flex-wrap gap-4 justify-center items-center">
         <button
           onClick={handleReturnToDashboard}
-          className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition flex items-center gap-2"
+          className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm transition flex items-center gap-2 shadow-xl shadow-blue-600/30 border border-blue-400/30 cursor-pointer"
         >
-          <Home className="w-4 h-4" /> Return to Dashboard
-        </button>
-        <button
-          onClick={onReset}
-          className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition flex items-center gap-2 shadow-lg shadow-blue-600/20"
-        >
-          <RotateCcw className="w-4 h-4" /> Take Another Assessment
+          <Home className="w-5 h-5" /> Return to Student Dashboard
         </button>
       </div>
+      <p className="text-center text-xs font-mono text-slate-500 uppercase tracking-widest mt-4">
+        🔒 Single Attempt Policy Enforced &middot; Result Encoded to Recruiter Pipeline
+      </p>
     </div>
   );
 };

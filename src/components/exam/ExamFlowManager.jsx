@@ -50,6 +50,7 @@ export default function ExamFlowManager() {
   // Handlers
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
+    setExamError(null);
     try {
       const { data } = await api.get("/api/exams/start");
       setQuestions(data);
@@ -59,7 +60,17 @@ export default function ExamFlowManager() {
       setStage("instructions");
     } catch (err) {
       console.error(err);
-      setExamError("Failed to generate questions. Please try again.");
+      if (err.response?.data?.completed || err.response?.status === 403) {
+        setExamResult({
+          completed: true,
+          score: err.response?.data?.score ?? 0,
+          status: err.response?.data?.status || "Completed",
+          message: err.response?.data?.error || "Single attempt limit reached. Retakes are not permitted."
+        });
+        setStage("completed_lock");
+      } else {
+        setExamError(err.response?.data?.message || "Failed to generate questions. Please try again.");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -79,7 +90,7 @@ export default function ExamFlowManager() {
 
   const isSubmittingRef = useRef(false);
 
-  const handleSubmitExam = useCallback(async () => {
+  const handleSubmitExam = useCallback(async (isTerminated = false) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setStage("results");
@@ -90,7 +101,10 @@ export default function ExamFlowManager() {
         answerIndex: answers[q._id] !== undefined ? answers[q._id] : null
       }));
       
-      const { data } = await api.post("/api/exams/submit", { answers: payload });
+      const { data } = await api.post("/api/exams/submit", {
+        answers: payload,
+        isTerminated
+      });
       setExamResult(data);
       
       // Stop webcam
@@ -111,7 +125,12 @@ export default function ExamFlowManager() {
       sessionStorage.removeItem("exam_visited");
       sessionStorage.removeItem("exam_currentIndex");
       sessionStorage.removeItem("exam_timeLeft");
-      
+
+      if (isTerminated) {
+        setTimeout(() => {
+          window.location.href = "/student-dashboard";
+        }, 3000);
+      }
     } catch (err) {
       console.error("[ExamSubmit] Error:", err);
       setExamError(err.response?.data?.message || "Failed to submit exam. Please try again.");
@@ -126,7 +145,7 @@ export default function ExamFlowManager() {
       setShowViolationModal(true);
 
       if (newCount >= MAX_TAB_SWITCHES) {
-        handleSubmitExam();
+        handleSubmitExam(true); // Terminate exam immediately on 3 violations
       }
       return newCount;
     });
@@ -344,8 +363,43 @@ export default function ExamFlowManager() {
         <ExamResultsView
           result={examResult}
           candidateName={user?.name}
-          onReset={() => window.location.reload()}
+          onReset={() => { window.location.href = "/student-dashboard"; }}
         />
+      )}
+
+      {stage === "completed_lock" && (
+        <div className="max-w-xl mx-auto py-12 px-4 text-center">
+          <div className="glass-card rounded-2xl p-10 shadow-2xl border border-blue-500/30 bg-blue-950/20 space-y-6">
+            <div className="h-16 w-16 mx-auto rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-3xl shadow-inner border border-blue-500/20">
+              🔒
+            </div>
+            <div>
+              <span className="px-3.5 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 text-xs font-extrabold uppercase tracking-widest">
+                Single Attempt Limit Reached
+              </span>
+              <h3 className="text-2xl font-black text-white mt-3 mb-2">
+                Assessment Complete
+              </h3>
+              <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+                You have already attempted your technical examination. Results are encoded to the recruiter pipeline. Retakes are strictly prohibited.
+              </p>
+            </div>
+
+            <div className="py-4 px-6 rounded-xl bg-slate-900/60 border border-slate-800 inline-block">
+              <span className="text-xs text-slate-400 font-mono uppercase tracking-wider block">Recorded Score</span>
+              <span className="text-3xl font-black text-blue-400">{examResult?.score || 0}%</span>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => { window.location.href = "/student-dashboard"; }}
+                className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition border border-blue-400/30 cursor-pointer uppercase tracking-wider"
+              >
+                Return to Candidate Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <ExamViolationModal
