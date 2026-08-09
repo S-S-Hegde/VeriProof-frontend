@@ -55,6 +55,8 @@ export default function Intake() {
   useEffect(() => { fetchJobs(); }, [fetchJobs]);
 
   // ── File handling ──────────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState("docs"); // "docs" | "ats"
+
   const addFiles = (incoming) => {
     const valid = Array.from(incoming).filter(f => {
       const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
@@ -63,7 +65,12 @@ export default function Intake() {
         f.type.includes("wordprocessingml") ||
         f.type.includes("msword") ||
         f.type.includes("text") ||
-        [".pdf", ".docx", ".doc", ".txt"].includes(ext)
+        f.type.includes("csv") ||
+        f.type.includes("spreadsheet") ||
+        f.type.includes("excel") ||
+        f.type.includes("json") ||
+        f.type.includes("zip") ||
+        [".pdf", ".docx", ".doc", ".txt", ".csv", ".xlsx", ".xls", ".json", ".zip"].includes(ext)
       );
     });
     setFiles(prev => {
@@ -96,8 +103,7 @@ export default function Intake() {
     try {
       const { data } = await api.post("/api/verify/applicants/upload", fd, {
         headers: { "Content-Type": "multipart/form-data" },
-        // Long timeout — serial processing with 800ms gaps
-        timeout: files.length * 30000 + 5000,
+        timeout: 120000,
       });
       setResults(data);
       const sent = data.filter(r => r.emailStatus === "sent").length;
@@ -126,12 +132,12 @@ export default function Intake() {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* ── Header ── */}
       <div>
-        <p className="vp-label-accent mb-1">Recruiter / Upload Resumes</p>
+        <p className="vp-label-accent mb-1">Recruiter / Intake Engine</p>
         <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-          Upload <span className="text-[var(--color-accent)] not-italic">Resumes</span>
+          Candidate <span className="text-[var(--color-accent)] not-italic">Multi-Format Upload</span>
         </h1>
         <p className="text-sm text-[var(--color-muted)] mt-1">
-          Drop resumes in bulk. AI parses each one and sends an invite email to the candidate.
+          Import candidate datasets via ATS CSV, Excel, JSON exports, ZIP resume bundles, or PDF documents.
         </p>
       </div>
 
@@ -151,11 +157,11 @@ export default function Intake() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* ── Left: Drop zone + job selector ── */}
+        {/* ── Left: Mode Selector + Drop zone + job selector ── */}
         <div className="lg:col-span-2 space-y-4">
           {/* Job selector */}
           <div className="vp-glass p-4 rounded-[var(--radius-xl)]">
-            <label className="vp-label mb-2 block">Select Job Role</label>
+            <label className="vp-label mb-2 block">Select Target Job Blueprint</label>
             {jobs.length === 0 ? (
               <p className="text-xs text-[var(--color-muted)] font-mono py-2">
                 No job roles found — create one in the Job Roles page first.
@@ -193,13 +199,37 @@ export default function Intake() {
             </div>
           </div>
 
+          {/* Mode Selector Tabs */}
+          <div className="flex items-center gap-2 p-1 rounded-[var(--radius-lg)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]">
+            <button
+              onClick={() => setActiveTab("docs")}
+              className={`flex-1 py-2 px-3 text-xs font-bold font-mono rounded-[var(--radius-md)] transition-all ${
+                activeTab === "docs"
+                  ? "bg-[var(--color-accent)] text-black shadow"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+              }`}
+            >
+              📄 Documents &amp; ZIP Archives (.pdf, .docx, .zip)
+            </button>
+            <button
+              onClick={() => setActiveTab("ats")}
+              className={`flex-1 py-2 px-3 text-xs font-bold font-mono rounded-[var(--radius-md)] transition-all ${
+                activeTab === "ats"
+                  ? "bg-[var(--color-accent)] text-black shadow"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+              }`}
+            >
+              📊 ATS Data Exports (.csv, .xlsx, .json)
+            </button>
+          </div>
+
           {/* Drop zone */}
           <div
             onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`vp-glass border-2 border-dashed rounded-[var(--radius-xl)] p-10 flex flex-col items-center text-center cursor-pointer transition-colors min-h-[240px] justify-center ${
+            className={`vp-glass border-2 border-dashed rounded-[var(--radius-xl)] p-8 flex flex-col items-center text-center cursor-pointer transition-colors min-h-[220px] justify-center ${
               isDragging
                 ? "border-[var(--color-accent)] bg-[var(--color-accent)]/8"
                 : "border-[var(--color-border)] hover:border-[var(--color-text)]"
@@ -209,19 +239,23 @@ export default function Intake() {
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".pdf,.docx,.doc,.txt"
+              accept={activeTab === "docs" ? ".pdf,.docx,.doc,.txt,.zip" : ".csv,.xlsx,.xls,.json"}
               className="hidden"
               onChange={e => addFiles(e.target.files)}
             />
             <motion.div animate={{ y: isDragging ? -8 : 0 }} transition={{ type: "spring", stiffness: 300 }}>
-              <UploadCloud className="w-12 h-12 text-[var(--color-muted)] mb-3 mx-auto" />
+              <UploadCloud className="w-10 h-10 text-[var(--color-muted)] mb-2 mx-auto" />
             </motion.div>
-            <p className="font-bold text-[var(--color-text)] mb-1">Drop Resumes Here</p>
-            <p className="text-xs text-[var(--color-muted)] mb-4">
-              PDF, DOCX, TXT · Select multiple files at once · Duplicates ignored
+            <p className="font-bold text-[var(--color-text)] text-sm mb-1">
+              {activeTab === "docs" ? "Drop PDF, DOCX, or ZIP Resume Archives" : "Drop Candidate CSV, Excel, or JSON ATS Files"}
+            </p>
+            <p className="text-xs text-[var(--color-muted)] mb-4 font-mono">
+              {activeTab === "docs"
+                ? "Multi-resume PDFs, DOCX documents, or ZIP bundles (150 candidates max/batch)"
+                : "Exported tabular datasets from Greenhouse, Lever, Workday, or Excel"}
             </p>
             <button className="vp-btn vp-btn-secondary text-xs px-5 py-2" onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-              Browse Files (Multiple)
+              Select {activeTab === "docs" ? "Document / ZIP Files" : "ATS CSV / Spreadsheet Files"}
             </button>
           </div>
 
@@ -229,7 +263,7 @@ export default function Intake() {
           <div className="flex items-start gap-2 px-3 py-2 rounded-[var(--radius-md)] bg-emerald-500/8 border border-emerald-500/20">
             <Clock className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
             <p className="text-[10px] font-mono text-emerald-400/90 leading-relaxed">
-              ⚡ High-Speed Engine: Resumes are uploaded &amp; parsed simultaneously in parallel.
+              ⚡ Multi-Engine Orchestrator: Ingests ATS spreadsheets, ZIPs &amp; PDFs in 150-candidate parallel chunks across Groq, Gemini &amp; NVIDIA NIM APIs.
             </p>
           </div>
         </div>

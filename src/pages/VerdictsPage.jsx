@@ -72,16 +72,141 @@ const SortHeader = ({ label, field, sortField, sortDir, onSort }) => (
 );
 
 const exportCSV = (rows, jobTitle) => {
-  const headers = ["Rank","Name","File","Job","Alignment Score (%)","Exam Score (%)","Final Score (%)","Skills Matched","Exam Status","Email Status","Email"];
-  const lines = rows.map((r, i) => [i+1,r.extractedName||"",r.originalFileName,r.jobId?.title||"",r.alignmentScore,r.examScore??"",(r.finalScore ?? r.alignmentScore),(r.matchedSkills||[]).length,r.examStatus||"",r.emailStatus,r.emailSentTo||""].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
+  const headers = ["Rank", "Candidate Name", "Email", "Original File", "Job Blueprint", "Alignment Score (%)", "Exam Score (%)", "Final Score (%)", "Matched Skills Count", "Matched Skills", "Exam Status", "Email Status", "Github Username", "Processed Date"];
+  const lines = rows.map((r, i) => [
+    i + 1,
+    r.extractedName || "",
+    r.emailSentTo || r.extractedEmail || "",
+    r.originalFileName || "",
+    r.jobId?.title || jobTitle || "",
+    r.alignmentScore ?? 0,
+    r.examScore ?? "N/A",
+    (r.finalScore ?? r.alignmentScore ?? 0),
+    (r.matchedSkills || []).length,
+    (r.matchedSkills || []).join("; "),
+    r.examStatus || "Not Attended",
+    r.emailStatus || "not_found",
+    r.githubUsername || "",
+    r.processedAt ? new Date(r.processedAt).toISOString() : new Date().toISOString(),
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+
   const csv = [headers.join(","), ...lines].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `shortlist_${(jobTitle||"all").replace(/\s+/g,"_")}_${Date.now()}.csv`;
+  a.download = `ats_export_${(jobTitle || "candidates").replace(/\s+/g, "_")}_${Date.now()}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+};
+
+const exportJSON = (rows, jobTitle) => {
+  const payload = {
+    exportTimestamp: new Date().toISOString(),
+    jobTitle: jobTitle || "All Roles",
+    totalCandidates: rows.length,
+    candidates: rows.map((r, i) => ({
+      rank: i + 1,
+      candidateId: r._id,
+      name: r.extractedName || "Candidate",
+      email: r.emailSentTo || r.extractedEmail || "",
+      githubUsername: r.githubUsername || "",
+      originalFileName: r.originalFileName || "",
+      jobTitle: r.jobId?.title || jobTitle || "",
+      scores: {
+        finalScore: r.finalScore ?? r.alignmentScore ?? 0,
+        alignmentScore: r.alignmentScore ?? 0,
+        examScore: r.examScore ?? null,
+      },
+      examStatus: r.examStatus || "Not Attended",
+      emailStatus: r.emailStatus || "not_found",
+      matchedSkills: r.matchedSkills || [],
+      missingSkills: r.missingSkills || [],
+      processedAt: r.processedAt || new Date(),
+    })),
+  };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ats_payload_${(jobTitle || "candidates").replace(/\s+/g, "_")}_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const exportExcel = (rows, jobTitle) => {
+  const headers = ["Rank", "Name", "Email", "Job Title", "Alignment %", "Exam %", "Final Score %", "Matched Skills", "Exam Status"];
+  let tableHtml = `<table border="1"><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+  rows.forEach((r, i) => {
+    tableHtml += `<tr>
+      <td>${i + 1}</td>
+      <td>${r.extractedName || ""}</td>
+      <td>${r.emailSentTo || r.extractedEmail || ""}</td>
+      <td>${r.jobId?.title || jobTitle || ""}</td>
+      <td>${r.alignmentScore ?? 0}%</td>
+      <td>${r.examScore ?? "—"}</td>
+      <td>${(r.finalScore ?? r.alignmentScore ?? 0)}%</td>
+      <td>${(r.matchedSkills || []).join(", ")}</td>
+      <td>${r.examStatus || "Not Attended"}</td>
+    </tr>`;
+  });
+  tableHtml += `</tbody></table>`;
+  const blob = new Blob([tableHtml], { type: "application/vnd.ms-excel" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ats_spreadsheet_${(jobTitle || "candidates").replace(/\s+/g, "_")}_${Date.now()}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const exportPDFReport = (rows, jobTitle) => {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
+  const titleStr = `VeriProof ATS Candidate Ranking Verdicts - ${jobTitle || "All Roles"}`;
+  const rowsHtml = rows.map((r, i) => `
+    <tr>
+      <td style="padding:8px;border:1px solid #ccc;font-weight:bold;text-align:center;">${i + 1}</td>
+      <td style="padding:8px;border:1px solid #ccc;">${r.extractedName || "Candidate"}</td>
+      <td style="padding:8px;border:1px solid #ccc;">${r.emailSentTo || r.extractedEmail || "N/A"}</td>
+      <td style="padding:8px;border:1px solid #ccc;text-align:center;">${r.alignmentScore ?? 0}%</td>
+      <td style="padding:8px;border:1px solid #ccc;text-align:center;">${r.examScore !== null && r.examScore !== undefined ? r.examScore + '%' : '—'}</td>
+      <td style="padding:8px;border:1px solid #ccc;font-weight:bold;text-align:center;color:#059669;">${(r.finalScore ?? r.alignmentScore ?? 0)}%</td>
+      <td style="padding:8px;border:1px solid #ccc;">${(r.matchedSkills || []).join(", ") || "None"}</td>
+      <td style="padding:8px;border:1px solid #ccc;text-align:center;">${r.examStatus || "Not Attended"}</td>
+    </tr>
+  `).join("");
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${titleStr}</title>
+        <style>
+          body { font-family: system-ui, -apple-system, sans-serif; padding: 24px; color: #111; }
+          h1 { margin-bottom: 4px; font-size: 22px; }
+          p { color: #666; font-size: 12px; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; font-size: 12px; }
+          th { background: #f3f4f6; padding: 10px 8px; border: 1px solid #ccc; text-align: left; }
+        </style>
+      </head>
+      <body>
+        <h1>${titleStr}</h1>
+        <p>Generated on ${new Date().toLocaleString()} · Total Candidates: ${rows.length}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th><th>Candidate Name</th><th>Email</th><th>Alignment</th><th>Exam Score</th><th>Final Verdict</th><th>Matched Skills</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <script>window.onload = function() { window.print(); };</script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
 };
 
 function SortableRow({ r, idx, isShortlisted, cutoff, expandedId, setExpandedId, onToggleShortlist, onDelete, runningPipelines, runVerificationPipeline }) {
@@ -319,7 +444,26 @@ export default function Verdicts() {
           <button onClick={fetchData} className="vp-btn vp-btn-secondary text-xs px-4 py-2 gap-2"><RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>Refresh</button>
           <button onClick={sendDigest} disabled={digestSending} className="vp-btn vp-btn-secondary text-xs px-4 py-2 gap-2 disabled:opacity-40">{digestSending?<Loader2 className="w-3.5 h-3.5 animate-spin"/>:<Send className="w-3.5 h-3.5"/>}Send Digest</button>
           <button onClick={saveShortlist} disabled={isSavingShortlist} className="vp-btn vp-btn-secondary text-xs px-4 py-2 gap-2 disabled:opacity-40">{isSavingShortlist?<Loader2 className="w-3.5 h-3.5 animate-spin"/>:<Star className="w-3.5 h-3.5 text-yellow-400"/>}Save Shortlist</button>
-          <button onClick={()=>exportCSV(shortlistRows,selectedJobTitle)} disabled={shortlistRows.length===0} className="vp-btn vp-btn-accent text-xs px-5 py-2 gap-2 disabled:opacity-40"><Download className="w-3.5 h-3.5"/>Export Top {topN}</button>
+          <div className="relative group">
+            <button disabled={displayRows.length===0} className="vp-btn vp-btn-accent text-xs px-4 py-2 gap-2 disabled:opacity-40">
+              <Download className="w-3.5 h-3.5"/>Export ATS Verdicts ({displayRows.length})
+              <ChevronDown className="w-3 h-3 ml-0.5 opacity-70"/>
+            </button>
+            <div className="absolute right-0 mt-1 w-56 bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-[var(--radius-lg)] shadow-2xl p-1 z-50 hidden group-hover:block group-focus-within:block">
+              <button onClick={()=>exportCSV(displayRows,selectedJobTitle)} className="w-full text-left px-3 py-2 text-xs font-mono rounded hover:bg-[var(--color-accent)]/15 hover:text-[var(--color-accent)] transition-colors flex items-center gap-2">
+                📄 CSV ATS Export (.csv)
+              </button>
+              <button onClick={()=>exportExcel(displayRows,selectedJobTitle)} className="w-full text-left px-3 py-2 text-xs font-mono rounded hover:bg-[var(--color-accent)]/15 hover:text-[var(--color-accent)] transition-colors flex items-center gap-2">
+                📊 Excel Spreadsheet (.xls)
+              </button>
+              <button onClick={()=>exportJSON(displayRows,selectedJobTitle)} className="w-full text-left px-3 py-2 text-xs font-mono rounded hover:bg-[var(--color-accent)]/15 hover:text-[var(--color-accent)] transition-colors flex items-center gap-2">
+                📦 JSON ATS Payload (.json)
+              </button>
+              <button onClick={()=>exportPDFReport(displayRows,selectedJobTitle)} className="w-full text-left px-3 py-2 text-xs font-mono rounded hover:bg-[var(--color-accent)]/15 hover:text-[var(--color-accent)] transition-colors flex items-center gap-2 border-t border-[var(--color-border)] mt-1 pt-2">
+                📝 PDF Ranking Report (.pdf)
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
