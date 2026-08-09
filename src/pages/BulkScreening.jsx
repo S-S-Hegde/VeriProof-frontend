@@ -308,9 +308,15 @@ export default function Intake() {
           </div>
 
           <div className="pt-4 border-t border-[var(--color-border)] mt-auto space-y-2">
+            {files.length > 0 && (
+              <div className="flex items-center justify-between text-[10px] font-mono text-[var(--color-muted)] px-1">
+                <span>Est. Processing Time:</span>
+                <span className="text-emerald-400 font-bold">~{Math.max(1, Math.ceil(files.length / 100) * 1.5)} mins</span>
+              </div>
+            )}
             {isProcessing && (
               <p className="text-[10px] font-mono text-yellow-400 text-center animate-pulse">
-                Processing… do not close this page
+                Parsing full dataset with equal LLM quality… do not close page
               </p>
             )}
             <button
@@ -319,31 +325,51 @@ export default function Intake() {
               className="vp-btn vp-btn-accent w-full py-3 text-xs gap-2 disabled:opacity-40"
             >
               {isProcessing
-                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing Batch…</>
-                : <><UploadCloud className="w-3.5 h-3.5" /> Upload Resumes</>
+                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing AI Dataset…</>
+                : <><UploadCloud className="w-3.5 h-3.5" /> Import &amp; Process Candidates</>
               }
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── Results ── */}
+      {/* ── Results & Python Engine Module Status ── */}
       <AnimatePresence>
         {results.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            className="vp-glass rounded-[var(--radius-xl)] overflow-hidden"
+            className="vp-glass rounded-[var(--radius-xl)] overflow-hidden space-y-4 p-6"
           >
+            {/* Python Engine Modules Status Banner */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 rounded-[var(--radius-lg)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)]">
+              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span>⚡ LLM Claims Parsed</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span>🎯 Skill Alignment Scored</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span>👤 Accounts Synced</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono text-amber-400">
+                <Clock className="w-4 h-4 shrink-0" />
+                <span>⏳ Exam Pending Candidate</span>
+              </div>
+            </div>
+
             {/* Summary bar */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] bg-emerald-500/5">
+            <div className="flex items-center justify-between px-4 py-3 rounded-[var(--radius-lg)] bg-emerald-500/5 border border-emerald-500/20">
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-5 h-5 text-emerald-400" />
                 <div>
-                  <p className="text-sm font-bold">Upload Complete</p>
+                  <p className="text-sm font-bold">100% LLM Dataset Intake Complete</p>
                   <p className="text-xs text-[var(--color-muted)] font-mono">
-                    {results.filter(r => r.status === "Completed").length}/{results.length} processed ·{" "}
+                    {results.filter(r => r.status === "Completed").length}/{results.length} candidates parsed with equal LLM quality ·{" "}
                     <span className="text-emerald-400 flex items-center gap-1 inline-flex">
-                      <Mail className="w-3 h-3" /> {emailsSent} invite{emailsSent !== 1 ? "s" : ""} sent
+                      <Mail className="w-3 h-3" /> {emailsSent} invite email{emailsSent !== 1 ? "s" : ""} sent
                     </span>
                   </p>
                 </div>

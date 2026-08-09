@@ -11,7 +11,7 @@ import {
   BarChart3, Download, RefreshCw, Filter, ChevronDown,
   ChevronUp, Mail, AlertCircle, Loader2, FileText,
   CheckCircle, X, ArrowUpDown, Trophy, Trash2, GraduationCap,
-  Clock, ShieldCheck, GripVertical, Star, StarOff, Send,
+  Clock, ShieldCheck, GripVertical, Star, StarOff, Send, CheckSquare,
 } from "lucide-react";
 import api from "../utils/api";
 import ConfirmModal from "../components/ConfirmModal";
@@ -209,16 +209,31 @@ const exportPDFReport = (rows, jobTitle) => {
   printWindow.document.close();
 };
 
-function SortableRow({ r, idx, isShortlisted, cutoff, expandedId, setExpandedId, onToggleShortlist, onDelete, runningPipelines, runVerificationPipeline }) {
+const SortableRow = React.memo(function SortableRow({ r, idx, isShortlisted, isSelected, onToggleSelect, cutoff, expandedId, setExpandedId, onToggleShortlist, onDelete, runningPipelines, runVerificationPipeline }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: r._id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    willChange: "transform",
+    transformStyle: "preserve-3d",
+    backfaceVisibility: "hidden",
+  };
   const isAtCutoff = idx === cutoff - 1 && cutoff > 0;
 
   return (
     <>
-      <tr ref={setNodeRef} style={style} className={`hover:bg-[var(--color-bg-sunken)]/40 transition-colors ${isDragging?"shadow-2xl bg-[var(--color-bg-sunken)]":""}`}>
+      <tr ref={setNodeRef} style={style} className={`hover:bg-[var(--color-bg-sunken)]/40 transition-colors ${isSelected ? "bg-[var(--color-accent)]/10" : ""} ${isDragging?"shadow-2xl bg-[var(--color-bg-sunken)]":""}`}>
         <td className="px-2 py-3 w-8" onClick={e=>e.stopPropagation()}>
           <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-[var(--color-muted)] hover:text-[var(--color-text)]"><GripVertical className="w-4 h-4" /></div>
+        </td>
+        <td className="px-2 py-3 w-8 text-center" onClick={e=>e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={()=>onToggleSelect(r._id)}
+            className="w-4 h-4 rounded border-[var(--color-border)] accent-[var(--color-accent)] cursor-pointer"
+          />
         </td>
         <td className="px-3 py-3 font-mono text-xs text-[var(--color-muted)]" onClick={()=>setExpandedId(expandedId===r._id?null:r._id)}>
           {idx===0&&<Trophy className="w-3.5 h-3.5 text-yellow-400 inline mr-1"/>}{idx+1}
@@ -302,7 +317,7 @@ function SortableRow({ r, idx, isShortlisted, cutoff, expandedId, setExpandedId,
       )}
     </>
   );
-}
+});
 
 export default function Verdicts() {
   const [jobs, setJobs]         = useState([]);
@@ -322,6 +337,18 @@ export default function Verdicts() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [runningPipelines, setRunningPipelines] = useState({});
+  const [selectedIds, setSelectedIds]           = useState(new Set());
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting]     = useState(false);
+
+  const toggleSelectRow = useCallback((id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -431,6 +458,33 @@ export default function Verdicts() {
   const shortlistRows = shortlistedIds.map(id=>applicants.find(a=>a._id===id)).filter(Boolean);
   const displayRows = activeTab==="shortlist"?shortlistRows:sorted;
 
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(prev => {
+      if (prev.size === displayRows.length && displayRows.length > 0) {
+        return new Set();
+      }
+      return new Set(displayRows.map(r => r._id));
+    });
+  }, [displayRows]);
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      await api.post("/api/verify/applicants/bulk-delete", {
+        applicantIds: Array.from(selectedIds),
+      });
+      setApplicants(prev => prev.filter(a => !selectedIds.has(a._id)));
+      setShortlistOrder(prev => prev.filter(id => !selectedIds.has(id)));
+      setSelectedIds(new Set());
+      setBulkDeleteModalOpen(false);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete selected candidates.");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -524,6 +578,14 @@ export default function Verdicts() {
                   <thead className="border-b border-[var(--color-border)] bg-[var(--color-bg-sunken)]/50">
                     <tr>
                       <th className="px-2 py-3 w-8"><GripVertical className="w-3.5 h-3.5 mx-auto opacity-30"/></th>
+                      <th className="px-2 py-3 w-8 text-center" title="Select All / Deselect All">
+                        <input
+                          type="checkbox"
+                          checked={displayRows.length > 0 && selectedIds.size === displayRows.length}
+                          onChange={toggleSelectAll}
+                          className="w-4 h-4 rounded border-[var(--color-border)] accent-[var(--color-accent)] cursor-pointer"
+                        />
+                      </th>
                       <th className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)] w-10">#</th>
                       <th className="px-2 py-3 w-8 text-yellow-400/50" title="Star to shortlist"><Star className="w-3.5 h-3.5 mx-auto"/></th>
                       <SortHeader label="Candidate" field="extractedName" sortField={sortField} sortDir={sortDir} onSort={handleSort}/>
@@ -531,7 +593,7 @@ export default function Verdicts() {
                       <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)]">Job</th>
                       <SortHeader label="Alignment" field="alignmentScore" sortField={sortField} sortDir={sortDir} onSort={handleSort}/>
                       <SortHeader label="Exam %" field="examScore" sortField={sortField} sortDir={sortDir} onSort={handleSort}/>
-                      <SortHeader label="Final Score" field="finalScore" sortField={sortField} sortDir={sortDir} onSort={handleSort}/>
+                      <SortHeader label="Final Score" field="finalScore" sortField={sortDir} sortDir={sortDir} onSort={handleSort}/>
                       <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)]">Email</th>
                       <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)]">Exam</th>
                       <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)] w-12">Del</th>
@@ -539,7 +601,7 @@ export default function Verdicts() {
                   </thead>
                   <tbody className="divide-y divide-[var(--color-border)]">
                     {displayRows.map((r,idx)=>(
-                      <SortableRow key={r._id} r={r} idx={idx} isShortlisted={shortlistIdSet.has(r._id)} cutoff={activeTab==="all"?topN:0} expandedId={expandedId} setExpandedId={setExpandedId} onToggleShortlist={handleToggleShortlist} onDelete={setDeleteTarget} runningPipelines={runningPipelines} runVerificationPipeline={runVerificationPipeline}/>
+                      <SortableRow key={r._id} r={r} idx={idx} isShortlisted={shortlistIdSet.has(r._id)} isSelected={selectedIds.has(r._id)} onToggleSelect={toggleSelectRow} cutoff={activeTab==="all"?topN:0} expandedId={expandedId} setExpandedId={setExpandedId} onToggleShortlist={handleToggleShortlist} onDelete={setDeleteTarget} runningPipelines={runningPipelines} runVerificationPipeline={runVerificationPipeline}/>
                     ))}
                   </tbody>
                 </table>
@@ -552,6 +614,41 @@ export default function Verdicts() {
       {displayRows.length>0&&<p className="text-center text-[10px] font-mono text-[var(--color-muted)]">{activeTab==="all"?`${displayRows.length} total · ⭐ ${shortlistedIds.length} shortlisted · Drag rows to reorder · ⭐ to add/remove from shortlist`:`${shortlistRows.length} in shortlist · Drag to reorder · Export CSV exports only this list`}</p>}
 
       <ConfirmModal isOpen={Boolean(deleteTarget)} onClose={()=>!isDeleting&&setDeleteTarget(null)} onConfirm={confirmDelete} title="Remove Applicant" message="Remove this applicant from the ranking list?" subtitle={deleteTarget?`${deleteTarget.extractedName||"Unknown"} — ${deleteTarget.originalFileName}`:""} confirmText="Remove" cancelText="Cancel" variant="danger" loading={isDeleting}/>
+
+      {/* Floating Bulk Action Bar */}
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.95 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3.5 rounded-[var(--radius-xl)] shadow-2xl border border-[var(--color-accent)]/30 flex items-center gap-4 bg-[var(--color-bg-raised)]/95 backdrop-blur-xl"
+          >
+            <div className="flex items-center gap-2 font-mono text-xs">
+              <CheckSquare className="w-4 h-4 text-[var(--color-accent)]" />
+              <span className="font-bold text-[var(--color-text)]">{selectedIds.size} candidate{selectedIds.size > 1 ? "s" : ""} selected</span>
+            </div>
+
+            <div className="h-4 w-px bg-[var(--color-border)]" />
+
+            <button
+              onClick={toggleSelectAll}
+              className="text-xs font-mono text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors"
+            >
+              {selectedIds.size === displayRows.length ? "Deselect All" : "Select All"}
+            </button>
+
+            <button
+              onClick={() => setBulkDeleteModalOpen(true)}
+              className="vp-btn text-xs px-3.5 py-1.5 bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 transition-all flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Remove Selected ({selectedIds.size})
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <ConfirmModal isOpen={bulkDeleteModalOpen} onClose={() => !isBulkDeleting && setBulkDeleteModalOpen(false)} onConfirm={handleBulkDelete} title={`Remove ${selectedIds.size} Applicants`} message={`Are you sure you want to permanently remove ${selectedIds.size} selected candidate(s)? This will clean up their resume records and evaluation data.`} confirmText="Remove Selected" cancelText="Cancel" variant="danger" loading={isBulkDeleting} />
     </div>
   );
 }

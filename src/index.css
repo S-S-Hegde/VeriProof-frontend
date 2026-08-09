@@ -167,7 +167,13 @@
       linear-gradient(180deg, #E8F2F6 0%, #DEF0F5 40%, #D4EBF2 70%, #CCE4ED 100%);
   }
 
-  /* ─── Lenis Smooth Scroll Core Rules ─── */
+  /* ─── Lenis Smooth Scroll Core Rules & 165Hz Hardware Acceleration ─── */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
   html.lenis, html.lenis body {
     height: auto;
   }
@@ -186,6 +192,16 @@
 
   .lenis.lenis-smooth iframe {
     pointer-events: none;
+  }
+
+  /* GPU compositing layers for 165Hz butter-smooth scrolling in Light & Dark themes */
+  tr, .vp-glass {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  tbody tr {
+    contain: layout style paint;
   }
 
   /* ─── Hidden Scrollbar (Lenis handles scroll) ─── */
