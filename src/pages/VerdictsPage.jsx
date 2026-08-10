@@ -81,7 +81,7 @@ const exportCSV = (rows, jobTitle) => {
     r.jobId?.title || jobTitle || "",
     r.alignmentScore ?? 0,
     r.examScore ?? "N/A",
-    (r.finalScore ?? r.alignmentScore ?? 0),
+    r.finalScore != null ? r.finalScore : "Pending Candidate Exam",
     (r.matchedSkills || []).length,
     (r.matchedSkills || []).join("; "),
     r.examStatus || "Not Attended",
@@ -114,9 +114,9 @@ const exportJSON = (rows, jobTitle) => {
       originalFileName: r.originalFileName || "",
       jobTitle: r.jobId?.title || jobTitle || "",
       scores: {
-        finalScore: r.finalScore ?? r.alignmentScore ?? 0,
         alignmentScore: r.alignmentScore ?? 0,
         examScore: r.examScore ?? null,
+        finalScore: r.finalScore ?? null,
       },
       examStatus: r.examStatus || "Not Attended",
       emailStatus: r.emailStatus || "not_found",
@@ -146,7 +146,7 @@ const exportExcel = (rows, jobTitle) => {
       <td>${r.jobId?.title || jobTitle || ""}</td>
       <td>${r.alignmentScore ?? 0}%</td>
       <td>${r.examScore ?? "—"}</td>
-      <td>${(r.finalScore ?? r.alignmentScore ?? 0)}%</td>
+      <td>${r.finalScore != null ? r.finalScore + "%" : "Pending Exam"}</td>
       <td>${(r.matchedSkills || []).join(", ")}</td>
       <td>${r.examStatus || "Not Attended"}</td>
     </tr>`;
@@ -172,7 +172,7 @@ const exportPDFReport = (rows, jobTitle) => {
       <td style="padding:8px;border:1px solid #ccc;">${r.emailSentTo || r.extractedEmail || "N/A"}</td>
       <td style="padding:8px;border:1px solid #ccc;text-align:center;">${r.alignmentScore ?? 0}%</td>
       <td style="padding:8px;border:1px solid #ccc;text-align:center;">${r.examScore !== null && r.examScore !== undefined ? r.examScore + '%' : '—'}</td>
-      <td style="padding:8px;border:1px solid #ccc;font-weight:bold;text-align:center;color:#059669;">${(r.finalScore ?? r.alignmentScore ?? 0)}%</td>
+      <td style="padding:8px;border:1px solid #ccc;font-weight:bold;text-align:center;color:#059669;">${r.finalScore != null ? r.finalScore + '%' : 'Pending Exam'}</td>
       <td style="padding:8px;border:1px solid #ccc;">${(r.matchedSkills || []).join(", ") || "None"}</td>
       <td style="padding:8px;border:1px solid #ccc;text-align:center;">${r.examStatus || "Not Attended"}</td>
     </tr>
@@ -254,7 +254,11 @@ const SortableRow = React.memo(function SortableRow({ r, idx, isShortlisted, isS
           {r.examScore!=null?<span className={`font-bold ${r.examScore>=70?"text-emerald-400":"text-red-400"}`}>{r.examScore}%</span>:<span className="text-[var(--color-muted)]">—</span>}
         </td>
         <td className="px-4 py-3 font-mono text-xs text-center" onClick={()=>setExpandedId(expandedId===r._id?null:r._id)}>
-          <span className={`font-bold text-sm ${(r.finalScore||0)>=70?"text-emerald-400":(r.finalScore||0)>=40?"text-yellow-400":"text-red-400"}`}>{(r.finalScore ?? r.alignmentScore)}%</span>
+          {r.finalScore != null ? (
+            <span className={`font-bold text-sm ${r.finalScore>=70?"text-emerald-400":r.finalScore>=40?"text-yellow-400":"text-red-400"}`}>{r.finalScore}%</span>
+          ) : (
+            <span className="text-[10px] font-mono text-amber-400 font-bold px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/30 whitespace-nowrap">Pending Exam</span>
+          )}
         </td>
         <td className="px-4 py-3" onClick={()=>setExpandedId(expandedId===r._id?null:r._id)}><EmailBadge status={r.emailStatus}/></td>
         <td className="px-4 py-3" onClick={()=>setExpandedId(expandedId===r._id?null:r._id)}><ExamBadge status={r.examStatus} score={r.examScore}/></td>
