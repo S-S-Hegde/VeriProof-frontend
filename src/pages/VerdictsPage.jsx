@@ -12,6 +12,7 @@ import {
   ChevronUp, Mail, AlertCircle, Loader2, FileText,
   CheckCircle, X, ArrowUpDown, Trophy, Trash2, GraduationCap,
   Clock, ShieldCheck, GripVertical, Star, StarOff, Send, CheckSquare,
+  Brain, Sparkles, CheckCircle2, XCircle, Tag,
 } from "lucide-react";
 import api from "../utils/api";
 import ConfirmModal from "../components/ConfirmModal";
@@ -279,24 +280,148 @@ const SortableRow = React.memo(function SortableRow({ r, idx, isShortlisted, isS
         <tr><td colSpan={12} className="px-6 py-4 bg-[var(--color-bg-sunken)]/30 border-b border-[var(--color-border)]">
           <div className="space-y-4 font-mono text-xs">
             <div className="flex justify-between items-center border-b border-[var(--color-border)] pb-2">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--color-muted)]">V2 Pipeline Intelligence</span>
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-sky-400" />
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--color-muted)]">Candidate Resume Intelligence &amp; Score Reasoning</span>
+              </div>
               <div className="flex items-center gap-2">
                 <button onClick={e=>{e.stopPropagation();onDelete(r);}} className="vp-btn text-[10px] px-3 py-1 text-red-400 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 flex items-center gap-1.5 transition-colors">
                   <Trash2 className="w-3 h-3"/>Remove Applicant
                 </button>
                 <button onClick={e=>{e.stopPropagation();runVerificationPipeline(r._id,true);}} disabled={runningPipelines[r._id]} className="vp-btn vp-btn-secondary px-3 py-1 text-[10px]">
-                  {runningPipelines[r._id]?<Loader2 className="w-3 h-3 animate-spin"/>:<RefreshCw className="w-3 h-3"/>}{r.v2Report?"Re-run":"Run Verification"}
+                  {runningPipelines[r._id]?<Loader2 className="w-3 h-3 animate-spin"/>:<RefreshCw className="w-3 h-3"/>}{r.v2Report?"Re-run V2 Pipeline":"Run V2 Verification"}
                 </button>
               </div>
             </div>
+
+            {/* ── AI Alignment Score Reasoning Card ── */}
+            <div className="vp-glass p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] space-y-3 bg-[var(--color-bg-surface)]/80">
+              <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-[var(--color-border)]/50">
+                <div className="flex items-center gap-2 font-mono text-[11px]">
+                  <span className="text-[var(--color-muted)]">Target Alignment:</span>
+                  <span className={`px-2.5 py-0.5 rounded font-bold uppercase border ${
+                    r.alignmentScore >= 70 ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" :
+                    r.alignmentScore >= 40 ? "bg-amber-500/10 border-amber-500/30 text-amber-400" :
+                    "bg-red-500/10 border-red-500/30 text-red-400"
+                  }`}>
+                    {r.alignmentScore ?? 0}% Match — {
+                      (r.alignmentScore ?? 0) >= 70 ? "Strong Skill Alignment" :
+                      (r.alignmentScore ?? 0) >= 40 ? "Moderate Skill Alignment" :
+                      "Low Skill Alignment"
+                    }
+                  </span>
+                </div>
+                {r.jobId?.title && (
+                  <span className="text-[10px] text-[var(--color-muted)] font-mono">
+                    Job Role: <span className="text-[var(--color-text)] font-bold">{r.jobId.title}</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Reasoning Quote Banner */}
+              <div className="p-3 rounded bg-[var(--color-bg-sunken)] border border-[var(--color-border)]/60 text-xs text-[var(--color-text)] font-sans leading-relaxed flex gap-2.5 items-start">
+                <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-mono text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+                    Score Breakdown Reasoning
+                  </p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">
+                    {r.reasoning || (
+                      (r.matchedSkills && r.matchedSkills.length > 0) ? (
+                        `Candidate matched ${r.matchedSkills.length} required skill(s): ${r.matchedSkills.join(", ")}.` +
+                        (r.missingSkills?.length ? ` Skill gaps: ${r.missingSkills.join(", ")}.` : "")
+                      ) : (
+                        `Candidate resume scored at ${r.alignmentScore || 0}% alignment based on general keyword density and profile match.`
+                      )
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Skills Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                {/* Matched Skills */}
+                <div className="p-2.5 rounded bg-emerald-500/5 border border-emerald-500/20 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-emerald-400 uppercase">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Matched Target Skills ({r.matchedSkills?.length || 0})</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {r.matchedSkills?.length ? (
+                      r.matchedSkills.map((sk, idx) => (
+                        <span key={idx} className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-semibold">
+                          {sk}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[10px] font-mono text-[var(--color-muted)] italic">No direct matches</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Missing Skills */}
+                <div className="p-2.5 rounded bg-red-500/5 border border-red-500/20 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-red-400 uppercase">
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Missing Skill Gaps ({r.missingSkills?.length || 0})</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {r.missingSkills?.length ? (
+                      r.missingSkills.map((sk, idx) => (
+                        <span key={idx} className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-300 text-[10px] font-mono font-semibold">
+                          {sk}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[10px] font-mono text-emerald-400 italic">No skill gaps detected</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Extracted Claimed Resume Skills */}
+                {(() => {
+                  const extractedSkillsList = (r.claimedSkills && r.claimedSkills.length > 0)
+                    ? r.claimedSkills
+                    : ((r.claims?.skills && r.claims.skills.length > 0)
+                        ? r.claims.skills
+                        : (r.matchedSkills || []));
+                  return (
+                    <div className="p-2.5 rounded bg-sky-500/5 border border-sky-500/20 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-sky-400 uppercase">
+                        <Tag className="w-3.5 h-3.5" />
+                        <span>Extracted Resume Skills ({extractedSkillsList.length})</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto custom-scrollbar">
+                        {extractedSkillsList.length ? (
+                          extractedSkillsList.map((sk, idx) => {
+                            const skillName = typeof sk === "string" ? sk : sk.skill || sk.name || "";
+                            return skillName ? (
+                              <span key={idx} className="px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300 text-[10px] font-mono font-semibold">
+                                {skillName}
+                              </span>
+                            ) : null;
+                          })
+                        ) : (
+                          <span className="text-[10px] font-mono text-[var(--color-muted)] italic">No claimed skills extracted</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* ── V2 Verification Pipeline Section ── */}
             {!r.v2Report&&!runningPipelines[r._id]&&(
-              <div className="py-6 text-center text-[var(--color-muted)] flex flex-col items-center">
-                <ShieldCheck className="w-8 h-8 mb-2 opacity-30"/>
-                <p className="uppercase tracking-widest text-[10px]">No verification report generated.</p>
-                <button onClick={e=>{e.stopPropagation();runVerificationPipeline(r._id,false);}} className="mt-3 vp-btn vp-btn-accent px-4 py-2 text-[10px]">Run V2 Verification Pipeline</button>
+              <div className="py-4 px-6 text-center text-[var(--color-muted)] flex flex-col items-center border border-dashed border-[var(--color-border)] rounded-[var(--radius-lg)]">
+                <ShieldCheck className="w-6 h-6 mb-1 opacity-30"/>
+                <p className="uppercase tracking-widest text-[10px]">Deep V2 Verification Report Not Generated</p>
+                <button onClick={e=>{e.stopPropagation();runVerificationPipeline(r._id,false);}} className="mt-2 vp-btn vp-btn-accent px-4 py-1.5 text-[10px]">
+                  Run V2 Verification Pipeline
+                </button>
               </div>
             )}
-            {runningPipelines[r._id]&&<div className="py-8 flex flex-col items-center text-[var(--color-accent)] gap-3"><Loader2 className="w-6 h-6 animate-spin"/><span className="uppercase tracking-[0.2em] text-[10px] animate-pulse">Running Modules 1-12...</span></div>}
+            {runningPipelines[r._id]&&<div className="py-6 flex flex-col items-center text-[var(--color-accent)] gap-3"><Loader2 className="w-6 h-6 animate-spin"/><span className="uppercase tracking-[0.2em] text-[10px] animate-pulse">Running Modules 1-12...</span></div>}
             {r.v2Report&&!runningPipelines[r._id]&&(
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
                 <div className="vp-glass p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
