@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
+import { signInWithGoogle } from "../config/firebase";
 import {
   clearUserSession,
   getStoredUser,
@@ -95,7 +96,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
-    const { signInWithGoogle } = await import("../config/firebase.js");
     const { idToken } = await signInWithGoogle();
     
     const config = {
