@@ -1,7 +1,6 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import { signInWithGoogle } from "../config/firebase";
+import { signInWithGoogle, handleRedirectResult } from "../config/firebase";
 import {
   clearUserSession,
   getStoredUser,
@@ -60,6 +59,50 @@ export const AuthProvider = ({ children }) => {
     }, timeRemaining);
   };
 
+  // Check for completed OAuth redirect on initial page load
+  useEffect(() => {
+    const processRedirect = async () => {
+      try {
+        const result = await handleRedirectResult();
+        if (result && result.idToken) {
+          let role = "student";
+          let inviteCode = "";
+          const pendingStr = sessionStorage.getItem("veriproof_auth_pending");
+          if (pendingStr) {
+            try {
+              const pending = JSON.parse(pendingStr);
+              role = pending.role || "student";
+              inviteCode = pending.inviteCode || "";
+            } catch (e) {
+              // ignore json parse error
+            }
+            sessionStorage.removeItem("veriproof_auth_pending");
+          }
+
+          const config = {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${result.idToken}`,
+            },
+          };
+
+          const { data } = await api.post(
+            "/api/users/firebase-auth",
+            { role, inviteCode, idToken: result.idToken },
+            config
+          );
+
+          updateCurrentUser(data);
+          scheduleLogout(ONE_HOUR);
+        }
+      } catch (err) {
+        console.error("[Firebase OAuth Redirect Process Error]:", err);
+      }
+    };
+
+    processRedirect();
+  }, []);
+
   useEffect(() => {
     if (!user) {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
@@ -96,8 +139,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
-    const { idToken } = await signInWithGoogle();
+    const result = await signInWithGoogle(role, inviteCode);
+    if (!result || !result.idToken) {
+      // Redirect initiated or pending
+      return null;
+    }
     
+    const { idToken } = result;
     const config = {
       headers: {
         "Content-Type": "application/json",

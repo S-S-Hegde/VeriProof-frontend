@@ -1,5 +1,11 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+} from "firebase/auth";
 
 const requiredVars = [
   "VITE_FIREBASE_API_KEY",
@@ -36,10 +42,10 @@ googleProvider.setCustomParameters({
 });
 
 /**
- * Perform mandatory Google OAuth login via Firebase popup.
- * Returns the Firebase ID token and user credential.
+ * Perform mandatory Google OAuth login via Firebase popup with automatic redirect fallback.
+ * If the browser blocks the popup, it gracefully falls back to signInWithRedirect.
  */
-export const signInWithGoogle = async () => {
+export const signInWithGoogle = async (role = "student", inviteCode = "") => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const idToken = await result.user.getIdToken();
@@ -48,7 +54,44 @@ export const signInWithGoogle = async () => {
       idToken,
     };
   } catch (error) {
+    if (
+      error.code === "auth/popup-blocked" ||
+      error.code === "auth/popup-closed-by-user" ||
+      error.code === "auth/cancelled-popup-request"
+    ) {
+      console.warn(
+        `[Firebase OAuth] Popup blocked/closed (${error.code}). Falling back to signInWithRedirect...`
+      );
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          "veriproof_auth_pending",
+          JSON.stringify({ role, inviteCode })
+        );
+      }
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
     console.error("[Firebase OAuth] Google Sign-In error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Handle redirect result when user returns from Google OAuth redirect.
+ */
+export const handleRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      const idToken = await result.user.getIdToken();
+      return {
+        user: result.user,
+        idToken,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("[Firebase OAuth Redirect Error]:", error);
     throw error;
   }
 };
