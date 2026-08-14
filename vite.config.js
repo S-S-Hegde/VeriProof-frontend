@@ -47,20 +47,66 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
+            // Core React runtime
             if (
-              id.includes("react") ||
-              id.includes("react-dom") ||
-              id.includes("react-router-dom")
+              id.includes("/react/") ||
+              id.includes("/react-dom/") ||
+              id.includes("/react-router/") ||
+              id.includes("/react-router-dom/") ||
+              id.includes("/scheduler/")
             ) {
-              return "vendor";
+              return "vendor-react";
             }
-            if (id.includes("framer-motion")) {
-              return "framer";
+            // Firebase client SDK
+            if (id.includes("/firebase/") || id.includes("/@firebase/")) {
+              return "vendor-firebase";
             }
-            if (id.includes("axios")) {
-              return "axios";
+            // 3D & Graphics libraries
+            if (
+              id.includes("/three/") ||
+              id.includes("/@react-three/") ||
+              id.includes("/@splinetool/")
+            ) {
+              return "vendor-three";
             }
-            return "vendor-other";
+            // Syntax Highlighting (Prism/Refractor)
+            if (
+              id.includes("/react-syntax-highlighter/") ||
+              id.includes("/refractor/") ||
+              id.includes("/prismjs/")
+            ) {
+              return "vendor-syntax";
+            }
+            // Charts & Data Visualization
+            if (
+              id.includes("/chart.js/") ||
+              id.includes("/react-chartjs-2/") ||
+              id.includes("/d3-hierarchy/")
+            ) {
+              return "vendor-charts";
+            }
+            // Animation & Motion
+            if (
+              id.includes("/framer-motion/") ||
+              id.includes("/gsap/") ||
+              id.includes("/animejs/") ||
+              id.includes("/lenis/") ||
+              id.includes("/aos/")
+            ) {
+              return "vendor-animation";
+            }
+            // Lucide Icons & Drag-and-drop UI
+            if (
+              id.includes("/lucide-react/") ||
+              id.includes("/@dnd-kit/") ||
+              id.includes("/sweetalert2/")
+            ) {
+              return "vendor-ui";
+            }
+            // General utilities
+            if (id.includes("/axios/") || id.includes("/luxon/")) {
+              return "vendor-utils";
+            }
           }
         },
       },

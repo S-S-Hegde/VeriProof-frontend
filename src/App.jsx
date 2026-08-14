@@ -19,7 +19,7 @@ import ArchiveBackground from "./components/ArchiveBackground";
 import CursorTracker from "./components/CursorTracker";
 import PageTransition from "./components/PageTransition";
 import ScrollToTop from "./components/ScrollToTop";
-import Lenis from "@studio-freight/lenis";
+import Lenis from "lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
