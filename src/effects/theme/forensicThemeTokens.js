@@ -11,14 +11,14 @@ const hex = (h) => {
 
 const TOKENS = {
   light: {
-    opacity:  0.88,
-    grid:     0.22,
-    pulse:    0.35,
-    bgA:      hex("#E8F2F6"),   // frosted base
-    bgB:      hex("#C7DDE7"),   // mist depth layer
-    signal:   hex("#5A9BB5"),   // teal accent
-    accent:   hex("#5A9BB5"),
-    particle: hex("#9EBFCC"),   // ice mist particle
+    opacity:  0.85,
+    grid:     0.20,
+    pulse:    0.30,
+    bgA:      hex("#EAF7FC"),   // icy blue base
+    bgB:      hex("#D9EEF5"),   // depth mist layer
+    signal:   hex("#38BDF8"),   // cyan illumination
+    accent:   hex("#059669"),   // VeriProof emerald signal
+    particle: hex("#BAE6FD"),   // ice mist highlight
   },
   dark: {
     opacity:  0.95,

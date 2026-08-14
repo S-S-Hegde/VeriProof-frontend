@@ -73,9 +73,18 @@ const ForensicShaderBackgroundInner = () => {
       return undefined;
     }
 
+    const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isMobile = window.innerWidth < 640 || "ontouchstart" in window;
+
+    // Mobile light mode: static CSS gradient is preferred for battery & performance
+    if (isMobile && theme === "light") {
+      setWebglFailed(true);
+      return undefined;
+    }
+
     let frameId = 0;
     let observer;
-    let running = true;
+    let running = !document.hidden;
     let program;
     let buffer;
 
@@ -131,7 +140,7 @@ const ForensicShaderBackgroundInner = () => {
     };
 
     const render = (time) => {
-      if (!running) return;
+      if (!running || document.hidden) return;
       try {
         resize();
         gl.useProgram(program);
@@ -141,7 +150,7 @@ const ForensicShaderBackgroundInner = () => {
 
         gl.uniform2f(locations.resolution, canvas.width, canvas.height);
         gl.uniform2f(locations.pointer, pointerRef.current.x, pointerRef.current.y);
-        gl.uniform1f(locations.time, time * 0.001);
+        gl.uniform1f(locations.time, isReducedMotion ? 0.0 : time * 0.001);
         gl.uniform1f(locations.scroll, scrollRef.current);
         gl.uniform1f(locations.opacity, tokens.opacity);
         gl.uniform1f(locations.grid, tokens.grid);
@@ -157,20 +166,31 @@ const ForensicShaderBackgroundInner = () => {
         running = false;
         return;
       }
-      frameId = window.requestAnimationFrame(render);
+      if (!isReducedMotion) {
+        frameId = window.requestAnimationFrame(render);
+      }
     };
 
     const handlePointerMove = (event) => {
       pointerRef.current = { x: event.clientX, y: event.clientY };
-      // Note: --vp-cursor-x/y CSS vars are set by CursorTracker's rAF loop — no duplication needed here
     };
 
     const handleScroll = () => {
       scrollRef.current = window.scrollY;
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        running = false;
+        window.cancelAnimationFrame(frameId);
+      } else {
+        running = true;
+        frameId = window.requestAnimationFrame(render);
+      }
+    };
+
     observer = new IntersectionObserver(([entry]) => {
-      running = entry.isIntersecting;
+      running = entry.isIntersecting && !document.hidden;
       if (running) frameId = window.requestAnimationFrame(render);
       else window.cancelAnimationFrame(frameId);
     });
@@ -179,6 +199,7 @@ const ForensicShaderBackgroundInner = () => {
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     resize();
     frameId = window.requestAnimationFrame(render);
 
@@ -188,6 +209,7 @@ const ForensicShaderBackgroundInner = () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       observer?.disconnect();
       if (buffer) gl.deleteBuffer(buffer);
       if (program) gl.deleteProgram(program);

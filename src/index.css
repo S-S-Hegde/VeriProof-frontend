@@ -62,43 +62,45 @@
 
   /* ═══════════════ LIGHT THEME ═══════════════
      Verification Laboratory · Evidence Workspace
-     Cool technical slate atmosphere
+     Cool Icy Blue / Blue-White Technical Atmosphere
      ═══════════════════════════════════════════ */
   .theme-light {
-    --color-bg:        #F4F6FA;
-    --color-bg-raised: #F8FAFC;
-    --color-bg-sunken: #EEF2F7;
-    --color-text:      #101827;
-    --color-text-secondary: #465467;
-    --color-accent:    #2563EB;
-    --color-accent-hover: #1D4ED8;
-    --color-accent-subtle: rgba(37, 99, 235, 0.08);
-    --color-muted:     #64748B;
-    --color-border:    #D7DEE8;
-    --color-border-strong: #C5CEDA;
-    --color-success:   #059669;
-    --color-warning:   #D97706;
-    --color-error:     #DC2626;
+    --color-bg:               #EAF7FC;
+    --color-bg-raised:        #E5F4F9;
+    --color-bg-sunken:        #D9EEF5;
+    --color-surface-card:     #F2FAFD;
+    --color-surface-elevated: #FFFFFF;
+    --color-text:             #102A3A;
+    --color-text-secondary:   #466272;
+    --color-accent:           #2563EB;
+    --color-accent-hover:     #1D4ED8;
+    --color-accent-subtle:    rgba(37, 99, 235, 0.08);
+    --color-muted:            #64808D;
+    --color-border:           #C5DEE7;
+    --color-border-strong:    #AFCFD9;
+    --color-success:          #059669;
+    --color-warning:          #D97706;
+    --color-error:            #DC2626;
 
-    /* Grid overlay — cool slate technical grid */
-    --grid-color: rgba(71, 85, 105, 0.06);
-    --grid-opacity: 0.6;
+    /* Grid overlay — cool blue/teal technical grid */
+    --grid-color:   rgba(15, 90, 110, 0.07);
+    --grid-opacity: 0.8;
 
-    /* Glass surfaces — laboratory frosted tint */
-    --vp-glass-bg: rgba(255, 255, 255, 0.88);
-    --vp-glass-border: #D7DEE8;
-    --vp-glass-shadow: 0 1px 3px rgba(16, 24, 39, 0.03), 0 4px 16px rgba(16, 24, 39, 0.04);
-    --vp-glass-blur: 20px;
+    /* Glass surfaces — icy frosted tint */
+    --vp-glass-bg:     rgba(242, 250, 253, 0.90);
+    --vp-glass-border: #C5DEE7;
+    --vp-glass-shadow: 0 10px 30px rgba(15, 42, 58, 0.06), 0 0 40px rgba(5, 150, 105, 0.025);
+    --vp-glass-blur:   20px;
 
-    /* Elevated surfaces — crisp cool depth */
-    --vp-surface-1-bg: #FFFFFF;
-    --vp-surface-1-shadow: 0 1px 2px rgba(16, 24, 39, 0.04);
-    --vp-surface-2-shadow: 0 2px 4px rgba(16, 24, 39, 0.05);
-    --vp-surface-3-shadow: 0 4px 12px rgba(16, 24, 39, 0.06);
+    /* Elevated surfaces */
+    --vp-surface-1-bg: #F2FAFD;
+    --vp-surface-1-shadow: 0 4px 16px rgba(15, 42, 58, 0.05);
+    --vp-surface-2-shadow: 0 8px 24px rgba(15, 42, 58, 0.06);
+    --vp-surface-3-shadow: 0 12px 36px rgba(15, 42, 58, 0.08);
 
-    /* Effects — cool blue & green verification accents */
-    --vp-glow: rgba(37, 99, 235, 0.12);
-    --vp-signal: rgba(37, 99, 235, 0.06);
+    /* Effects */
+    --vp-glow:   rgba(37, 99, 235, 0.12);
+    --vp-signal: rgba(5, 150, 105, 0.08);
     --vp-noise-opacity: 0.008;
     --vp-scanline-opacity: 0.015;
   }
@@ -156,15 +158,22 @@
                 color var(--duration-slower) var(--ease-out-expo);
   }
 
-  /* ─── Light mode: Frosted atmospheric depth (Fixed background layer for 60fps Lenis scroll) ─── */
+  /* ─── Light mode: Icy Blue Verification Laboratory Atmospheric Background ─── */
   .theme-light body {
-    background-color: #E8F2F6;
+    background-color: #EAF7FC;
     background-image:
-      radial-gradient(ellipse at 20% 0%, rgba(160, 210, 230, 0.25) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 10%, rgba(130, 195, 220, 0.18) 0%, transparent 45%),
-      radial-gradient(ellipse at 50% 100%, rgba(170, 215, 235, 0.2) 0%, transparent 55%),
-      radial-gradient(ellipse at 30% 60%, rgba(199, 221, 231, 0.15) 0%, transparent 40%),
-      linear-gradient(180deg, #E8F2F6 0%, #DEF0F5 40%, #D4EBF2 70%, #CCE4ED 100%);
+      radial-gradient(circle at 15% 15%, rgba(5, 150, 105, 0.10), transparent 30%),
+      radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.07), transparent 32%),
+      radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 35%);
+  }
+
+  .theme-light .hero-background,
+  .theme-light .vp-hero-field {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(5, 150, 105, 0.12), transparent 35%),
+      radial-gradient(circle at 80% 15%, rgba(37, 99, 235, 0.08), transparent 30%),
+      linear-gradient(180deg, #DFF3F8 0%, #E5F4F9 70%, #EAF7FC 100%);
+    border-bottom: 1px solid #C5DEE7;
   }
 
   /* ─── Lenis Smooth Scroll Core Rules & 165Hz Hardware Acceleration ─── */
@@ -223,10 +232,6 @@
     background-size: 48px 48px;
     opacity: var(--grid-opacity);
     transition: opacity var(--duration-slower) ease;
-  }
-  /* Light mode: shader contours replace the CSS grid */
-  .theme-light body::before {
-    opacity: 0 !important;
   }
 
   /* ─── Noise texture overlay ─── */
