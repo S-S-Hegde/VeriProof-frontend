@@ -83,8 +83,8 @@
     --color-error:            #DC2626;
 
     /* Grid overlay — cool blue/teal technical grid */
-    --grid-color:   rgba(15, 90, 110, 0.07);
-    --grid-opacity: 0.8;
+    --grid-color:   rgba(15, 90, 110, 0.055);
+    --grid-opacity: 0.75;
 
     /* Glass surfaces — icy frosted tint */
     --vp-glass-bg:     rgba(242, 250, 253, 0.90);
@@ -158,20 +158,22 @@
                 color var(--duration-slower) var(--ease-out-expo);
   }
 
-  /* ─── Light mode: Icy Blue Verification Laboratory Atmospheric Background ─── */
+  /* ─── Light mode: Icy Blue Laboratory Background with Tiffany Blue, Rose Gold & Light Green Gradients ─── */
   .theme-light body {
     background-color: #EAF7FC;
     background-image:
-      radial-gradient(circle at 15% 15%, rgba(5, 150, 105, 0.10), transparent 30%),
-      radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.07), transparent 32%),
-      radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 35%);
+      radial-gradient(circle at 15% 15%, rgba(5, 150, 105, 0.25), transparent 40%),  /* Light Green */
+      radial-gradient(circle at 85% 20%, rgba(0, 196, 180, 0.30), transparent 45%),  /* Tiffany Blue */
+      radial-gradient(circle at 50% 85%, rgba(224, 159, 166, 0.25), transparent 42%), /* Rose Gold */
+      radial-gradient(circle at 75% 70%, rgba(56, 189, 248, 0.25), transparent 45%);  /* Icy Sky Blue */
   }
 
   .theme-light .hero-background,
   .theme-light .vp-hero-field {
     background:
-      radial-gradient(circle at 20% 20%, rgba(5, 150, 105, 0.12), transparent 35%),
-      radial-gradient(circle at 80% 15%, rgba(37, 99, 235, 0.08), transparent 30%),
+      radial-gradient(circle at 20% 20%, rgba(0, 196, 180, 0.30), transparent 40%),  /* Tiffany Blue */
+      radial-gradient(circle at 80% 15%, rgba(224, 159, 166, 0.25), transparent 35%), /* Rose Gold */
+      radial-gradient(circle at 50% 50%, rgba(5, 150, 105, 0.25), transparent 40%),   /* Light Green */
       linear-gradient(180deg, #DFF3F8 0%, #E5F4F9 70%, #EAF7FC 100%);
     border-bottom: 1px solid #C5DEE7;
   }

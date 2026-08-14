@@ -99,10 +99,10 @@ const ExamLobby = ({
   return (
     <div className="max-w-3xl mx-auto py-6 px-4">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-extrabold text-white tracking-tight mb-2">
+        <h2 className="text-3xl font-extrabold text-[var(--color-text)] tracking-tight mb-2">
           Candidate Assessment Lobby
         </h2>
-        <p className="text-slate-400 text-sm max-w-xl mx-auto">
+        <p className="text-[var(--color-text-secondary)] text-sm max-w-xl mx-auto">
           Your technical examination is automatically generated based on the AI
           resume analysis stored in your Student Dashboard profile.
         </p>
@@ -115,10 +115,10 @@ const ExamLobby = ({
             <FileText className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white mb-2">
+            <h3 className="text-xl font-bold text-[var(--color-text)] mb-2">
               No Resume Analysis Found
             </h3>
-            <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs text-[var(--color-text-secondary)] max-w-md mx-auto leading-relaxed">
               No resume analysis or verified technical skills were found on
               file. Please upload your resume from the Student Dashboard before
               taking the technical assessment.
@@ -128,7 +128,7 @@ const ExamLobby = ({
           <div className="pt-2">
             <button
               onClick={() => navigate("/student-dashboard")}
-              className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition inline-flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold text-sm shadow-lg transition inline-flex items-center gap-2"
             >
               <span>Go to Student Dashboard</span>
               <ExternalLink className="w-4 h-4" />
@@ -137,24 +137,24 @@ const ExamLobby = ({
         </div>
       ) : (
         /* CLEAN ASSESSMENT SUMMARY CARD */
-        <div className="glass-card rounded-2xl p-8 border border-slate-800 shadow-2xl space-y-6">
-          <div className="flex flex-wrap justify-between items-start gap-4 pb-4 border-b border-slate-800">
+        <div className="glass-card rounded-2xl p-8 border border-[var(--color-border)] bg-[var(--color-surface-card)] shadow-xl space-y-6">
+          <div className="flex flex-wrap justify-between items-start gap-4 pb-4 border-b border-[var(--color-border)]">
             <div>
-              <span className="px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
+              <span className="px-3 py-1 rounded-md bg-[var(--color-accent-subtle)] border border-[var(--color-accent)]/30 text-[var(--color-accent)] text-xs font-bold uppercase tracking-wider">
                 Assessment Ready
               </span>
-              <h3 className="text-2xl font-extrabold text-white mt-2">
+              <h3 className="text-2xl font-extrabold text-[var(--color-text)] mt-2">
                 {candidateName}
               </h3>
             </div>
 
             {isResumeVerified ? (
-              <span className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 shadow-sm">
+              <span className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                 <CheckCircle2 className="w-4 h-4" /> Resume Verified
               </span>
             ) : (
-              <span className="px-3.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-amber-400" /> Stored
+              <span className="px-3.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                <ShieldCheck className="w-4 h-4 text-amber-500" /> Stored
                 Profile Skills
               </span>
             )}
@@ -162,23 +162,23 @@ const ExamLobby = ({
 
           {/* Assessment Specifications Summary Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
-              <span className="text-slate-400 block mb-1">Questions</span>
-              <strong className="text-white text-base font-bold flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-blue-400" /> 30 MCQs
+            <div className="p-3.5 rounded-xl bg-[var(--color-bg-raised)] border border-[var(--color-border)]">
+              <span className="text-[var(--color-muted)] block mb-1">Questions</span>
+              <strong className="text-[var(--color-text)] text-base font-bold flex items-center gap-1.5">
+                <HelpCircle className="w-4 h-4 text-[var(--color-accent)]" /> 30 MCQs
               </strong>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
-              <span className="text-slate-400 block mb-1">Duration</span>
-              <strong className="text-white text-base font-bold flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-cyan-400" /> 40 Minutes
+            <div className="p-3.5 rounded-xl bg-[var(--color-bg-raised)] border border-[var(--color-border)]">
+              <span className="text-[var(--color-muted)] block mb-1">Duration</span>
+              <strong className="text-[var(--color-text)] text-base font-bold flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> 40 Minutes
               </strong>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
-              <span className="text-slate-400 block mb-1">Question Source</span>
-              <strong className="text-blue-300 text-xs font-semibold block truncate">
+            <div className="p-3.5 rounded-xl bg-[var(--color-bg-raised)] border border-[var(--color-border)]">
+              <span className="text-[var(--color-muted)] block mb-1">Question Source</span>
+              <strong className="text-[var(--color-accent)] text-xs font-semibold block truncate">
                 {sourceDescription}
               </strong>
             </div>
@@ -186,16 +186,16 @@ const ExamLobby = ({
 
           {/* Detected Technical Skills List */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)] mb-3">
               Detected Technical Skills ({effectiveSkillsList.length}):
             </h4>
             <div className="flex flex-wrap gap-2">
               {effectiveSkillsList.map((skill, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-300 border border-blue-500/20 text-xs font-semibold flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl bg-[var(--color-accent-subtle)] text-[var(--color-accent)] border border-[var(--color-border)] text-xs font-semibold flex items-center gap-1.5"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]"></span>
                   {skill}
                 </span>
               ))}
@@ -207,7 +207,7 @@ const ExamLobby = ({
             <button
               onClick={onGenerateQuestions}
               disabled={isGenerating}
-              className="flex-1 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-base shadow-lg shadow-blue-600/30 transition flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+              className="flex-1 py-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold text-base shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
             >
               {isGenerating ? (
                 <span className="flex items-center gap-2">
@@ -225,10 +225,10 @@ const ExamLobby = ({
             <button
               type="button"
               onClick={() => navigate("/student-dashboard")}
-              className="px-5 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition border border-slate-700 flex items-center justify-center gap-1.5"
+              className="px-5 py-4 rounded-xl bg-[var(--color-bg-sunken)] hover:bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] font-semibold text-xs transition border border-[var(--color-border)] flex items-center justify-center gap-1.5"
             >
               <span>Manage Resume in Dashboard</span>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+              <ExternalLink className="w-3.5 h-3.5 text-[var(--color-muted)]" />
             </button>
           </div>
         </div>

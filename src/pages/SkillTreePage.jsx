@@ -1815,8 +1815,8 @@ const SkillTreePage = () => {
                   }
                   className={`p-3 rounded-xl border transition-all cursor-pointer ${
                     isActive
-                      ? "bg-slate-900 border-[var(--color-accent)] shadow-lg shadow-blue-500/10"
-                      : "bg-[var(--color-bg-sunken)] border-[var(--color-border)]/70 hover:border-slate-700"
+                      ? "bg-[var(--color-surface-card)] border-[var(--color-accent)] shadow-md"
+                      : "bg-[var(--color-bg-sunken)] border-[var(--color-border)] hover:border-[var(--color-border-strong)]"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -1832,7 +1832,7 @@ const SkillTreePage = () => {
                         <CatIcon className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-black uppercase tracking-tight text-slate-100 font-mono">
+                        <p className="text-xs font-black uppercase tracking-tight text-[var(--color-text)] font-mono">
                           {cat.name}
                         </p>
                         <p className="text-[10px] font-mono text-[var(--color-muted)]">
@@ -1840,12 +1840,12 @@ const SkillTreePage = () => {
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300">
+                    <span className="text-xs font-mono font-bold text-[var(--color-text-secondary)]">
                       {progressPct}%
                     </span>
                   </div>
 
-                  <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div className="h-1.5 w-full bg-[var(--color-bg-sunken)] rounded-full overflow-hidden border border-[var(--color-border)]">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -1860,17 +1860,17 @@ const SkillTreePage = () => {
           </aside>
 
           {/* ── Main Canvas: Hierarchical Roadmap Tree ──────────────────────── */}
-          <div className="flex-1 flex flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-[#070b14] overflow-hidden shadow-2xl vp-graph-wrapper relative min-h-[860px]">
+          <div className="flex-1 flex flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface-card)]/95 to-[var(--color-bg-raised)]/90 overflow-hidden shadow-xl vp-graph-wrapper relative min-h-[860px]">
             {/* Top Control Bar */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md z-20">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-300">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)] bg-[var(--color-bg-sunken)]/70 backdrop-blur-md z-20">
+              <span className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--color-text)]">
                 Hierarchical Skill Roadmap
               </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setZoom(1)}
-                  className="p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-700 transition-all text-xs font-mono flex items-center gap-1.5"
+                  className="p-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-all text-xs font-mono flex items-center gap-1.5"
                   title="Fit to Screen"
                 >
                   <Maximize2 className="w-3.5 h-3.5" />
@@ -1878,7 +1878,7 @@ const SkillTreePage = () => {
                 <button
                   type="button"
                   onClick={() => setZoom((z) => Math.min(1.4, z + 0.15))}
-                  className="p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-700 transition-all text-xs font-mono"
+                  className="p-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-all text-xs font-mono"
                   title="Zoom In"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -1886,7 +1886,7 @@ const SkillTreePage = () => {
                 <button
                   type="button"
                   onClick={() => setZoom((z) => Math.max(0.6, z - 0.15))}
-                  className="p-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-700 transition-all text-xs font-mono"
+                  className="p-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-all text-xs font-mono"
                   title="Zoom Out"
                 >
                   <Minus className="w-3.5 h-3.5" />
@@ -1897,7 +1897,7 @@ const SkillTreePage = () => {
                     setZoom(1);
                     setActiveCategoryFilter(null);
                   }}
-                  className="px-3 py-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-700 transition-all text-xs font-mono flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] transition-all text-xs font-mono flex items-center gap-1.5"
                 >
                   <RotateCcw className="w-3.5 h-3.5" /> Reset
                 </button>
@@ -1945,7 +1945,7 @@ const SkillTreePage = () => {
                         d={curve}
                         fill="none"
                         stroke={
-                          isSelected ? "#3b82f6" : edge.color || "#334155"
+                          isSelected ? "#2563eb" : edge.color || "var(--color-border-strong)"
                         }
                         strokeWidth={isSelected ? 3 : 1.8}
                         strokeDasharray={
@@ -1967,7 +1967,7 @@ const SkillTreePage = () => {
                         style={{ left: node.x, top: node.y }}
                       >
                         <div
-                          className="px-4 py-1.5 rounded-full border shadow-md font-mono text-[10px] font-black tracking-widest uppercase text-white cursor-pointer transition-all hover:scale-105"
+                          className="px-4 py-1.5 rounded-full border shadow-md font-mono text-[10px] font-black tracking-widest uppercase text-[var(--color-text)] cursor-pointer transition-all hover:scale-105"
                           style={{
                             borderColor: node.color,
                             backgroundColor: `${node.color}25`,
@@ -2028,10 +2028,10 @@ const SkillTreePage = () => {
                             matchedSkill || { name: node.name, id: node.id },
                           )
                         }
-                        className="relative w-12 h-12 rounded-full grid place-items-center transition-all shadow-lg"
+                        className="relative w-12 h-12 rounded-full grid place-items-center transition-all shadow-md"
                         style={{
                           border: `2px solid ${profColor}`,
-                          backgroundColor: "#090d16",
+                          backgroundColor: "var(--color-surface-card)",
                           color: profColor,
                           boxShadow: isSelected
                             ? `0 0 25px ${profColor}, 0 0 40px ${profColor}80`
@@ -2040,7 +2040,7 @@ const SkillTreePage = () => {
                       >
                         <NodeIcon className="w-5 h-5" />
                         <span
-                          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-900 border border-slate-700 grid place-items-center text-[9px]"
+                          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[var(--color-bg-sunken)] border border-[var(--color-border)] grid place-items-center text-[9px]"
                           style={{ color: profColor }}
                         >
                           {score > 0 ? "✓" : "🔒"}
@@ -2049,13 +2049,13 @@ const SkillTreePage = () => {
 
                       {/* Label underneath */}
                       <div className="mt-2 text-center w-28 -translate-x-8 pointer-events-none">
-                        <p className="text-xs font-bold text-slate-100 truncate">
+                        <p className="text-xs font-bold text-[var(--color-text)] truncate">
                           {node.name}
                         </p>
                         <p className="text-[10px] font-mono font-bold mt-0.5">
                           <span style={{ color: profColor }}>{score}%</span>
-                          <span className="text-slate-500 mx-1">•</span>
-                          <span className="text-slate-400">
+                          <span className="text-[var(--color-muted)] mx-1">•</span>
+                          <span className="text-[var(--color-text-secondary)]">
                             {levelObj.label}
                           </span>
                         </p>
@@ -2088,11 +2088,11 @@ const SkillTreePage = () => {
                       transform: `translate(-50%, ${tooltipPos.placement === "top" ? "-100%" : "0%"})`,
                       zIndex: 9999,
                     }}
-                    className="pointer-events-none w-60 p-4 rounded-xl border border-[var(--color-border)] bg-slate-950/90 backdrop-blur-md shadow-2xl text-left"
+                    className="pointer-events-none w-60 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 backdrop-blur-md shadow-2xl text-left"
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-800">
-                      <h4 className="text-xs font-black uppercase tracking-tight text-white truncate">
+                    <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[var(--color-border)]">
+                      <h4 className="text-xs font-black uppercase tracking-tight text-[var(--color-text)] truncate">
                         {hoveredGraphSkill.name}
                       </h4>
                       <span

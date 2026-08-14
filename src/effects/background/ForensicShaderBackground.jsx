@@ -74,7 +74,7 @@ const ForensicShaderBackgroundInner = () => {
     }
 
     const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isMobile = window.innerWidth < 640 || "ontouchstart" in window;
+    const isMobile = window.innerWidth < 640;
 
     // Mobile light mode: static CSS gradient is preferred for battery & performance
     if (isMobile && theme === "light") {
@@ -182,20 +182,15 @@ const ForensicShaderBackgroundInner = () => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         running = false;
-        window.cancelAnimationFrame(frameId);
+        if (frameId) window.cancelAnimationFrame(frameId);
       } else {
-        running = true;
-        frameId = window.requestAnimationFrame(render);
+        if (!running) {
+          running = true;
+          frameId = window.requestAnimationFrame(render);
+        }
       }
     };
 
-    observer = new IntersectionObserver(([entry]) => {
-      running = entry.isIntersecting && !document.hidden;
-      if (running) frameId = window.requestAnimationFrame(render);
-      else window.cancelAnimationFrame(frameId);
-    });
-
-    observer.observe(canvas);
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", resize);
@@ -205,12 +200,11 @@ const ForensicShaderBackgroundInner = () => {
 
     return () => {
       running = false;
-      window.cancelAnimationFrame(frameId);
+      if (frameId) window.cancelAnimationFrame(frameId);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      observer?.disconnect();
       if (buffer) gl.deleteBuffer(buffer);
       if (program) gl.deleteProgram(program);
     };

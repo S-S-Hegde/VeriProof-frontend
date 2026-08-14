@@ -68,7 +68,7 @@ export const fragmentShader = `
   void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution;
     vec2 aspect = vec2(u_resolution.x / u_resolution.y, 1.0);
-    float t = u_time * 0.1;
+    float t = u_time * 1.0;
 
     /* ── Pointer normalized ── */
     vec2 pNorm = u_pointer / u_resolution;
@@ -83,61 +83,57 @@ export const fragmentShader = `
 
     /* ════════════════════════════════════════════
        LIGHT MODE — Icy Verification Aurora Atmosphere
-       Icy Blue Base + Cyan Illumination + Emerald Energy
+       Tiffany Blue + Light Green + Rose Gold Wave Contrast
        ════════════════════════════════════════════ */
     if (u_mode > 0.5) {
 
-      /* ── Layer 1: Topographic aurora curves ── */
-      // Slow flowing fluid curves (Icy blue-white mist)
+      /* ── Layer 1: Topographic aurora curves (Tiffany Blue) ── */
       vec2 contourUV = uv * aspect * 2.8;
-      float field1 = fbm(contourUV + vec2(t * 0.08, t * 0.04));
-      float field2 = fbm(contourUV * 1.3 + vec2(-t * 0.05, t * 0.06) + 40.0);
+      float field1 = fbm(contourUV + vec2(t * 0.35, t * 0.20));
+      float field2 = fbm(contourUV * 1.3 + vec2(-t * 0.25, t * 0.30) + 40.0);
 
-      // Extract soft aurora contours
+      // Extract crisp aurora contours
       float contour1 = contourLine(field1, 0.14, 0.44);
       float contour2 = contourLine(field2, 0.18, 0.46);
-      float contours = contour1 * 0.3 + contour2 * 0.2;
+      float contours = contour1 * 0.45 + contour2 * 0.35;
 
-      // Soft vertical atmosphere fade
-      float vertFade = smoothstep(0.0, 0.2, uv.y) * smoothstep(1.0, 0.75, uv.y);
+      float vertFade = smoothstep(0.0, 0.15, uv.y) * smoothstep(1.0, 0.80, uv.y);
       contours *= vertFade;
 
-      // Primary cyan illumination layer (15-20% ratio)
-      bg += u_signal * contours * 0.14;
+      // Blend Tiffany Blue aurora waves directly
+      bg = mix(bg, u_signal, contours * 0.42);
 
-      /* ── Layer 2: Volumetric icy cyan mist depth ── */
-      float fog1 = fbm(uv * 1.6 + vec2(t * 0.04, 0.0));
-      float fog2 = fbm(uv * 2.2 + vec2(0.0, t * 0.03) + 150.0);
+      /* ── Layer 2: Volumetric Tiffany Blue mist depth ── */
+      float fog1 = fbm(uv * 1.6 + vec2(t * 0.20, 0.0));
+      float fog2 = fbm(uv * 2.2 + vec2(0.0, t * 0.15) + 150.0);
       float fogComposite = fog1 * 0.6 + fog2 * 0.4;
 
-      // Radial cyan bloom from top-center
       float radialBloom = smoothstep(0.85, 0.0, length((uv - vec2(0.5, 0.35)) * vec2(1.2, 1.0)));
-      float mistLayer = fogComposite * radialBloom * 0.07;
-      bg += u_signal * mistLayer;
+      float mistLayer = fogComposite * radialBloom * 0.35;
+      bg = mix(bg, u_signal, mistLayer);
 
-      // Top ice highlight mist
-      float topBloom = smoothstep(0.5, 0.0, uv.y) * 0.03;
-      bg += u_particle * topBloom * fogComposite;
+      // Top Rose Gold mist highlight
+      float topBloom = smoothstep(0.5, 0.0, uv.y) * 0.25;
+      bg = mix(bg, u_particle, topBloom * fogComposite);
 
-      /* ── Layer 3: Restrained VeriProof Emerald Verification Energy (5-10% ratio) ── */
-      // Emerald verification signal sweep — extremely subtle
-      float scanPhase = fract(t * 0.03);
-      float scanWidth = 0.10;
-      float scanLine = smoothstep(scanWidth, 0.0, abs(uv.y - scanPhase)) * 0.035;
-      bg += u_accent * scanLine * u_pulse;
+      /* ── Layer 3: Light Green Verification Signal Energy ── */
+      float scanPhase = fract(t * 0.25);
+      float scanWidth = 0.12;
+      float scanLine = smoothstep(scanWidth, 0.0, abs(uv.y - scanPhase)) * 0.25;
+      bg = mix(bg, u_accent, scanLine * u_pulse);
 
-      // Restrained emerald ambient glow
-      float emeraldGlow = fbm(uv * 3.0 + vec2(t * 0.02, t * 0.03));
+      // Light Green ambient energy glow
+      float emeraldGlow = fbm(uv * 3.0 + vec2(t * 0.15, t * 0.18));
       float emeraldFade = smoothstep(0.1, 0.5, uv.y) * smoothstep(0.9, 0.5, uv.y);
-      bg += u_accent * emeraldGlow * emeraldFade * 0.025;
+      bg = mix(bg, u_accent, emeraldGlow * emeraldFade * 0.20);
 
       /* ── Layer 4: Micro-paper grain ── */
       float grain = hash(uv * u_resolution + fract(t * 13.0));
       bg += grain * 0.005;
 
-      /* ── Layer 5: Microscopic cursor proximity parallax (0.02 max displacement) ── */
+      /* ── Layer 5: Cursor proximity glow ── */
       float cursorGlow = smoothstep(0.28, 0.0, cursorDist);
-      bg += u_signal * cursorGlow * 0.02;
+      bg = mix(bg, u_signal, cursorGlow * 0.15);
 
       /* ── Depth fog (icy Y-blend) ── */
       float depthFog = smoothstep(0.0, 0.6, uv.y) * 0.06;
