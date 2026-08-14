@@ -422,12 +422,12 @@ const AppContent = () => {
     window.history.scrollRestoration = "manual";
 
     const lenis = new Lenis({
-      duration: 0.6,
+      duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 1.0,
+      wheelMultiplier: 1.1,
       touchMultiplier: 1.5,
       syncTouch: true,
     });
