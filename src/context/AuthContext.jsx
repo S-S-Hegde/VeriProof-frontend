@@ -94,12 +94,34 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const loginWithGoogle = async (role = "student", inviteCode = "") => {
+    const { signInWithGoogle } = await import("../config/firebase.js");
+    const { idToken } = await signInWithGoogle();
+    
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+    };
+    
+    const { data } = await api.post(
+      "/api/users/firebase-auth",
+      { role, inviteCode, idToken },
+      config
+    );
+    
+    updateCurrentUser(data);
+    scheduleLogout(ONE_HOUR);
+    return data;
+  };
+
   const logout = () => {
     updateCurrentUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, setUser: updateCurrentUser, isExiting, setIsExiting }}>
+    <AuthContext.Provider value={{ user, login, loginWithGoogle, logout, loading, setUser: updateCurrentUser, isExiting, setIsExiting }}>
       {children}
     </AuthContext.Provider>
   );
