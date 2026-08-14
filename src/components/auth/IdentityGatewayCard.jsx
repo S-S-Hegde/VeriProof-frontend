@@ -32,15 +32,15 @@ const IdentityGatewayCard = ({
       {/* Role Selection Tabs */}
       {setRole && (
         <div className="mb-6">
-          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400 block mb-2 text-center">
+          <label className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500 dark:text-gray-400 block mb-2 text-center font-semibold">
             Select Terminal Portal
           </label>
-          <div className="flex p-1.5 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-md">
+          <div className="flex p-1.5 rounded-2xl bg-slate-200/80 dark:bg-black/60 border border-slate-300 dark:border-white/10 backdrop-blur-md">
             <button
               type="button"
               onClick={() => setRole("student")}
               className={`relative flex-1 py-2.5 px-4 text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 ${
-                !isRecruiter ? "text-white" : "text-gray-400 hover:text-gray-200"
+                !isRecruiter ? "text-white" : "text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-200"
               }`}
             >
               {!isRecruiter && (
@@ -58,7 +58,7 @@ const IdentityGatewayCard = ({
               type="button"
               onClick={() => setRole("recruiter")}
               className={`relative flex-1 py-2.5 px-4 text-xs font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 ${
-                isRecruiter ? "text-white" : "text-gray-400 hover:text-gray-200"
+                isRecruiter ? "text-white" : "text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-200"
               }`}
             >
               {isRecruiter && (
@@ -76,26 +76,26 @@ const IdentityGatewayCard = ({
       )}
 
       {/* Main Glass Terminal Card */}
-      <div className="relative p-8 rounded-3xl bg-[#0c1222]/80 border border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden">
+      <div className="relative p-8 rounded-3xl bg-white dark:bg-[#0c1222]/80 border border-slate-300 dark:border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden transition-colors duration-300">
         {/* Glow halo */}
         <div
           className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-[100px] pointer-events-none transition-all duration-700 ${
-            isRecruiter ? "bg-emerald-500/10" : "bg-cyan-500/10"
+            isRecruiter ? "bg-emerald-500/10" : "bg-blue-500/10 dark:bg-cyan-500/10"
           }`}
         />
 
         {/* Mandatory Identity Checkpoint Badge */}
         <div className="flex items-center gap-2 mb-6">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider bg-white/5 border border-white/10 text-gray-300">
-            <Lock className="w-3 h-3 text-amber-400" />
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 text-slate-700 dark:text-gray-300 font-semibold">
+            <Lock className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
             <span>MANDATORY_IDENTITY_CHECKPOINT</span>
           </span>
         </div>
 
-        <h2 className="text-2xl font-black italic uppercase tracking-tight text-white mb-2">
+        <h2 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
           {mode === "login" ? "Authenticate Identity" : `Initialize ${isRecruiter ? "Recruiter" : "Candidate"} Profile`}
         </h2>
-        <p className="text-xs text-gray-400 font-sans leading-relaxed mb-6">
+        <p className="text-xs text-slate-600 dark:text-gray-400 font-sans leading-relaxed mb-6">
           Google OAuth is required to verify identity before accessing protected {isRecruiter ? "recruiter" : "candidate"} platform tools.
         </p>
 
@@ -103,9 +103,9 @@ const IdentityGatewayCard = ({
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-mono flex items-start gap-2.5"
+            className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2.5"
           >
-            <span className="text-red-400 font-bold">⚠</span>
+            <span className="text-red-500 font-bold">⚠</span>
             <span>{error}</span>
           </motion.div>
         )}
@@ -118,8 +118,8 @@ const IdentityGatewayCard = ({
             disabled={googleLoading}
             className={`w-full py-4 px-5 rounded-2xl font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-3 transition-all shadow-xl cursor-pointer relative overflow-hidden group ${
               isRecruiter
-                ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-slate-950 hover:brightness-110"
-                : "bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 text-white hover:brightness-110"
+                ? "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-500 dark:via-teal-500 dark:to-emerald-600 text-white dark:text-slate-950 hover:brightness-110"
+                : "bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 dark:from-cyan-400 dark:via-blue-500 dark:to-indigo-600 text-white hover:brightness-110"
             }`}
           >
             {googleLoading ? (
@@ -138,17 +138,17 @@ const IdentityGatewayCard = ({
             )}
           </button>
 
-          <p className="text-[11px] text-center text-gray-400 font-mono">
+          <p className="text-xs text-center text-slate-500 dark:text-gray-400 font-mono">
             Verified identity is cryptographically linked to your VeriProof profile.
           </p>
         </div>
 
         {/* Collapsible Legacy Password Option */}
-        <div className="mt-8 pt-6 border-t border-white/10">
+        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
           <button
             type="button"
             onClick={() => setShowLegacyForm(!showLegacyForm)}
-            className="w-full flex items-center justify-between text-xs font-mono uppercase tracking-wider text-gray-400 hover:text-white transition-colors py-1"
+            className="w-full flex items-center justify-between text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors py-1 font-semibold"
           >
             <span>Legacy Password Access</span>
             {showLegacyForm ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -165,7 +165,7 @@ const IdentityGatewayCard = ({
               >
                 {mode === "register" && setName && (
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
                       Full Name
                     </label>
                     <input
@@ -174,46 +174,46 @@ const IdentityGatewayCard = ({
                       placeholder="Jane Doe"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-white/30 text-xs"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
+                  <label className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                    <Mail className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 dark:text-gray-500" />
                     <input
                       type="email"
                       required
                       placeholder="you@domain.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-white/30 text-xs"
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
+                  <label className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 dark:text-gray-500" />
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-white/30 text-xs"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 text-xs"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-300"
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -222,7 +222,7 @@ const IdentityGatewayCard = ({
 
                 {mode === "register" && setConfirmPassword && (
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
                       Confirm Password
                     </label>
                     <input
@@ -231,14 +231,14 @@ const IdentityGatewayCard = ({
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-white/30 text-xs"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
                 )}
 
                 {mode === "register" && !isRecruiter && setGithubUsername && (
                   <div>
-                    <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400 mb-1">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
                       GitHub Handle
                     </label>
                     <input
@@ -247,7 +247,7 @@ const IdentityGatewayCard = ({
                       placeholder="github_handle"
                       value={githubUsername}
                       onChange={(e) => setGithubUsername(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-white/30 text-xs"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 text-xs"
                     />
                   </div>
                 )}
@@ -255,7 +255,7 @@ const IdentityGatewayCard = ({
                 <button
                   type="submit"
                   disabled={passwordLoading}
-                  className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-slate-900 text-white dark:bg-white/10 dark:hover:bg-white/20 font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
                 >
                   {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Authenticate with Password"}
                 </button>

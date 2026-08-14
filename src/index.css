@@ -16,13 +16,13 @@
   /* ─── SHARED TOKENS ─── */
   :root {
     /* Fluid typography scale */
-    --text-hero:    clamp(3.25rem, 8vw, 7rem);
-    --text-display: clamp(2.25rem, 5vw, 4.5rem);
-    --text-heading: clamp(1.5rem, 3vw, 2.25rem);
-    --text-title:   clamp(1.125rem, 2vw, 1.5rem);
-    --text-body:    clamp(0.875rem, 1.2vw, 1rem);
-    --text-caption: clamp(0.6875rem, 0.9vw, 0.8125rem);
-    --text-micro:   0.625rem;
+    --text-hero:    clamp(2.5rem, 6vw + 1rem, 5.5rem);
+    --text-display: clamp(2rem, 4vw + 1rem, 3.75rem);
+    --text-heading: clamp(1.375rem, 2vw + 0.75rem, 2rem);
+    --text-title:   clamp(1.125rem, 1.2vw + 0.75rem, 1.5rem);
+    --text-body:    clamp(0.9375rem, 0.4vw + 0.8rem, 1.0625rem);
+    --text-caption: clamp(0.8125rem, 0.3vw + 0.75rem, 0.9375rem);
+    --text-micro:   clamp(0.75rem, 0.2vw + 0.7rem, 0.8125rem);
 
     /* Spacing scale (4px grid) */
     --space-1: 0.25rem;
@@ -61,46 +61,46 @@
   }
 
   /* ═══════════════ LIGHT THEME ═══════════════
-     Frosted forensic system · Verification archive
-     Ice-cyan trust intelligence atmosphere
+     Verification Laboratory · Evidence Workspace
+     Cool technical slate atmosphere
      ═══════════════════════════════════════════ */
   .theme-light {
-    --color-bg:        #E8F2F6;
-    --color-bg-raised: #D7E8EF;
-    --color-bg-sunken: #C7DDE7;
-    --color-text:      #23343F;
-    --color-text-secondary: #556B78;
-    --color-accent:    #5A9BB5;
-    --color-accent-hover: #4889A3;
-    --color-accent-subtle: rgba(90, 155, 181, 0.12);
-    --color-muted:     #6E8B99;
-    --color-border:    rgba(150, 180, 195, 0.18);
-    --color-border-strong: rgba(150, 180, 195, 0.32);
-    --color-success:   #3BA88E;
-    --color-warning:   #D4963A;
-    --color-error:     #C75050;
+    --color-bg:        #F4F6FA;
+    --color-bg-raised: #F8FAFC;
+    --color-bg-sunken: #EEF2F7;
+    --color-text:      #101827;
+    --color-text-secondary: #465467;
+    --color-accent:    #2563EB;
+    --color-accent-hover: #1D4ED8;
+    --color-accent-subtle: rgba(37, 99, 235, 0.08);
+    --color-muted:     #64748B;
+    --color-border:    #D7DEE8;
+    --color-border-strong: #C5CEDA;
+    --color-success:   #059669;
+    --color-warning:   #D97706;
+    --color-error:     #DC2626;
 
-    /* Grid overlay — icy blue grid */
-    --grid-color: rgba(90, 155, 181, 0.06);
-    --grid-opacity: 0.5;
+    /* Grid overlay — cool slate technical grid */
+    --grid-color: rgba(71, 85, 105, 0.06);
+    --grid-opacity: 0.6;
 
-    /* Glass surfaces — frosted blue tint */
-    --vp-glass-bg: rgba(255, 255, 255, 0.55);
-    --vp-glass-border: rgba(150, 180, 195, 0.18);
-    --vp-glass-shadow: 0 1px 3px rgba(35, 52, 63, 0.04), 0 8px 32px rgba(90, 155, 181, 0.08);
-    --vp-glass-blur: 22px;
+    /* Glass surfaces — laboratory frosted tint */
+    --vp-glass-bg: rgba(255, 255, 255, 0.88);
+    --vp-glass-border: #D7DEE8;
+    --vp-glass-shadow: 0 1px 3px rgba(16, 24, 39, 0.03), 0 4px 16px rgba(16, 24, 39, 0.04);
+    --vp-glass-blur: 20px;
 
-    /* Elevated surfaces — frost layered depth */
-    --vp-surface-1-bg: rgba(255, 255, 255, 0.55);
-    --vp-surface-1-shadow: 0 1px 2px rgba(35, 52, 63, 0.04), 0 4px 16px rgba(90, 155, 181, 0.06);
-    --vp-surface-2-shadow: 0 2px 4px rgba(35, 52, 63, 0.05), 0 12px 40px rgba(90, 155, 181, 0.08);
-    --vp-surface-3-shadow: 0 4px 8px rgba(35, 52, 63, 0.06), 0 24px 64px rgba(90, 155, 181, 0.1);
+    /* Elevated surfaces — crisp cool depth */
+    --vp-surface-1-bg: #FFFFFF;
+    --vp-surface-1-shadow: 0 1px 2px rgba(16, 24, 39, 0.04);
+    --vp-surface-2-shadow: 0 2px 4px rgba(16, 24, 39, 0.05);
+    --vp-surface-3-shadow: 0 4px 12px rgba(16, 24, 39, 0.06);
 
-    /* Effects — ice cyan atmosphere */
-    --vp-glow: rgba(90, 155, 181, 0.2);
-    --vp-signal: rgba(90, 155, 181, 0.08);
-    --vp-noise-opacity: 0.012;
-    --vp-scanline-opacity: 0.02;
+    /* Effects — cool blue & green verification accents */
+    --vp-glow: rgba(37, 99, 235, 0.12);
+    --vp-signal: rgba(37, 99, 235, 0.06);
+    --vp-noise-opacity: 0.008;
+    --vp-scanline-opacity: 0.015;
   }
 
   /* ═══════════════ DARK THEME ═══════════════
