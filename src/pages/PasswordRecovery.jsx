@@ -74,20 +74,23 @@ const ForgotPassword = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} autoComplete="on" className="space-y-8">
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Mail className="w-5 h-5 opacity-40 group-focus-within:opacity-100 group-focus-within:text-[var(--color-accent)] transition-all" />
             </div>
             <input
+              id="recovery-email"
+              name="email"
               type="email"
+              autoComplete="email"
               placeholder="IDENTITY@DOMAIN.COM"
               className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-sm font-mono tracking-wider focus:bg-transparent"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <label className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]">
+            <label htmlFor="recovery-email" className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]">
               Primary Comms Address
             </label>
           </div>

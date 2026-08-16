@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import api from "../utils/api";
+import PasswordStrengthMeter from "../components/auth/PasswordStrengthMeter";
 
 const ResetPassword = () => {
   const { resettoken } = useParams();
@@ -105,21 +106,24 @@ const ResetPassword = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} autoComplete="on" className="space-y-6">
           {!location.state?.email && (
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Mail className="w-5 h-5 opacity-40 group-focus-within:opacity-100 group-focus-within:text-[var(--color-accent)] transition-all" />
               </div>
               <input
+                id="reset-email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 placeholder="IDENTITY@DOMAIN.COM"
                 className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-sm font-mono tracking-wider focus:bg-transparent"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <label className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]">
+              <label htmlFor="reset-email" className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]">
                 Email Address
               </label>
             </div>
@@ -130,7 +134,11 @@ const ResetPassword = () => {
               <TerminalSquare className="w-5 h-5 opacity-40 group-focus-within:opacity-100 group-focus-within:text-[var(--color-accent)] transition-all" />
             </div>
             <input
+              id="reset-otp"
+              name="one-time-code"
               type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
               placeholder="6-DIGIT OTP CODE"
               maxLength={6}
               className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-base font-mono tracking-[0.3em] font-bold text-[var(--color-accent)] uppercase focus:bg-transparent"
@@ -138,31 +146,36 @@ const ResetPassword = () => {
               onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
               required
             />
-            <label className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)] text-[var(--color-accent)]">
+            <label htmlFor="reset-otp" className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)] text-[var(--color-accent)]">
               6-Digit Email Verification Code
             </label>
           </div>
 
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <KeyRound className="w-5 h-5 opacity-40 group-focus-within:opacity-100 group-focus-within:text-[var(--color-accent)] transition-all" />
+          <div className="space-y-2">
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <KeyRound className="w-5 h-5 opacity-40 group-focus-within:opacity-100 group-focus-within:text-[var(--color-accent)] transition-all" />
+              </div>
+              <input
+                id="reset-passphrase"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                placeholder="••••••••"
+                className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-sm font-mono tracking-wider focus:bg-transparent"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+              <label
+                htmlFor="reset-passphrase"
+                className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]"
+              >
+                New Password
+              </label>
             </div>
-            <input
-              id="reset-passphrase"
-              type="password"
-              placeholder="••••••••"
-              className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-sm font-mono tracking-wider focus:bg-transparent"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-            <label
-              htmlFor="reset-passphrase"
-              className="absolute -top-3 left-4 px-2 text-[10px] uppercase font-bold tracking-[0.2em] bg-[var(--color-bg)]"
-            >
-              New Password
-            </label>
+            <PasswordStrengthMeter password={password} />
           </div>
 
           <div className="relative group">
@@ -171,7 +184,9 @@ const ResetPassword = () => {
             </div>
             <input
               id="confirm-passphrase"
+              name="confirmPassword"
               type="password"
+              autoComplete="new-password"
               placeholder="••••••••"
               className="w-full bg-black/20 border border-[var(--color-border)] pl-12 pr-4 py-4 focus:border-[var(--color-accent)] outline-none transition-all duration-300 text-sm font-mono tracking-wider focus:bg-transparent"
               value={confirmPassword}
