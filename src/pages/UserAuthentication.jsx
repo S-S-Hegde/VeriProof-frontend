@@ -49,13 +49,21 @@ const Login = () => {
   }, []);
 
   const handleGoogleAuth = async () => {
-    setError(""); setGoogleLoading(true);
+    setError("");
+    setGoogleLoading(true);
     try {
       const data = await loginWithGoogle(role);
+      if (!data) {
+        // OAuth redirect was initiated or waiting
+        return;
+      }
       finishLogin(data);
     } catch (err) {
       console.error("[Google Auth Error]:", err);
-      const msg = err.response?.data?.message || err.message || "Google authentication failed. Please try again.";
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Google authentication failed. Please try again.";
       setError(msg);
     } finally {
       setGoogleLoading(false);
@@ -64,12 +72,35 @@ const Login = () => {
 
   const submitHandler = async (e) => {
     if (e) e.preventDefault();
-    setError(""); setLoading(true);
+
+    let submittedEmail = email;
+    let submittedPassword = password;
+
+    if (e?.target && e.target instanceof HTMLFormElement) {
+      const fd = new FormData(e.target);
+      submittedEmail = fd.get("email") ?? email;
+      submittedPassword = fd.get("password") ?? password;
+    }
+
+    submittedEmail = String(submittedEmail || "").trim().toLowerCase();
+    submittedPassword = String(submittedPassword || "");
+
+    if (!submittedEmail || !submittedPassword) {
+      setError("Please provide an email and password.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
     try {
-      const { data } = await api.post("/api/users/login", { email, password, role });
+      const { data } = await api.post("/api/users/login", {
+        email: submittedEmail,
+        password: submittedPassword,
+        role,
+      });
 
       if (data.requiresOTP) {
-        setOtpEmail(data.email || email);
+        setOtpEmail(data.email || submittedEmail);
         setRequiresOTP(true);
         setLoading(false);
         return;
@@ -79,12 +110,20 @@ const Login = () => {
     } catch (err) {
       const status = err.response?.status;
       const data   = err.response?.data;
-      const msg    = data?.message || "Authentication_Failed";
+      const msg    = data?.message || "Authentication failed. Please check your credentials.";
       if ((status === 404 || status === 403) && data?.redirectTo) {
-        setError(msg); setLoading(false);
-        timeoutRef.current = setTimeout(() => navigate(`/register?email=${encodeURIComponent(email)}&role=${role}`), 1500);
+        setError(msg);
+        setLoading(false);
+        timeoutRef.current = setTimeout(
+          () =>
+            navigate(
+              `/register?email=${encodeURIComponent(submittedEmail)}&role=${role}`
+            ),
+          1500
+        );
       } else {
-        setError(msg); setLoading(false);
+        setError(msg);
+        setLoading(false);
       }
     }
   };

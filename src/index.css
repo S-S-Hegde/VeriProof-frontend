@@ -685,16 +685,23 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
-  -webkit-transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
-  transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+  -webkit-box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.95) inset !important;
+  box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.95) inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  color: #f8fafc !important;
+  caret-color: #38bdf8 !important;
+  border-radius: inherit;
 }
 
-.dark input:-webkit-autofill,
-.dark input:-webkit-autofill:hover, 
-.dark input:-webkit-autofill:focus, 
-.dark input:-webkit-autofill:active {
-  -webkit-text-fill-color: #f8fafc !important;
-  caret-color: #f8fafc;
+html:not(.dark) input:-webkit-autofill,
+html:not(.dark) input:-webkit-autofill:hover, 
+html:not(.dark) input:-webkit-autofill:focus, 
+html:not(.dark) input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #f1f5f9 inset !important;
+  box-shadow: 0 0 0 1000px #f1f5f9 inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+  caret-color: #0284c7 !important;
 }
 
 @keyframes fadeIn {
