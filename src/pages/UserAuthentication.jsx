@@ -28,7 +28,7 @@ const Login = () => {
   const [otp, setOtp]               = useState(["", "", "", "", "", ""]);
   const otpRefs                     = useRef([]);
 
-  const { user, setUser, loginWithGoogle } = useAuth();
+  const { user, setUser, loginWithGoogle, authLoading, oauthError } = useAuth();
   const navigate           = useNavigate();
   const location           = useLocation();
   const timeoutRef         = useRef(null);
@@ -287,10 +287,10 @@ const Login = () => {
             role={role}
             setRole={setRole}
             onGoogleAuth={handleGoogleAuth}
-            googleLoading={googleLoading}
+            googleLoading={googleLoading || authLoading}
             onPasswordAuth={submitHandler}
             passwordLoading={loading}
-            error={error}
+            error={oauthError || error}
             mode="login"
             email={email}
             setEmail={setEmail}

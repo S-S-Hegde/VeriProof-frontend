@@ -24,7 +24,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
 
-  const { user, setUser, loginWithGoogle } = useAuth();
+  const { user, setUser, loginWithGoogle, authLoading, oauthError } = useAuth();
   useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -189,10 +189,10 @@ const Register = () => {
               role={role}
               setRole={setRole}
               onGoogleAuth={handleGoogleRegister}
-              googleLoading={googleLoading}
+              googleLoading={googleLoading || authLoading}
               onPasswordAuth={submitHandler}
               passwordLoading={loading}
-              error={error}
+              error={oauthError || error}
               mode="register"
               name={name}
               setName={setName}

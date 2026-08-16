@@ -35,7 +35,8 @@ export const AuthProvider = ({ children }) => {
 
     return userInfo;
   });
-  const [loading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [oauthError, setOauthError] = useState("");
   const [isExiting, setIsExiting] = useState(false);
   const logoutTimerRef = useRef(null);
 
@@ -65,6 +66,9 @@ export const AuthProvider = ({ children }) => {
       try {
         const result = await handleRedirectResult();
         if (result && result.idToken) {
+          setAuthLoading(true);
+          setOauthError("");
+
           let role = "student";
           let inviteCode = "";
           const pendingStr = sessionStorage.getItem("veriproof_auth_pending");
@@ -97,6 +101,13 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error("[Firebase OAuth Redirect Process Error]:", err);
+        const msg =
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to verify Google account with backend. Please check backend server.";
+        setOauthError(msg);
+      } finally {
+        setAuthLoading(false);
       }
     };
 
@@ -169,7 +180,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithGoogle, logout, loading, setUser: updateCurrentUser, isExiting, setIsExiting }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        loginWithGoogle,
+        logout,
+        loading: authLoading,
+        authLoading,
+        oauthError,
+        setOauthError,
+        setUser: updateCurrentUser,
+        isExiting,
+        setIsExiting,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
