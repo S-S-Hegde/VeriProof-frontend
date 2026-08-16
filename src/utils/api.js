@@ -1,8 +1,12 @@
 import axios from "axios";
 import { clearUserSession, getStoredToken } from "./authStorage";
 
+const defaultBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "");
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "",
+  baseURL: defaultBaseUrl,
 });
 
 api.interceptors.request.use((config) => {
