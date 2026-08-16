@@ -46,6 +46,12 @@ googleProvider.setCustomParameters({
  * If the browser blocks the popup, it gracefully falls back to signInWithRedirect.
  */
 export const signInWithGoogle = async (role = "student", inviteCode = "") => {
+  if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+    throw new Error(
+      "Firebase environment variables are missing. Please configure VITE_FIREBASE_* in your Vercel Project Settings."
+    );
+  }
+
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const idToken = await result.user.getIdToken();
@@ -71,6 +77,17 @@ export const signInWithGoogle = async (role = "student", inviteCode = "") => {
       await signInWithRedirect(auth, googleProvider);
       return null;
     }
+
+    if (error.code === "auth/unauthorized-domain") {
+      const currentHost = typeof window !== "undefined" ? window.location.hostname : "your domain";
+      const customErr = new Error(
+        `Domain '${currentHost}' is not authorized in Firebase. Add '${currentHost}' to Firebase Console -> Authentication -> Settings -> Authorized Domains.`
+      );
+      customErr.code = error.code;
+      console.error("[Firebase OAuth] Unauthorized domain error:", customErr.message);
+      throw customErr;
+    }
+
     console.error("[Firebase OAuth] Google Sign-In error:", error);
     throw error;
   }
@@ -91,6 +108,15 @@ export const handleRedirectResult = async () => {
     }
     return null;
   } catch (error) {
+    if (error.code === "auth/unauthorized-domain") {
+      const currentHost = typeof window !== "undefined" ? window.location.hostname : "your domain";
+      const customErr = new Error(
+        `Domain '${currentHost}' is not authorized in Firebase. Add '${currentHost}' to Firebase Console -> Authentication -> Settings -> Authorized Domains.`
+      );
+      customErr.code = error.code;
+      console.error("[Firebase OAuth Redirect Error]:", customErr.message);
+      throw customErr;
+    }
     console.error("[Firebase OAuth Redirect Error]:", error);
     throw error;
   }
