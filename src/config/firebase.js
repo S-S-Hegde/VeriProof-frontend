@@ -42,10 +42,10 @@ googleProvider.setCustomParameters({
 });
 
 /**
- * Perform mandatory Google OAuth login via Firebase popup with automatic redirect fallback.
- * If the browser blocks the popup, it gracefully falls back to signInWithRedirect.
+ * Perform mandatory Google OAuth login via Firebase popup.
+ * Keeps React single-page app alive in memory to immediately dispatch token to backend.
  */
-export const signInWithGoogle = async (role = "student", inviteCode = "") => {
+export const signInWithGoogle = async () => {
   if (!import.meta.env.VITE_FIREBASE_API_KEY) {
     throw new Error(
       "Firebase environment variables are missing. Please configure VITE_FIREBASE_* in your Vercel Project Settings."
@@ -54,28 +54,34 @@ export const signInWithGoogle = async (role = "student", inviteCode = "") => {
 
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    const idToken = await result.user.getIdToken();
+    if (!result || !result.user) {
+      throw new Error("No user returned from Google Authentication.");
+    }
+
+    const idToken = await result.user.getIdToken(true);
     return {
       user: result.user,
       idToken,
     };
   } catch (error) {
-    if (
-      error.code === "auth/popup-blocked" ||
-      error.code === "auth/popup-closed-by-user" ||
-      error.code === "auth/cancelled-popup-request"
-    ) {
-      console.warn(
-        `[Firebase OAuth] Popup blocked/closed (${error.code}). Falling back to signInWithRedirect...`
+    if (error.code === "auth/popup-blocked") {
+      const customErr = new Error(
+        "Popup was blocked by your browser. Please allow popups for this site to sign in with Google."
       );
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(
-          "veriproof_auth_pending",
-          JSON.stringify({ role, inviteCode })
-        );
-      }
-      await signInWithRedirect(auth, googleProvider);
-      return null;
+      customErr.code = error.code;
+      throw customErr;
+    }
+
+    if (error.code === "auth/popup-closed-by-user") {
+      const customErr = new Error("Google Sign-In was closed before completing.");
+      customErr.code = error.code;
+      throw customErr;
+    }
+
+    if (error.code === "auth/cancelled-popup-request") {
+      const customErr = new Error("Google Sign-In request was cancelled.");
+      customErr.code = error.code;
+      throw customErr;
     }
 
     if (error.code === "auth/unauthorized-domain") {
