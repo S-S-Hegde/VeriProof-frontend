@@ -12,7 +12,8 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = getStoredToken();
 
-  if (token) {
+  // Only attach stored token if Authorization header is not already explicitly set
+  if (token && !config.headers?.Authorization && !config.headers?.authorization) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
   }
