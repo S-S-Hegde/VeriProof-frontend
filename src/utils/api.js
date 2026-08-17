@@ -21,7 +21,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-const RETRY_DELAYS_MS = [2000, 4000, 8000];
+const RETRY_DELAYS_MS = [1000, 2000, 3000];
 const MAX_COLD_START_RETRIES = 3;
 
 api.interceptors.response.use(
