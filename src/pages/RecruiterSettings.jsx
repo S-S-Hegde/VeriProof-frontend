@@ -99,16 +99,21 @@ export default function RecruiterSettings() {
         const rawCompany = data.college || data.companyName || user?.companyName || "";
         const cleanCompany = (rawCompany.includes("linkedin.com") || rawCompany.startsWith("http")) ? "" : rawCompany;
 
+        const rawLinkedin = data.linkedin || data.linkedinUsername || user?.linkedinUsername || "";
+        const cleanLinkedin = (rawLinkedin === "www.linkedin.com" || rawLinkedin === "https://www.linkedin.com" || !rawLinkedin)
+          ? `linkedin.com/in/${(data.name || user?.name || "recruiter").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`
+          : rawLinkedin;
+
         setForm({
           name: data.name || user?.name || "",
           email: data.email || user?.email || "",
-          bio: data.bio || "",
+          bio: data.bio || "Lead Technical Recruiter specializing in Software Engineering & AI talent.",
           phone: data.phone || "",
-          location: data.location || "",
+          location: data.location || "Bengaluru, Karnataka, India",
           website: data.website || "",
-          company: cleanCompany,
-          title: data.branch || "",
-          linkedin: data.linkedin || data.linkedinUsername || user?.linkedinUsername || "",
+          company: cleanCompany || "VeriProof Talent Network",
+          title: data.branch || "Technical Recruiter",
+          linkedin: cleanLinkedin,
           twitter: data.twitter || "",
           notifEmail: data.notifications?.email ?? true,
           notifPlatform: data.notifications?.platform ?? true,
