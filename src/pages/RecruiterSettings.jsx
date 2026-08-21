@@ -39,9 +39,9 @@ import ConfirmModal from "../components/ConfirmModal";
    ═══════════════════════════════════════════════════ */
 
 const inputCls =
-  "block w-full px-5 py-3.5 bg-slate-950/80 border border-slate-700 hover:border-cyan-400/80 focus:outline-none focus:border-cyan-400 text-white placeholder-slate-500 font-mono text-xs tracking-wider rounded-xl transition-all duration-200 shadow-inner";
+  "block w-full px-5 py-3.5 bg-[var(--color-bg-sunken)] border border-[var(--color-border)] hover:border-[var(--color-accent)] focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text)] placeholder-[var(--color-muted)] font-mono text-xs tracking-wider rounded-xl transition-all duration-200 shadow-sm";
 const labelCls =
-  "block text-xs uppercase tracking-wider font-bold text-slate-300 mb-2 flex items-center gap-2 font-mono";
+  "block text-xs uppercase tracking-wider font-bold text-[var(--color-text-secondary)] mb-2 flex items-center gap-2 font-mono";
 
 const TABS = [
   { id: "Identity", icon: User, label: "Recruiter Profile" },
@@ -160,10 +160,8 @@ export default function RecruiterSettings() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setForm((prev) => ({ ...prev, profileImage: data.profileImage }));
-      if (user) {
-        setUser({ ...user, profileImage: data.profileImage });
-      }
-      triggerToast("Investigator avatar updated successfully.");
+      setUser((prev) => ({ ...prev, profileImage: data.profileImage }));
+      triggerToast("Profile photo updated successfully.");
     } catch (err) {
       triggerToast(
         err.response?.data?.message || "Failed to upload profile photo.",
@@ -176,17 +174,18 @@ export default function RecruiterSettings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (saving) return;
+    setSaving(true);
 
     if (form.newPassword && form.newPassword !== form.confirmPassword) {
-      triggerToast("Access key passwords do not match.", "error");
+      triggerToast("New passwords do not match.", "error");
+      setSaving(false);
       return;
     }
 
-    setSaving(true);
     try {
       const payload = {
         name: form.name,
+        email: form.email,
         bio: form.bio,
         phone: form.phone,
         location: form.location,
@@ -207,7 +206,7 @@ export default function RecruiterSettings() {
 
       const { data } = await api.put("/api/users/profile", payload);
       setUser(data);
-      triggerToast("Investigator settings updated successfully.");
+      triggerToast("Recruiter settings updated successfully.");
       setForm((prev) => ({ ...prev, newPassword: "", confirmPassword: "" }));
     } catch (err) {
       triggerToast(
@@ -237,7 +236,6 @@ export default function RecruiterSettings() {
       }
     }
 
-    // Whether successfully deleted or already 404, clear session and redirect to landing page
     try {
       if (typeof logout === "function") logout();
     } catch (e) {
@@ -260,8 +258,8 @@ export default function RecruiterSettings() {
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               className={`fixed top-6 right-6 z-[9999] px-5 py-3.5 rounded-[var(--radius-lg)] border shadow-2xl flex items-center gap-3 font-mono text-xs ${
                 toast.type === "error"
-                  ? "bg-red-500/15 border-red-500/30 text-red-400"
-                  : "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
+                  ? "bg-red-500/15 border-red-500/30 text-red-500"
+                  : "bg-emerald-500/15 border-emerald-500/30 text-emerald-600"
               }`}
             >
               {toast.type === "error" ? (
@@ -277,16 +275,16 @@ export default function RecruiterSettings() {
         {/* ── Page Header ── */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 mb-3">
-              <Shield className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-cyan-400">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--color-border)] bg-[var(--color-accent)]/10 mb-3">
+              <Shield className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">
                 Recruiter_Authority_Console
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">
-              Recruiter <span className="text-cyan-400 not-italic">Settings</span>
+            <h1 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-[var(--color-text)]">
+              Recruiter <span className="text-[var(--color-accent)] not-italic">Settings</span>
             </h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-[var(--color-muted)] mt-1">
               Configure organization identity, recruiter credentials, outreach parameters, and security keys.
             </p>
           </div>
@@ -295,7 +293,7 @@ export default function RecruiterSettings() {
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-50"
+              className="px-6 py-3 rounded-xl bg-[var(--color-accent)] hover:opacity-90 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-50"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -310,11 +308,11 @@ export default function RecruiterSettings() {
         </div>
 
         {/* ── Profile Header Card ── */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-[#0c1222]/90 border border-white/10 backdrop-blur-xl relative overflow-hidden shadow-2xl">
+        <div className="vp-glass p-6 sm:p-8 rounded-3xl border border-[var(--color-border)] relative overflow-hidden shadow-xl">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
             {/* Avatar & Camera Overlay */}
             <div className="relative group shrink-0">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-cyan-400/40 bg-slate-950 flex items-center justify-center shadow-xl">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-[var(--color-accent)]/40 bg-[var(--color-bg-sunken)] flex items-center justify-center shadow-lg">
                 {form.profileImage || user?.googlePhotoURL || user?.profileImage ? (
                   <img
                     src={cldProfilePhoto(form.profileImage || user?.googlePhotoURL || user?.profileImage)}
@@ -322,7 +320,7 @@ export default function RecruiterSettings() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-3xl font-black text-cyan-400">
+                  <span className="text-3xl font-black text-[var(--color-accent)]">
                     {form.name ? form.name.charAt(0).toUpperCase() : "R"}
                   </span>
                 )}
@@ -333,7 +331,7 @@ export default function RecruiterSettings() {
                 className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 text-[10px] font-mono uppercase tracking-wider cursor-pointer"
               >
                 {uploadingPhoto ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+                  <Loader2 className="w-5 h-5 animate-spin text-[var(--color-accent)]" />
                 ) : (
                   <>
                     <Camera className="w-5 h-5" />
@@ -353,20 +351,20 @@ export default function RecruiterSettings() {
             {/* Recruiter Details Summary */}
             <div className="text-center sm:text-left space-y-2 flex-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text)] tracking-tight">
                   {form.name || "Verified Recruiter"}
                 </h2>
-                <span className="px-3 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase tracking-wider border border-emerald-500/40 bg-emerald-500/15 text-emerald-400">
+                <span className="px-3 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase tracking-wider border border-emerald-500/40 bg-emerald-500/15 text-emerald-600">
                   Verified Recruiter
                 </span>
               </div>
-              <p className="font-mono text-xs text-gray-400 flex items-center justify-center sm:justify-start gap-2">
-                <Mail className="w-3.5 h-3.5 text-cyan-400" />
+              <p className="font-mono text-xs text-[var(--color-muted)] flex items-center justify-center sm:justify-start gap-2">
+                <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                 {form.email}
               </p>
               {(form.company || form.linkedin) && (
-                <p className="font-mono text-xs text-gray-300 flex items-center justify-center sm:justify-start gap-2">
-                  <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+                <p className="font-mono text-xs text-[var(--color-text-secondary)] flex items-center justify-center sm:justify-start gap-2">
+                  <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                   {form.title ? `${form.title} at ${form.company}` : form.company || form.linkedin}
                 </p>
               )}
@@ -385,9 +383,9 @@ export default function RecruiterSettings() {
                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-mono text-xs font-bold uppercase tracking-wider text-left transition-all cursor-pointer ${
                   activeTab === id
                     ? id === "DangerZone"
-                      ? "bg-red-500/15 text-red-400 border border-red-500/30"
-                      : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-sm"
-                    : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+                      ? "bg-red-500/15 text-red-500 border border-red-500/30"
+                      : "bg-[var(--color-accent)]/15 text-[var(--color-accent)] border border-[var(--color-accent)]/30 shadow-sm font-black"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-sunken)]/60 border border-transparent"
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -398,7 +396,7 @@ export default function RecruiterSettings() {
 
           {/* Form Content Area */}
           <div className="lg:col-span-3">
-            <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-3xl bg-[#0c1222]/90 border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
+            <form onSubmit={handleSubmit} className="vp-glass p-6 sm:p-8 rounded-3xl border border-[var(--color-border)] shadow-xl space-y-6">
               {/* ── TAB 1: IDENTITY ── */}
               {activeTab === "Identity" && (
                 <motion.div
@@ -407,10 +405,10 @@ export default function RecruiterSettings() {
                   className="space-y-6"
                 >
                   <div>
-                    <h3 className="text-lg font-black uppercase italic tracking-tight text-white mb-1">
+                    <h3 className="text-lg font-black uppercase italic tracking-tight text-[var(--color-text)] mb-1">
                       Recruiter Identity
                     </h3>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-[var(--color-muted)]">
                       Your personal recruiter details shown to verified candidates.
                     </p>
                   </div>
@@ -418,7 +416,7 @@ export default function RecruiterSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className={labelCls}>
-                        <User className="w-3.5 h-3.5 text-cyan-400" />
+                        <User className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Full Name
                       </label>
                       <input
@@ -434,7 +432,7 @@ export default function RecruiterSettings() {
 
                     <div>
                       <label className={labelCls}>
-                        <Mail className="w-3.5 h-3.5 text-cyan-400" />
+                        <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Email Address
                       </label>
                       <input
@@ -452,7 +450,7 @@ export default function RecruiterSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className={labelCls}>
-                        <Phone className="w-3.5 h-3.5 text-cyan-400" />
+                        <Phone className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Contact Phone
                       </label>
                       <input
@@ -482,7 +480,7 @@ export default function RecruiterSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className={labelCls}>
-                        <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+                        <Cpu className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Role / Designation Title
                       </label>
                       <input
@@ -497,7 +495,7 @@ export default function RecruiterSettings() {
 
                     <div>
                       <label className={labelCls}>
-                        <Linkedin className="w-3.5 h-3.5 text-cyan-400" />
+                        <Linkedin className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Personal LinkedIn Profile
                       </label>
                       <input
@@ -513,7 +511,7 @@ export default function RecruiterSettings() {
 
                   <div>
                     <label className={labelCls}>
-                      <Fingerprint className="w-3.5 h-3.5 text-cyan-400" />
+                      <Fingerprint className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                       Professional Bio &amp; Outreach Signature
                     </label>
                     <textarea
@@ -536,10 +534,10 @@ export default function RecruiterSettings() {
                   className="space-y-6"
                 >
                   <div>
-                    <h3 className="text-lg font-black uppercase italic tracking-tight text-white mb-1">
+                    <h3 className="text-lg font-black uppercase italic tracking-tight text-[var(--color-text)] mb-1">
                       Organization &amp; Agency Details
                     </h3>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-[var(--color-muted)]">
                       Specify company details, corporate domain, and official talent branding nodes.
                     </p>
                   </div>
@@ -547,7 +545,7 @@ export default function RecruiterSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className={labelCls}>
-                        <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+                        <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Company / Organization Name
                       </label>
                       <input
@@ -562,7 +560,7 @@ export default function RecruiterSettings() {
 
                     <div>
                       <label className={labelCls}>
-                        <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                        <Globe className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Corporate Website
                       </label>
                       <input
@@ -579,7 +577,7 @@ export default function RecruiterSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className={labelCls}>
-                        <Linkedin className="w-3.5 h-3.5 text-cyan-400" />
+                        <Linkedin className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Company LinkedIn Page
                       </label>
                       <input
@@ -594,7 +592,7 @@ export default function RecruiterSettings() {
 
                     <div>
                       <label className={labelCls}>
-                        <Twitter className="w-3.5 h-3.5 text-cyan-400" />
+                        <Twitter className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Twitter / X Handle
                       </label>
                       <input
@@ -618,21 +616,21 @@ export default function RecruiterSettings() {
                   className="space-y-6"
                 >
                   <div>
-                    <h3 className="text-lg font-black uppercase italic tracking-tight text-white mb-1">
+                    <h3 className="text-lg font-black uppercase italic tracking-tight text-[var(--color-text)] mb-1">
                       Outreach &amp; Notification Telemetry
                     </h3>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-[var(--color-muted)]">
                       Control automated candidate notification updates and verdict alerts.
                     </p>
                   </div>
 
                   <div className="space-y-4">
-                    <label className="flex items-center justify-between p-4 rounded-2xl bg-slate-950/80 border border-slate-700/80 cursor-pointer hover:border-cyan-400/50 transition-colors">
+                    <label className="flex items-center justify-between p-4 rounded-2xl bg-[var(--color-bg-sunken)] border border-[var(--color-border)] cursor-pointer hover:border-[var(--color-accent)]/50 transition-colors">
                       <div className="space-y-1">
-                        <p className="text-xs font-mono font-bold uppercase text-white">
+                        <p className="text-xs font-mono font-bold uppercase text-[var(--color-text)]">
                           Email Outreach Confirmations
                         </p>
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-[var(--color-muted)]">
                           Receive automated email dispatches when candidates are ranked or verified.
                         </p>
                       </div>
@@ -641,16 +639,16 @@ export default function RecruiterSettings() {
                         name="notifEmail"
                         checked={form.notifEmail}
                         onChange={handleInputChange}
-                        className="w-4 h-4 accent-cyan-400 cursor-pointer"
+                        className="w-4 h-4 accent-[var(--color-accent)] cursor-pointer"
                       />
                     </label>
 
-                    <label className="flex items-center justify-between p-4 rounded-2xl bg-slate-950/80 border border-slate-700/80 cursor-pointer hover:border-cyan-400/50 transition-colors">
+                    <label className="flex items-center justify-between p-4 rounded-2xl bg-[var(--color-bg-sunken)] border border-[var(--color-border)] cursor-pointer hover:border-[var(--color-accent)]/50 transition-colors">
                       <div className="space-y-1">
-                        <p className="text-xs font-mono font-bold uppercase text-white">
+                        <p className="text-xs font-mono font-bold uppercase text-[var(--color-text)]">
                           Platform Dashboard Alerts
                         </p>
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-[var(--color-muted)]">
                           Show real-time dashboard notifications for new candidate applications.
                         </p>
                       </div>
@@ -659,7 +657,7 @@ export default function RecruiterSettings() {
                         name="notifPlatform"
                         checked={form.notifPlatform}
                         onChange={handleInputChange}
-                        className="w-4 h-4 accent-cyan-400 cursor-pointer"
+                        className="w-4 h-4 accent-[var(--color-accent)] cursor-pointer"
                       />
                     </label>
                   </div>
@@ -674,10 +672,10 @@ export default function RecruiterSettings() {
                   className="space-y-6"
                 >
                   <div>
-                    <h3 className="text-lg font-black uppercase italic tracking-tight text-white mb-1">
+                    <h3 className="text-lg font-black uppercase italic tracking-tight text-[var(--color-text)] mb-1">
                       Security &amp; Password Management
                     </h3>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-[var(--color-muted)]">
                       Update your recruiter account password and security credentials.
                     </p>
                   </div>
@@ -685,7 +683,7 @@ export default function RecruiterSettings() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className={labelCls}>
-                        <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                        <Lock className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         New Password
                       </label>
                       <input
@@ -700,7 +698,7 @@ export default function RecruiterSettings() {
 
                     <div>
                       <label className={labelCls}>
-                        <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                        <Lock className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                         Confirm Password
                       </label>
                       <input
@@ -723,7 +721,7 @@ export default function RecruiterSettings() {
                   animate={{ opacity: 1, x: 0 }}
                   className="space-y-6"
                 >
-                  <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 space-y-2">
+                  <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-500 space-y-2">
                     <h3 className="text-base font-black uppercase italic tracking-tight flex items-center gap-2">
                       <AlertCircle className="w-5 h-5 shrink-0" />
                       Danger Zone — Purge Recruiter Account
@@ -745,11 +743,11 @@ export default function RecruiterSettings() {
 
               {/* Submit Button */}
               {activeTab !== "DangerZone" && (
-                <div className="pt-4 border-t border-white/10 flex justify-end">
+                <div className="pt-4 border-t border-[var(--color-border)] flex justify-end">
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-50"
+                    className="px-6 py-3 rounded-xl bg-[var(--color-accent)] hover:opacity-90 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-lg disabled:opacity-50"
                   >
                     {saving ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
