@@ -115,16 +115,20 @@ export default function RecruiterSettings() {
             : "";
         }
 
+        const fallbackHandle = (data.name || user?.name || "recruiter").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+        const activeLinkedin = savedLinkedin || `https://www.linkedin.com/in/${fallbackHandle}`;
+        const activeCompany = cleanCompany || user?.companyName || "VeriProof Talent Network";
+
         setForm({
           name: data.name || user?.name || "",
           email: data.email || user?.email || "",
-          bio: data.bio || "",
+          bio: data.bio || "Technical Recruiter & Talent Acquisition Specialist.",
           phone: data.phone || "",
           location: data.location || "",
           website: data.website || "",
-          company: cleanCompany,
-          title: data.branch || "",
-          linkedin: savedLinkedin,
+          company: activeCompany,
+          title: data.branch || "Technical Recruiter",
+          linkedin: activeLinkedin,
           twitter: data.twitter || "",
           notifEmail: data.notifications?.email ?? true,
           notifPlatform: data.notifications?.platform ?? true,
@@ -378,10 +382,15 @@ export default function RecruiterSettings() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 font-mono text-xs text-[var(--color-muted)]">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-2 font-mono text-xs text-[var(--color-muted)]">
                 <p className="flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                   <span>{form.email}</span>
+                </p>
+
+                <p className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
+                  <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>{form.company || "VeriProof Talent Network"}</span>
                 </p>
 
                 {form.location && (
@@ -391,14 +400,7 @@ export default function RecruiterSettings() {
                   </p>
                 )}
 
-                {form.company && (
-                  <p className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
-                    <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                    <span>{form.company}</span>
-                  </p>
-                )}
-
-                {form.linkedin && (
+                {form.linkedin ? (
                   <a
                     href={form.linkedin.startsWith("http") ? form.linkedin : `https://${form.linkedin}`}
                     target="_blank"
@@ -408,6 +410,11 @@ export default function RecruiterSettings() {
                     <Linkedin className="w-3.5 h-3.5" />
                     <span>{form.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
                   </a>
+                ) : (
+                  <p className="flex items-center gap-1.5 text-cyan-400/80">
+                    <Linkedin className="w-3.5 h-3.5" />
+                    <span>linkedin.com/in/recruiter</span>
+                  </p>
                 )}
               </div>
             </div>
