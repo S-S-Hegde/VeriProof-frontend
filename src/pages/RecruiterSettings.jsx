@@ -365,25 +365,51 @@ export default function RecruiterSettings() {
             </div>
 
             {/* Recruiter Details Summary */}
-            <div className="text-center sm:text-left space-y-2 flex-1">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+            <div className="text-center sm:text-left space-y-2.5 flex-1">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text)] tracking-tight">
                   {form.name || "Verified Recruiter"}
                 </h2>
                 <span className="px-3 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase tracking-wider border border-emerald-500/40 bg-emerald-500/15 text-emerald-600">
                   Verified Recruiter
                 </span>
+                <span className="px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase tracking-wider border border-cyan-500/40 bg-cyan-500/10 text-cyan-400">
+                  {form.title || "Technical Recruiter"}
+                </span>
               </div>
-              <p className="font-mono text-xs text-[var(--color-muted)] flex items-center justify-center sm:justify-start gap-2">
-                <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                {form.email}
-              </p>
-              {(form.company || form.linkedin) && (
-                <p className="font-mono text-xs text-[var(--color-text-secondary)] flex items-center justify-center sm:justify-start gap-2">
-                  <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                  {form.title ? `${form.title} at ${form.company}` : form.company || form.linkedin}
+
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-1.5 font-mono text-xs text-[var(--color-muted)]">
+                <p className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>{form.email}</span>
                 </p>
-              )}
+
+                {form.location && (
+                  <p className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
+                    <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{form.location}</span>
+                  </p>
+                )}
+
+                {form.company && (
+                  <p className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
+                    <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                    <span>{form.company}</span>
+                  </p>
+                )}
+
+                {form.linkedin && (
+                  <a
+                    href={form.linkedin.startsWith("http") ? form.linkedin : `https://${form.linkedin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors"
+                  >
+                    <Linkedin className="w-3.5 h-3.5" />
+                    <span>{form.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
