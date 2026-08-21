@@ -370,6 +370,7 @@ export default function RecruiterSettings() {
 
             {/* Recruiter Details Summary */}
             <div className="text-center sm:text-left space-y-2.5 flex-1">
+              {/* Row 1: Name & Status Badges */}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                 <h2 className="text-xl sm:text-2xl font-black text-[var(--color-text)] tracking-tight">
                   {form.name || "Verified Recruiter"}
@@ -382,15 +383,11 @@ export default function RecruiterSettings() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-2 font-mono text-xs text-[var(--color-muted)]">
+              {/* Row 2: Verified Email & Real-time Location */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-1.5 font-mono text-xs text-[var(--color-muted)]">
                 <p className="flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                   <span>{form.email}</span>
-                </p>
-
-                <p className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
-                  <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                  <span>{form.company || "VeriProof Talent Network"}</span>
                 </p>
 
                 {form.location && (
@@ -399,6 +396,14 @@ export default function RecruiterSettings() {
                     <span>{form.location}</span>
                   </p>
                 )}
+              </div>
+
+              {/* Row 3: Company Organization & Verified LinkedIn Profile */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-1.5 font-mono text-xs text-[var(--color-text-secondary)]">
+                <p className="flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>{form.company || "VeriProof Talent Network"}</span>
+                </p>
 
                 {form.linkedin ? (
                   <a
