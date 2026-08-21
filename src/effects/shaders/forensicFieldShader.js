@@ -145,48 +145,66 @@ export const fragmentShader = `
     }
 
     /* ════════════════════════════════════════════
-       DARK MODE — Original dot grid (UNTOUCHED)
+       DARK MODE — 3D Cyber Forensic Field
+       Kinetic Wave Grid + Cyber Lasers + Interactive Gravity Well
        ════════════════════════════════════════════ */
     else {
 
-      /* ── Dot grid ── */
-      vec2 gridUV = uv * aspect * 42.0;
-      vec2 gridCell = fract(gridUV) - 0.5;
-      float dotDist = length(gridCell);
-      float dot = smoothstep(0.08, 0.04, dotDist);
+      /* ── 3D Perspective Wave Grid ── */
+      vec2 gridCoord = uv * aspect * 32.0;
+      
+      // Dynamic 3D wave elevation
+      float wave = sin(gridCoord.x * 0.4 + t * 1.4) * cos(gridCoord.y * 0.4 + t * 1.1) * 0.5;
+      float waveFbm = fbm(uv * aspect * 3.5 + vec2(t * 0.25, -t * 0.18)) * 1.8;
+      
+      // Interactive 3D cursor gravity distortion
+      vec2 cursorDelta = (uv - pNorm) * aspect;
+      float cursorGravity = smoothstep(0.45, 0.0, cursorDist);
+      vec2 warpedGrid = gridCoord + cursorDelta * cursorGravity * 4.0 + vec2(wave + waveFbm);
 
-      float gridBreath = 0.4 + 0.2 * sin(t * 1.6);
-      dot *= u_grid * gridBreath;
+      // Grid line computation
+      vec2 gridFract = abs(fract(warpedGrid - 0.5) - 0.5) / fwidth(warpedGrid);
+      float lineDist = min(gridFract.x, gridFract.y);
+      float gridLines = 1.0 - min(lineDist, 1.0);
+      
+      // Glowing grid intersection nodes (stars)
+      vec2 cellPos = fract(warpedGrid) - 0.5;
+      float nodeDist = length(cellPos);
+      float nodes = smoothstep(0.12, 0.02, nodeDist);
 
-      float cursorField = smoothstep(0.35, 0.0, cursorDist);
-      dot *= (1.0 + cursorField * 3.0);
+      // Pulse breathing
+      float breath = 0.65 + 0.35 * sin(t * 2.0);
+      bg += u_accent * gridLines * 0.35 * u_grid * breath;
+      bg += u_signal * nodes * 0.60 * u_grid;
 
-      bg += u_accent * dot * 0.6;
+      /* ── 3D Topographic Contour Elevation ── */
+      float topoField = fbm(uv * aspect * 2.2 + vec2(t * 0.15, t * 0.12));
+      float topoContour = contourLine(topoField, 0.16, 0.46);
+      bg += u_particle * topoContour * 0.28 * u_pulse;
 
-      /* ── Signal wave ── */
-      float scanY = fract(t * 0.08 + uv.x * 0.1);
-      float scanLine = smoothstep(0.0, 0.003, abs(uv.y - scanY));
-      scanLine = 1.0 - scanLine;
-      bg += u_signal * scanLine * 0.15 * u_pulse;
+      /* ── Cyber Laser Scanline ── */
+      float scanY = fract(t * 0.12);
+      float scanLaser = smoothstep(0.08, 0.0, abs(uv.y - scanY));
+      bg += u_signal * scanLaser * 0.35 * u_pulse;
 
-      /* ── Depth fog ── */
-      float fog = smoothstep(0.0, 0.6, uv.y) * 0.15;
-      bg = mix(bg, u_bgB, fog);
+      /* ── Cursor Neon Gravity Halo ── */
+      float cursorGlow = smoothstep(0.38, 0.0, cursorDist);
+      bg += u_signal * cursorGlow * 0.25;
+      bg += u_accent * pow(cursorGlow, 2.0) * 0.30;
 
-      /* ── Film grain ── */
-      float grain = hash(uv * u_resolution + fract(t * 17.0)) * 0.02;
+      /* ── Floating Cyber Dust Particles ── */
+      float particleSeed = hash(floor(warpedGrid * 0.5) + floor(t * 0.8));
+      float particles = smoothstep(0.96, 1.0, particleSeed) * nodes;
+      bg += u_particle * particles * 0.8;
+
+      /* ── Depth Atmospheric Fog ── */
+      float depthFog = smoothstep(0.0, 0.7, uv.y) * 0.22;
+      bg = mix(bg, u_bgB, depthFog);
+
+      /* ── Film grain & Vignette ── */
+      float grain = hash(uv * u_resolution + fract(t * 19.0)) * 0.025;
       bg += grain;
-
-      /* ── Organic noise ── */
-      float organic = fbm(uv * 6.0 + t * 0.2) * 0.03;
-      bg += organic * u_accent;
-
-      /* ── Cursor glow ── */
-      float glow = smoothstep(0.28, 0.0, cursorDist);
-      bg += u_accent * glow * 0.06;
-
-      /* ── Vignette ── */
-      bg *= (0.92 + vignette * 0.08);
+      bg *= (0.90 + vignette * 0.10);
 
     }
 

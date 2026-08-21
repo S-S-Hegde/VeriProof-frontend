@@ -21,14 +21,14 @@ const TOKENS = {
     particle: hex("#E09FA6"),   // rose gold mist highlight
   },
   dark: {
-    opacity:  0.95,
-    grid:     0.45,
-    pulse:    0.6,
-    bgA:      hex("#0a0e1a"),   // --color-bg
-    bgB:      hex("#060911"),   // --color-bg-sunken
-    signal:   hex("#6b8aff"),   // --color-accent
-    accent:   hex("#6b8aff"),
-    particle: hex("#5a6478"),
+    opacity:  1.0,
+    grid:     0.85,
+    pulse:    0.95,
+    bgA:      hex("#040711"),   // deep obsidian base
+    bgB:      hex("#0a1228"),   // midnight cyber depth
+    signal:   hex("#00f2fe"),   // electric neon cyan
+    accent:   hex("#38bdf8"),   // bright cyber sky blue
+    particle: hex("#818cf8"),   // luminous violet node
   },
 };
 
