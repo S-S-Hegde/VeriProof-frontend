@@ -11,6 +11,14 @@ const RoleBasedRouter = ({ children, allowedRoles }) => {
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login");
+    } else if (
+      !loading &&
+      user &&
+      user.role === "recruiter" &&
+      user.recruiterVerificationStatus &&
+      user.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
+    ) {
+      navigate("/register", { replace: true });
     } else if (!loading && user && allowedRoles && !allowedRoles.includes(user.role)) {
       navigate("/dashboard");
     }

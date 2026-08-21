@@ -82,10 +82,21 @@ const Navbar = () => {
     setProfileOpen(false);
   }, [location.pathname]);
 
+  const isUnverifiedRecruiter =
+    user?.role === "recruiter" &&
+    user?.recruiterVerificationStatus &&
+    user?.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED";
+
   const guard = (e, path) => {
     if (!user) {
       e.preventDefault();
       navigate("/login");
+      return;
+    }
+    if (isUnverifiedRecruiter) {
+      e.preventDefault();
+      navigate("/register");
+      return;
     }
   };
 
@@ -95,7 +106,9 @@ const Navbar = () => {
   const isRecruiter = user?.role === "recruiter";
 
   // Primary nav (desktop top bar + mobile bottom dock)
-  const primaryNav = isRecruiter
+  const primaryNav = isUnverifiedRecruiter
+    ? []
+    : isRecruiter
     ? [
         { name: "Dashboard",       path: "/recruiter-dashboard", icon: LayoutDashboard },
         { name: "Job Roles",       path: "/recruiter-jobs",      icon: Briefcase },
