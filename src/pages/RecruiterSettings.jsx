@@ -52,7 +52,7 @@ const TABS = [
 ];
 
 export default function RecruiterSettings() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("Identity");
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
@@ -222,26 +222,27 @@ export default function RecruiterSettings() {
     try {
       await api.delete("/api/users/profile", {
         data: { password: "DELETE" },
-        headers: { "x-confirm-password": "DELETE" }
+        headers: { "x-confirm-password": "DELETE" },
       });
-      logout();
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = "/";
     } catch (err) {
-      if (err.response?.status === 404) {
-        logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "/";
+      if (err.response?.status !== 404) {
+        setDeleteError(
+          err.response?.data?.message || "Failed to delete recruiter account."
+        );
+        setDeletingAccount(false);
         return;
       }
-      setDeleteError(
-        err.response?.data?.message || "Failed to delete recruiter account."
-      );
-    } finally {
-      setDeletingAccount(false);
     }
+
+    // Whether successfully deleted or already 404, clear session and redirect to landing page
+    try {
+      if (typeof logout === "function") logout();
+    } catch (e) {
+      // ignore
+    }
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "/";
   };
 
   return (

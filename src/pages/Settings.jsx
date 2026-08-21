@@ -56,7 +56,7 @@ const TABS = [
 ];
 
 const Settings = () => {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("Identity");
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
