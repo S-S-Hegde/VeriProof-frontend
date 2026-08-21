@@ -99,10 +99,21 @@ export default function RecruiterSettings() {
         const rawCompany = data.college || data.companyName || user?.companyName || "";
         const cleanCompany = (rawCompany.includes("linkedin.com") || rawCompany.startsWith("http")) ? "" : rawCompany;
 
-        const savedLinkedin = data.linkedinUrl || data.linkedin || data.linkedinUsername || user?.linkedinUrl || user?.linkedin || user?.linkedinUsername || "";
-        const cleanLinkedin = (savedLinkedin && !savedLinkedin.includes("undefined") && savedLinkedin !== "www.linkedin.com" && savedLinkedin !== "https://www.linkedin.com")
-          ? savedLinkedin
-          : "";
+        let savedLinkedin = data.linkedinUrl || data.linkedin || data.linkedinUsername || user?.linkedinUrl || user?.linkedin || user?.linkedinUsername || "";
+        if (
+          savedLinkedin.includes("www.linkedin.com/in/www.linkedin.com") ||
+          savedLinkedin === "www.linkedin.com" ||
+          savedLinkedin === "https://www.linkedin.com" ||
+          savedLinkedin === "linkedin.com"
+        ) {
+          savedLinkedin = "";
+        } else if (savedLinkedin.includes("linkedin.com/in/")) {
+          const parts = savedLinkedin.split("linkedin.com/in/");
+          const handle = parts[parts.length - 1].replace(/\/+$/, "").trim();
+          savedLinkedin = (handle && handle !== "www.linkedin.com" && !handle.includes("http"))
+            ? `https://www.linkedin.com/in/${handle}`
+            : "";
+        }
 
         setForm({
           name: data.name || user?.name || "",
@@ -113,7 +124,7 @@ export default function RecruiterSettings() {
           website: data.website || "",
           company: cleanCompany,
           title: data.branch || "",
-          linkedin: cleanLinkedin,
+          linkedin: savedLinkedin,
           twitter: data.twitter || "",
           notifEmail: data.notifications?.email ?? true,
           notifPlatform: data.notifications?.platform ?? true,
