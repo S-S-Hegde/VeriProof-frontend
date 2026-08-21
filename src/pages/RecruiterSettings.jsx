@@ -250,7 +250,7 @@ export default function RecruiterSettings() {
 
   return (
     <PageTransition>
-      <div className="max-w-6xl mx-auto space-y-8 pb-16 pt-8">
+      <div className="max-w-6xl mx-auto space-y-8 pb-16 pt-24 px-4 sm:px-6">
         {/* ── Toast Notification ── */}
         <AnimatePresence>
           {toast && (
