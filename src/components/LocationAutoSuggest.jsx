@@ -32,7 +32,14 @@ export const GLOBAL_LOCATIONS = [
   "Dubai, United Arab Emirates",
 ];
 
-export default function LocationAutoSuggest({ value, onChange, placeholder = "Select or type location...", className, labelCls }) {
+export default function LocationAutoSuggest({
+  value,
+  onChange,
+  placeholder = "Select or type location...",
+  className,
+  labelCls,
+  label = "Location / HQ",
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState(value || "");
   const containerRef = useRef(null);
@@ -72,8 +79,8 @@ export default function LocationAutoSuggest({ value, onChange, placeholder = "Se
     <div className="relative" ref={containerRef}>
       {labelCls && (
         <label className={labelCls}>
-          <MapPin className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-          Geographic_Origin / Location
+          <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+          {label}
         </label>
       )}
 
