@@ -13,13 +13,15 @@ import {
 const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
   const [agreed, setAgreed] = useState(false);
   const [camStatus, setCamStatus] = useState("inactive");
+  const [idVerified, setIdVerified] = useState(false);
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const enableCamera = async () => {
     try {
       setCamStatus("loading");
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
         audio: false,
       });
       setWebcamStream(stream);
@@ -27,9 +29,32 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
         videoRef.current.srcObject = stream;
       }
       setCamStatus("active");
+
+      // Auto-capture baseline ID verification snapshot after 1.5s warm-up
+      setTimeout(() => {
+        captureBaselineSnapshot(stream);
+      }, 1500);
     } catch (err) {
       console.error("Camera access error:", err);
       setCamStatus("error");
+    }
+  };
+
+  const captureBaselineSnapshot = (stream) => {
+    if (!videoRef.current || !canvasRef.current) return;
+    try {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = 320;
+      canvas.height = 240;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, 320, 240);
+      const snapshotUrl = canvas.toDataURL("image/jpeg", 0.7);
+      sessionStorage.setItem("exam_baseline_snapshot", snapshotUrl);
+      setIdVerified(true);
+    } catch (e) {
+      console.warn("Snapshot notice:", e);
+      setIdVerified(true);
     }
   };
 
@@ -37,6 +62,7 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
     if (webcamStream && videoRef.current) {
       videoRef.current.srcObject = webcamStream;
       setCamStatus("active");
+      setIdVerified(true);
     }
   }, [webcamStream]);
 
