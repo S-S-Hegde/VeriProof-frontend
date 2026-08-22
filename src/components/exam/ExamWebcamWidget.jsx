@@ -1,10 +1,13 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Video, ShieldCheck, AlertTriangle, UserCheck } from "lucide-react";
+import { Video, ShieldCheck, AlertTriangle, UserCheck, Activity } from "lucide-react";
 
 const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [faceStatus, setFaceStatus] = useState("VERIFIED"); // "VERIFIED" | "SCANNING" | "ABSENT"
+  const prevFrameRef = useRef(null);
+  const staticCountRef = useRef(0);
+  const [faceStatus, setFaceStatus] = useState("VERIFIED"); // "VERIFIED" | "SCANNING" | "STATIC" | "ABSENT"
+  const [motionScore, setMotionScore] = useState(100);
 
   useEffect(() => {
     if (webcamStream && videoRef.current) {
@@ -12,7 +15,7 @@ const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
     }
   }, [webcamStream]);
 
-  // Periodic Face Presence / Stream Health Verification
+  // Periodic Face Presence & Optical Motion Analysis (Every 4 seconds)
   useEffect(() => {
     if (!webcamStream) return;
 
@@ -22,7 +25,7 @@ const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
       try {
         const video = videoRef.current;
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
         canvas.width = 64;
         canvas.height = 48;
         ctx.drawImage(video, 0, 0, 64, 48);
@@ -30,24 +33,44 @@ const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
         const imgData = ctx.getImageData(0, 0, 64, 48);
         const data = imgData.data;
         let totalBrightness = 0;
+        let diffSum = 0;
 
         for (let i = 0; i < data.length; i += 4) {
-          totalBrightness += (data[i] + data[i + 1] + data[i + 2]) / 3;
+          const b = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          totalBrightness += b;
+
+          if (prevFrameRef.current) {
+            const prevB = (prevFrameRef.current[i] + prevFrameRef.current[i + 1] + prevFrameRef.current[i + 2]) / 3;
+            diffSum += Math.abs(b - prevB);
+          }
         }
 
         const avgBrightness = totalBrightness / (data.length / 4);
+        const avgMotionDelta = prevFrameRef.current ? diffSum / (data.length / 4) : 10;
+        prevFrameRef.current = new Uint8ClampedArray(data);
 
-        // If completely black/covered camera (avgBrightness < 8)
+        setMotionScore(Math.min(100, Math.round(avgMotionDelta * 10)));
+
+        // 1. Check for Covered / Black Camera
         if (avgBrightness < 8) {
           setFaceStatus("ABSENT");
           if (onViolation) onViolation("Camera Obscured or Covered");
+        }
+        // 2. Check for Static Photo / Frozen Screen Spoofing (< 0.2 delta for 16s)
+        else if (avgMotionDelta < 0.2) {
+          staticCountRef.current += 1;
+          if (staticCountRef.current >= 4) {
+            setFaceStatus("STATIC");
+            if (onViolation) onViolation("Static Picture or Frozen Video Stream Detected");
+          }
         } else {
+          staticCountRef.current = 0;
           setFaceStatus("VERIFIED");
         }
       } catch (e) {
-        // Video processing notice
+        // Optical analysis frame note
       }
-    }, 10000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [webcamStream, onViolation]);
@@ -58,13 +81,13 @@ const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
 
       <div className="flex justify-between items-center mb-2 px-1">
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-          <Video className="w-3 h-3 text-blue-400" /> Biometric Proctor
+          <Activity className="w-3 h-3 text-cyan-400" /> Biometric AI Proctor
         </span>
         <span
           className={`flex items-center space-x-1 text-[10px] font-semibold ${
             faceStatus === "VERIFIED"
               ? "text-emerald-400"
-              : faceStatus === "ABSENT"
+              : faceStatus === "ABSENT" || faceStatus === "STATIC"
               ? "text-red-400 animate-pulse"
               : "text-amber-400"
           }`}
@@ -76,7 +99,13 @@ const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
                 : "bg-red-400"
             }`}
           ></span>
-          <span>{faceStatus === "VERIFIED" ? "ID MATCH" : "CHECK CAMERA"}</span>
+          <span>
+            {faceStatus === "VERIFIED"
+              ? "LIVE STREAM"
+              : faceStatus === "STATIC"
+              ? "STATIC FEED"
+              : "CHECK CAMERA"}
+          </span>
         </span>
       </div>
 

@@ -46,7 +46,28 @@ export default function ExamFlowManager() {
   const [webcamStream, setWebcamStream] = useState(null);
   const [violationCount, setViolationCount] = useState(0);
   const [showViolationModal, setShowViolationModal] = useState(false);
-  
+  const [showIncompleteModal, setShowIncompleteModal] = useState(false);
+
+  // Active 1-Second Exam Countdown Timer
+  useEffect(() => {
+    if (stage !== "assessment") return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmitExam(false);
+          return 0;
+        }
+        const updated = prev - 1;
+        sessionStorage.setItem("exam_timeLeft", String(updated));
+        return updated;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [stage, handleSubmitExam]);
+
   // Handlers
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
@@ -136,6 +157,21 @@ export default function ExamFlowManager() {
       setExamError(err.response?.data?.message || "Failed to submit exam. Please try again.");
     }
   }, [questions, answers, webcamStream]);
+
+  // Strict Validation: Candidate cannot submit unless all questions are attempted
+  const handleManualSubmit = () => {
+    const answeredCount = Object.keys(answers).filter(
+      k => answers[k] !== undefined && answers[k] !== null
+    ).length;
+    const unanswered = questions.length - answeredCount;
+
+    if (unanswered > 0) {
+      setShowIncompleteModal(true);
+      return;
+    }
+
+    handleSubmitExam(false);
+  };
 
   const triggerViolation = useCallback((reason = "Security Violation") => {
     if (stage !== "assessment" || isSubmittingRef.current) return;
@@ -339,7 +375,7 @@ export default function ExamFlowManager() {
                     onSelectOption={handleSelectOption}
                     onNext={handleNext}
                     onPrev={handlePrev}
-                    onSubmit={handleSubmitExam}
+                    onSubmit={handleManualSubmit}
                     user={user}
                   />
                 </div>
@@ -347,7 +383,7 @@ export default function ExamFlowManager() {
             </div>
 
             <div className="w-full lg:w-80 space-y-6 shrink-0">
-              <ExamWebcamWidget webcamStream={webcamStream} />
+              <ExamWebcamWidget webcamStream={webcamStream} onViolation={triggerViolation} />
               <ExamPaletteWidget
                 questions={questions}
                 answers={answers}
@@ -398,6 +434,34 @@ export default function ExamFlowManager() {
                 Return to Candidate Dashboard
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Unanswered Questions Block Modal ── */}
+      {showIncompleteModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-[#0c1222] border border-amber-500/40 text-white shadow-2xl space-y-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center mx-auto text-2xl">
+              ⚠️
+            </div>
+            <div>
+              <h3 className="text-lg font-black uppercase text-amber-400 tracking-tight">
+                Incomplete Assessment
+              </h3>
+              <p className="text-xs text-gray-300 mt-2 font-mono leading-relaxed">
+                You have <strong className="text-amber-300 text-sm font-bold">{questions.length - Object.keys(answers).filter(k => answers[k] !== undefined && answers[k] !== null).length}</strong> unanswered questions remaining out of {questions.length}.
+              </p>
+              <p className="text-[11px] text-gray-400 mt-1">
+                You must attempt all questions before submitting your assessment.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowIncompleteModal(false)}
+              className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg cursor-pointer"
+            >
+              ← Return &amp; Answer Questions
+            </button>
           </div>
         </div>
       )}

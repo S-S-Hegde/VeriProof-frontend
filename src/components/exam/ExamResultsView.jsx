@@ -28,11 +28,21 @@ const ExamResultsView = ({ result, candidateName, onReset }) => {
     } catch (err) {
       console.error("Profile sync error:", err);
     } finally {
-      navigate("/dashboard");
+      navigate("/student-dashboard");
     }
   };
 
-  if (!result) return null;
+  if (!result) {
+    return (
+      <div className="max-w-3xl mx-auto py-16 px-4 text-center">
+        <div className="glass-card rounded-2xl p-10 shadow-2xl border border-slate-800 space-y-4">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+          <h3 className="text-xl font-bold text-white">Grading Technical Assessment...</h3>
+          <p className="text-xs text-blue-400 font-mono">Computing Forensic Trust Score &amp; Notifying Recruiter</p>
+        </div>
+      </div>
+    );
+  }
 
   const isPassed =
     result.status === "Passed" ||
