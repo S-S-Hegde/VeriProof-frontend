@@ -216,17 +216,27 @@ const RecruiterCompanyOnboardingModal = ({ isOpen, onClose, onVerified }) => {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleStep2Submit} className="space-y-4 relative z-10">
-            <p className="text-xs text-gray-300 leading-relaxed">
-              We dispatched a 6-digit verification code to <strong className="text-cyan-400 font-mono">{companyEmail}</strong> for LinkedIn profile <strong className="text-white">@{linkedinUsername.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, "").replace(/\/.*$/, "")}</strong>.
+          <form onSubmit={handleStep2Submit} className="space-y-5 relative z-10">
+            <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2 text-xs font-mono">
+              <div className="flex items-center justify-between text-gray-300">
+                <span className="text-gray-400">Recipient Email:</span>
+                <span className="text-cyan-300 font-bold">{companyEmail}</span>
+              </div>
+              <div className="flex items-center justify-between text-gray-300 border-t border-cyan-500/10 pt-2">
+                <span className="text-gray-400">LinkedIn Profile:</span>
+                <span className="text-white font-bold">
+                  @{linkedinUsername.replace(/^https?:\/\//i, "").replace(/^(www\.)?linkedin\.com\/(in\/)?/i, "").replace(/\/.*$/, "").replace(/^@/, "") || "recruiter"}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400 leading-relaxed font-mono text-center">
+              Please enter the 6-digit access code sent to your inbox to authenticate this profile.
             </p>
 
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">
-                Enter 6-Digit Access Code
-              </label>
               <div className="relative">
-                <KeyRound className="absolute left-3.5 top-3.5 w-4 h-4 text-cyan-400" />
+                <KeyRound className="absolute left-4 top-3.5 w-5 h-5 text-cyan-400" />
                 <input
                   type="text"
                   maxLength={6}
@@ -235,12 +245,12 @@ const RecruiterCompanyOnboardingModal = ({ isOpen, onClose, onVerified }) => {
                   placeholder="000000"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/60 border border-cyan-500/40 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-400 text-center font-mono text-2xl tracking-[0.3em] font-bold"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-black/70 border border-cyan-500/40 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-400 text-center font-mono text-3xl tracking-[0.35em] font-black shadow-inner"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => {
@@ -254,7 +264,7 @@ const RecruiterCompanyOnboardingModal = ({ isOpen, onClose, onVerified }) => {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-2/3 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer shadow-lg"
+                className="w-2/3 py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs tracking-wider uppercase flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer shadow-lg"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                 Confirm &amp; Access
