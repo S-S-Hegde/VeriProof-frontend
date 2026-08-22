@@ -28,10 +28,23 @@ const ExamQuestionView = ({
 
       <div className="relative z-20">
         <div className="flex items-center justify-between mb-4">
-          <span className="px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
-            Question {currentIndex + 1} of {totalQuestions}
-          </span>
-          <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider font-mono">
+              Question {currentIndex + 1} of {totalQuestions}
+            </span>
+            <span
+              className={`px-2.5 py-1 rounded-md text-xs font-bold font-mono border uppercase tracking-wider ${
+                question.difficulty === "Hard"
+                  ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+                  : question.difficulty === "Medium"
+                  ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                  : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+              }`}
+            >
+              {question.difficulty || "Medium"}
+            </span>
+          </div>
+          <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700 font-mono">
             {question.category || question.skill || "Technical"}
           </span>
         </div>
