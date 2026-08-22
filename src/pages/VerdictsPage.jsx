@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import api from "../utils/api";
 import ConfirmModal from "../components/ConfirmModal";
+import RecruiterAnalyticsVisualizer from "../components/RecruiterAnalyticsVisualizer";
 
 const ExamBadge = ({ status, score }) => {
   if (status === "Attended") return (
@@ -469,6 +470,7 @@ export default function Verdicts() {
   const [selectedIds, setSelectedIds]           = useState(new Set());
   const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting]     = useState(false);
+  const [viewMode, setViewMode]                 = useState("table"); // "table" | "analytics"
 
   const toggleSelectRow = useCallback((id) => {
     setSelectedIds(prev => {
@@ -624,6 +626,30 @@ export default function Verdicts() {
           <p className="text-sm text-[var(--color-muted)] mt-1">Ranked results · drag to reorder shortlist · export top-N</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {/* View Mode Toggle */}
+          <div className="flex p-1 rounded-xl bg-[var(--color-bg-sunken)] border border-[var(--color-border)] mr-2">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                viewMode === "table"
+                  ? "bg-[var(--color-accent)] text-white shadow"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" /> Table Rankings
+            </button>
+            <button
+              onClick={() => setViewMode("analytics")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                viewMode === "analytics"
+                  ? "bg-indigo-600 text-white shadow"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" /> Visual Charts &amp; Radar
+            </button>
+          </div>
+
           <button onClick={fetchData} className="vp-btn vp-btn-secondary text-xs px-4 py-2 gap-2"><RefreshCw className={`w-3.5 h-3.5 ${loading?"animate-spin":""}`}/>Refresh</button>
           <button onClick={sendDigest} disabled={digestSending} className="vp-btn vp-btn-secondary text-xs px-4 py-2 gap-2 disabled:opacity-40">{digestSending?<Loader2 className="w-3.5 h-3.5 animate-spin"/>:<Send className="w-3.5 h-3.5"/>}Send Digest</button>
           <button onClick={saveShortlist} disabled={isSavingShortlist} className="vp-btn vp-btn-secondary text-xs px-4 py-2 gap-2 disabled:opacity-40">{isSavingShortlist?<Loader2 className="w-3.5 h-3.5 animate-spin"/>:<Star className="w-3.5 h-3.5 text-yellow-400"/>}Save Shortlist</button>
@@ -659,39 +685,47 @@ export default function Verdicts() {
         ))}
       </div>
 
-      {/* Top-N selector */}
-      <div className="vp-glass rounded-[var(--radius-xl)] p-5 border border-yellow-400/20">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div><p className="vp-label-accent mb-1 flex items-center gap-2"><Star className="w-3.5 h-3.5 text-yellow-400"/>Shortlist Builder</p><p className="text-xs text-[var(--color-muted)]">Select how many top candidates to shortlist. Drag rows to reorder.</p></div>
-          <div className="flex items-center gap-3 ml-auto flex-wrap">
-            {[10,15,20,30].map(n=>(
-              <button key={n} onClick={()=>{setTopN(n);setTopNInput(String(n));}} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${topN===n?"bg-yellow-400/20 border-yellow-400/60 text-yellow-300":"border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}>Top {n}</button>
-            ))}
-            <div className="flex items-center gap-2"><span className="text-xs text-[var(--color-muted)]">Custom:</span><input type="number" min={1} max={applicants.length||100} value={topNInput} onChange={e=>handleTopNInput(e.target.value)} className="vp-input w-20 py-1.5 text-xs text-center"/></div>
-            <span className="text-xs font-mono text-yellow-400 font-bold">{Math.min(topN,applicants.length)} shortlisted</span>
+      {viewMode === "analytics" ? (
+        <RecruiterAnalyticsVisualizer
+          applicants={applicants}
+          jobs={jobs}
+          selectedJobId={jobFilter !== "all" ? jobFilter : null}
+        />
+      ) : (
+        <>
+          {/* Top-N selector */}
+          <div className="vp-glass rounded-[var(--radius-xl)] p-5 border border-yellow-400/20">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div><p className="vp-label-accent mb-1 flex items-center gap-2"><Star className="w-3.5 h-3.5 text-yellow-400"/>Shortlist Builder</p><p className="text-xs text-[var(--color-muted)]">Select how many top candidates to shortlist. Drag rows to reorder.</p></div>
+              <div className="flex items-center gap-3 ml-auto flex-wrap">
+                {[10,15,20,30].map(n=>(
+                  <button key={n} onClick={()=>{setTopN(n);setTopNInput(String(n));}} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${topN===n?"bg-yellow-400/20 border-yellow-400/60 text-yellow-300":"border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}>Top {n}</button>
+                ))}
+                <div className="flex items-center gap-2"><span className="text-xs text-[var(--color-muted)]">Custom:</span><input type="number" min={1} max={applicants.length||100} value={topNInput} onChange={e=>handleTopNInput(e.target.value)} className="vp-input w-20 py-1.5 text-xs text-center"/></div>
+                <span className="text-xs font-mono text-yellow-400 font-bold">{Math.min(topN,applicants.length)} shortlisted</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Tabs + Job filter */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex gap-2">
-          {[{id:"all",label:`All (${applicants.length})`},{id:"shortlist",label:`⭐ Shortlist (${shortlistRows.length})`}].map(tab=>(
-            <button key={tab.id} onClick={()=>setActiveTab(tab.id)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${activeTab===tab.id?"bg-[var(--color-accent)]/15 border-[var(--color-accent)]/40 text-[var(--color-accent)]":"border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}>{tab.label}</button>
-          ))}
-        </div>
-        <div className="flex items-center gap-3">
-          <Filter className="w-4 h-4 text-[var(--color-muted)]"/>
-          <label className="vp-label">Job:</label>
-          <div className="relative">
-            <select value={jobFilter} onChange={e=>setJobFilter(e.target.value)} className="vp-input py-1.5 pr-8 text-xs appearance-none">
-              <option value="all">All Jobs</option>
-              {jobs.map(j=><option key={j._id} value={j._id}>{j.title}</option>)}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-muted)] pointer-events-none"/>
+          {/* Tabs + Job filter */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex gap-2">
+              {[{id:"all",label:`All (${applicants.length})`},{id:"shortlist",label:`⭐ Shortlist (${shortlistRows.length})`}].map(tab=>(
+                <button key={tab.id} onClick={()=>setActiveTab(tab.id)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${activeTab===tab.id?"bg-[var(--color-accent)]/15 border-[var(--color-accent)]/40 text-[var(--color-accent)]":"border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]"}`}>{tab.label}</button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              <Filter className="w-4 h-4 text-[var(--color-muted)]"/>
+              <label className="vp-label">Job:</label>
+              <div className="relative">
+                <select value={jobFilter} onChange={e=>setJobFilter(e.target.value)} className="vp-input py-1.5 pr-8 text-xs appearance-none">
+                  <option value="all">All Jobs</option>
+                  {jobs.map(j=><option key={j._id} value={j._id}>{j.title}</option>)}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-muted)] pointer-events-none"/>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
       {/* Table */}
       <div className="vp-glass rounded-[var(--radius-xl)] overflow-hidden">
@@ -741,6 +775,8 @@ export default function Verdicts() {
       </div>
 
       {displayRows.length>0&&<p className="text-center text-[10px] font-mono text-[var(--color-muted)]">{activeTab==="all"?`${displayRows.length} total · ⭐ ${shortlistedIds.length} shortlisted · Drag rows to reorder · ⭐ to add/remove from shortlist`:`${shortlistRows.length} in shortlist · Drag to reorder · Export CSV exports only this list`}</p>}
+        </>
+      )}
 
       <ConfirmModal isOpen={Boolean(deleteTarget)} onClose={()=>!isDeleting&&setDeleteTarget(null)} onConfirm={confirmDelete} title="Remove Applicant" message="Remove this applicant from the ranking list?" subtitle={deleteTarget?`${deleteTarget.extractedName||"Unknown"} — ${deleteTarget.originalFileName}`:""} confirmText="Remove" cancelText="Cancel" variant="danger" loading={isDeleting}/>
 
