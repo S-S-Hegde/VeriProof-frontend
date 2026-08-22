@@ -198,10 +198,11 @@ const RecruiterAnalyticsVisualizer = ({ applicants = [], jobs = [], selectedJobI
     const getScoreArray = (cand) => {
       if (!cand) return [0, 0, 0, 0, 0];
       const align = cand.alignmentScore || 0;
-      const exam = cand.examScore != null ? cand.examScore : align * 0.9;
-      const skillCount = Math.min((cand.matchedSkills || []).length * 15, 100);
-      const codeIndex = cand.githubUsername ? 90 : 45;
-      const reliability = cand.examStatus === "Attended" ? 95 : 65;
+      const exam = cand.examScore != null ? cand.examScore : Math.round(align * 0.85);
+      const skillCount = Math.min(100, Math.max(30, (cand.matchedSkills || []).length * 14 + (cand.claimedSkills || []).length * 4));
+      const codeIndex = cand.githubUsername ? 92 : 45;
+      const textLen = (cand.resumeText || "").length;
+      const reliability = cand.examStatus === "Attended" ? 95 : (textLen > 1000 ? 78 : 58);
       return [align, exam, skillCount, codeIndex, reliability];
     };
 
