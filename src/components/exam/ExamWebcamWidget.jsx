@@ -141,7 +141,25 @@ const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
           shutterCountRef.current = 0;
         }
 
-        // 2. Static Photo / Frozen Screen Spoofing (< 0.15 delta for 6+ seconds)
+        // 2. Low Lighting Diagnostics (10 to 38 mean brightness)
+        if (avgBrightness >= 10 && avgBrightness < 38) {
+          setProctorState((prev) => ({
+            ...prev,
+            status: prev.status.startsWith("SHUTTER") || prev.status.startsWith("STATIC") ? prev.status : "LOW_LIGHT",
+            message: "⚠️ Low Lighting: Please brighten room or face light source",
+          }));
+        }
+
+        // 3. Overexposed / Glare Diagnostics (> 240 mean brightness)
+        if (avgBrightness > 240) {
+          setProctorState((prev) => ({
+            ...prev,
+            status: prev.status.startsWith("SHUTTER") || prev.status.startsWith("STATIC") ? prev.status : "OVEREXPOSED",
+            message: "⚠️ Camera Glare: Adjust room light or camera angle",
+          }));
+        }
+
+        // 4. Static Photo / Frozen Screen Spoofing (< 0.15 delta for 6+ seconds)
         if (avgMotionDelta < 0.15 && avgBrightness >= 10) {
           staticCountRef.current += 1;
           if (staticCountRef.current >= 4) {
@@ -158,8 +176,8 @@ const ExamWebcamWidget = ({ webcamStream, onViolation }) => {
           staticCountRef.current = 0;
         }
 
-        // 3. Periodic AI Vision Check (runs every ~18s in background)
-        if (avgBrightness >= 10 && staticCountRef.current < 4) {
+        // 5. Periodic AI Vision Check (runs every ~18s in background)
+        if (avgBrightness >= 38 && avgBrightness <= 240 && staticCountRef.current < 4) {
           runAiVisionAnalysis(video, { avgBrightness, avgMotionDelta, isTriggered: false });
         }
       } catch (e) {
