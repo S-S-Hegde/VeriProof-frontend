@@ -5,6 +5,7 @@ import PageTransition from "../components/PageTransition";
 import ConfirmationModal from "../components/common/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
+import { resolveFileUrl } from "../utils/fileUrl";
 import {
   User,
   Mail,
@@ -690,7 +691,7 @@ const Settings = () => {
 
                             {form.resumeUrl && (
                               <a
-                                href={form.resumeUrl}
+                                href={resolveFileUrl(form.resumeUrl)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="block w-full text-center py-4 border border-[var(--color-border)] hover:border-[var(--color-accent)] text-sm font-bold uppercase tracking-widest transition-all"

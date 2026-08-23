@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import { resolveFileUrl } from "../utils/fileUrl";
 import {
   Upload, FileText, CheckCircle, Clock, AlertCircle, XCircle,
   GitBranch, Shield, Award, ChevronRight, Loader2, Eye,
@@ -369,7 +370,7 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
             <div className="flex flex-wrap gap-2">
               {resumeUrl && (
                 <a
-                  href={resumeUrl}
+                  href={resolveFileUrl(resumeUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5"
@@ -620,7 +621,7 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
 
               {resumeUrl && (
                 <a
-                  href={resumeUrl}
+                  href={resolveFileUrl(resumeUrl)}
                   target="_blank"
                   rel="noreferrer"
                   className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5"

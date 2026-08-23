@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import { resolveFileUrl } from "../utils/fileUrl";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import {
@@ -282,7 +283,7 @@ const ResumeUploadPage = () => {
                     <div className="aspect-[3/4] w-full bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-[var(--radius-md)] flex items-center justify-center flex-col gap-4 overflow-hidden relative group">
                       <FileText className="w-12 h-12 text-[var(--color-muted)] opacity-20" />
                       <a
-                        href={resumeUrl}
+                        href={resolveFileUrl(resumeUrl)}
                         target="_blank"
                         rel="noreferrer"
                         className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
