@@ -52,7 +52,7 @@ const ExamResultsView = ({ result, candidateName, onReset }) => {
     result.score !== undefined
       ? result.score
       : Math.round(
-          ((result.correctAnswers || 0) / (result.totalQuestions || 30)) * 100,
+          ((result.correctAnswers || 0) / (result.totalQuestions || 35)) * 100,
         );
 
   return (
@@ -85,7 +85,7 @@ const ExamResultsView = ({ result, candidateName, onReset }) => {
             {scorePercent}%
           </h3>
           <p className="text-xs text-slate-400 font-semibold">
-            {result.correctAnswers || 0} / {result.totalQuestions || 30} Correct
+            {result.correctAnswers || 0} / {result.totalQuestions || 35} Correct
             Answers
           </p>
         </div>
@@ -94,7 +94,7 @@ const ExamResultsView = ({ result, candidateName, onReset }) => {
           <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800">
             <span className="text-slate-400 block">Attempted</span>
             <strong className="text-slate-200 text-sm font-bold">
-              {result.answeredQuestions || result.totalQuestions || 30}
+              {result.answeredQuestions || result.totalQuestions || 35}
             </strong>
           </div>
           <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
@@ -106,7 +106,7 @@ const ExamResultsView = ({ result, candidateName, onReset }) => {
           <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20">
             <span className="text-rose-400 block">Wrong</span>
             <strong className="text-rose-300 text-sm font-bold">
-              {(result.totalQuestions || 30) - (result.correctAnswers || 0)}
+              {(result.totalQuestions || 35) - (result.correctAnswers || 0)}
             </strong>
           </div>
         </div>

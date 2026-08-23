@@ -165,7 +165,7 @@ const ExamLobby = ({
             <div className="p-3.5 rounded-xl bg-[var(--color-bg-raised)] border border-[var(--color-border)]">
               <span className="text-[var(--color-muted)] block mb-1">Questions</span>
               <strong className="text-[var(--color-text)] text-base font-bold flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-[var(--color-accent)]" /> 30 MCQs
+                <HelpCircle className="w-4 h-4 text-[var(--color-accent)]" /> 35 MCQs
               </strong>
             </div>
 
@@ -212,11 +212,11 @@ const ExamLobby = ({
               {isGenerating ? (
                 <span className="flex items-center gap-2">
                   <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                  Generating 30 AI Questions...
+                  Generating 35 AI Questions...
                 </span>
               ) : (
                 <>
-                  <span>Generate 30 AI Exam Questions</span>
+                  <span>Generate 35 AI Exam Questions</span>
                   <Wand2 className="w-5 h-5 ml-1" />
                 </>
               )}
