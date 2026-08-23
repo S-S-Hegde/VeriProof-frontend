@@ -48,69 +48,9 @@ export default function ExamFlowManager() {
   const [showViolationModal, setShowViolationModal] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
 
-  // Active 1-Second Exam Countdown Timer
-  useEffect(() => {
-    if (stage !== "assessment") return;
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleSubmitExam(false);
-          return 0;
-        }
-        const updated = prev - 1;
-        sessionStorage.setItem("exam_timeLeft", String(updated));
-        return updated;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [stage, handleSubmitExam]);
-
-  // Handlers
-  const handleGenerateQuestions = async () => {
-    setIsGenerating(true);
-    setExamError(null);
-    try {
-      const { data } = await api.get("/api/exams/start");
-      setQuestions(data);
-      if (data.length > 0) {
-        setVisited({ [data[0]._id]: true });
-      }
-      setStage("instructions");
-    } catch (err) {
-      console.error(err);
-      if (err.response?.data?.completed || err.response?.status === 403) {
-        setExamResult({
-          completed: true,
-          score: err.response?.data?.score ?? 0,
-          status: err.response?.data?.status || "Completed",
-          message: err.response?.data?.error || "Single attempt limit reached. Retakes are not permitted."
-        });
-        setStage("completed_lock");
-      } else {
-        setExamError(err.response?.data?.message || "Failed to generate questions. Please try again.");
-      }
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleStartExam = async () => {
-    setStage("assessment");
-    // Request fullscreen
-    if (document.documentElement.requestFullscreen) {
-      try {
-        await document.documentElement.requestFullscreen();
-      } catch (err) {
-        console.warn("Fullscreen request denied", err);
-      }
-    }
-  };
-
   const isSubmittingRef = useRef(false);
 
+  // ── Core Submission Handler ──────────────────────────────────────────────
   const handleSubmitExam = useCallback(async (isTerminated = false) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
@@ -159,7 +99,7 @@ export default function ExamFlowManager() {
   }, [questions, answers, webcamStream]);
 
   // Strict Validation: Candidate cannot submit unless all questions are attempted
-  const handleManualSubmit = () => {
+  const handleManualSubmit = useCallback(() => {
     const answeredCount = Object.keys(answers).filter(
       k => answers[k] !== undefined && answers[k] !== null
     ).length;
@@ -171,8 +111,9 @@ export default function ExamFlowManager() {
     }
 
     handleSubmitExam(false);
-  };
+  }, [answers, questions.length, handleSubmitExam]);
 
+  // Security Violation Handler
   const triggerViolation = useCallback((reason = "Security Violation") => {
     if (stage !== "assessment" || isSubmittingRef.current) return;
 
@@ -185,6 +126,103 @@ export default function ExamFlowManager() {
       }
       return newCount;
     });
+  }, [stage, handleSubmitExam]);
+
+  // Navigation & Option Selection Handlers (Declared before useEffect)
+  const handleSelectOption = useCallback((optionIndex) => {
+    if (!questions[currentIndex]) return;
+    const qId = questions[currentIndex]._id;
+    setAnswers(prev => ({ ...prev, [qId]: optionIndex }));
+  }, [questions, currentIndex]);
+
+  const handleNext = useCallback(() => {
+    if (currentIndex < questions.length - 1) {
+      const nextIdx = currentIndex + 1;
+      setVisited(prev => ({ ...prev, [questions[nextIdx]._id]: true }));
+      setCurrentIndex(nextIdx);
+    }
+  }, [currentIndex, questions]);
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) {
+      const prevIdx = currentIndex - 1;
+      setVisited(prev => ({ ...prev, [questions[prevIdx]._id]: true }));
+      setCurrentIndex(prevIdx);
+    }
+  }, [currentIndex, questions]);
+
+  const handleJump = useCallback((idx) => {
+    if (questions[idx]) {
+      setVisited(prev => ({ ...prev, [questions[idx]._id]: true }));
+      setCurrentIndex(idx);
+    }
+  }, [questions]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // Handlers
+  const handleGenerateQuestions = async () => {
+    setIsGenerating(true);
+    setExamError(null);
+    try {
+      const { data } = await api.get("/api/exams/start");
+      setQuestions(data);
+      if (data.length > 0) {
+        setVisited({ [data[0]._id]: true });
+      }
+      setStage("instructions");
+    } catch (err) {
+      console.error(err);
+      if (err.response?.data?.completed || err.response?.status === 403) {
+        setExamResult({
+          completed: true,
+          score: err.response?.data?.score ?? 0,
+          status: err.response?.data?.status || "Completed",
+          message: err.response?.data?.error || "Single attempt limit reached. Retakes are not permitted."
+        });
+        setStage("completed_lock");
+      } else {
+        setExamError(err.response?.data?.message || "Failed to generate questions. Please try again.");
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleStartExam = async () => {
+    setStage("assessment");
+    // Request fullscreen
+    if (document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (err) {
+        console.warn("Fullscreen request denied", err);
+      }
+    }
+  };
+
+  // Active 1-Second Exam Countdown Timer
+  useEffect(() => {
+    if (stage !== "assessment") return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmitExam(false);
+          return 0;
+        }
+        const updated = prev - 1;
+        sessionStorage.setItem("exam_timeLeft", String(updated));
+        return updated;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, [stage, handleSubmitExam]);
 
   // Anti-cheat Listeners
@@ -297,39 +335,7 @@ export default function ExamFlowManager() {
       window.removeEventListener("paste", handleCopyPaste);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [stage, triggerViolation, currentIndex, questions]);
-
-  const handleSelectOption = (optionIndex) => {
-    const qId = questions[currentIndex]._id;
-    setAnswers(prev => ({ ...prev, [qId]: optionIndex }));
-  };
-
-  const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
-      const nextIdx = currentIndex + 1;
-      setVisited(prev => ({ ...prev, [questions[nextIdx]._id]: true }));
-      setCurrentIndex(nextIdx);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      const prevIdx = currentIndex - 1;
-      setVisited(prev => ({ ...prev, [questions[prevIdx]._id]: true }));
-      setCurrentIndex(prevIdx);
-    }
-  };
-
-  const handleJump = (idx) => {
-    setVisited(prev => ({ ...prev, [questions[idx]._id]: true }));
-    setCurrentIndex(idx);
-  };
-
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
+  }, [stage, triggerViolation, currentIndex, questions, handleSelectOption, handleNext, handlePrev]);
 
   return (
     <div className="min-h-[85vh] text-slate-100 flex flex-col justify-center">
