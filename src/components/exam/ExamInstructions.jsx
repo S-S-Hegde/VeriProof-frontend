@@ -92,7 +92,7 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
               <CheckSquare className="w-5 h-5 text-blue-400" />
               <div>
                 <p className="text-xs text-slate-400">Total Questions</p>
-                <p className="font-bold text-white">30 Technical MCQs</p>
+                <p className="font-bold text-white">35 Technical MCQs</p>
               </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
