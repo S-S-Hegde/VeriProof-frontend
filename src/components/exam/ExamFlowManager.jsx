@@ -8,22 +8,22 @@ import ExamPaletteWidget from "./ExamPaletteWidget";
 import ExamWebcamWidget from "./ExamWebcamWidget";
 import ExamViolationModal from "./ExamViolationModal";
 import ExamResultsView from "./ExamResultsView";
+import { AlertTriangle, Eye, ShieldAlert, AlertOctagon, Flame, Activity } from "lucide-react";
 
-// Configuration for anti-cheat limits
+// Maximum allowable strikes before immediate automatic exam termination
 const MAX_TAB_SWITCHES = 3;
-const MAX_FULLSCREEN_EXITS = 3;
 
 export default function ExamFlowManager() {
   const { user } = useAuth();
-  const [stage, setStage] = useState("lobby"); // 'lobby', 'instructions', 'assessment', 'results'
+  const [stage, setStage] = useState("lobby"); // 'lobby', 'instructions', 'assessment', 'results', 'completed_lock'
   const [skills, setSkills] = useState([]);
-  
+
   // API State
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [examResult, setExamResult] = useState(null);
   const [examError, setExamError] = useState(null);
-  
+
   // Exam State (with sessionStorage hydration)
   const [answers, setAnswers] = useState(() => {
     const saved = sessionStorage.getItem("exam_answers");
@@ -41,67 +41,155 @@ export default function ExamFlowManager() {
     const saved = sessionStorage.getItem("exam_timeLeft");
     return saved ? parseInt(saved, 10) : 2400; // 40 minutes (2400 seconds)
   });
-  
+
   // Anti-Cheat & Camera State
   const [webcamStream, setWebcamStream] = useState(null);
   const [violationCount, setViolationCount] = useState(0);
+  const [violationReason, setViolationReason] = useState("");
+  const [violationsLog, setViolationsLog] = useState([]);
   const [showViolationModal, setShowViolationModal] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
 
+  // Big On-Screen Webpage Alerts & 7-Second Eye Countdown HUD
+  const [activeBannerWarning, setActiveBannerWarning] = useState("");
+  const [eyeOffSeconds, setEyeOffSeconds] = useState(7);
+  const [isEyeOffScreen, setIsEyeOffScreen] = useState(false);
+
+  const eyeOffTimerRef = useRef(null);
   const isSubmittingRef = useRef(false);
 
-  // ── Core Submission Handler ──────────────────────────────────────────────
-  const handleSubmitExam = useCallback(async (isTerminated = false) => {
+  // Core Submission Handler (Enforces instant submission on termination)
+  const handleSubmitExam = useCallback(async (isTerminated = false, overrideCount = null, overrideLogs = null) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setStage("results");
 
+    const finalCount = overrideCount !== null ? overrideCount : violationCount;
+    const finalLogs = overrideLogs !== null ? overrideLogs : violationsLog;
+    const calculatedIntegrity = isTerminated ? 0 : Math.max(0, 100 - (finalCount * 25));
+
     try {
-      const payload = questions.map(q => ({
+      const payload = questions.map((q) => ({
         questionId: q._id,
-        answerIndex: answers[q._id] !== undefined ? answers[q._id] : null
+        answerIndex: answers[q._id] !== undefined ? answers[q._id] : null,
       }));
-      
+
       const { data } = await api.post("/api/exams/submit", {
         answers: payload,
-        isTerminated
+        isTerminated: Boolean(isTerminated || finalCount >= MAX_TAB_SWITCHES),
+        violationCount: finalCount,
+        violations: finalLogs,
+        integrityScore: calculatedIntegrity,
       });
+
       setExamResult(data);
-      
+
       // Stop webcam
       if (webcamStream) {
-        webcamStream.getTracks().forEach(track => track.stop());
+        webcamStream.getTracks().forEach((track) => track.stop());
         setWebcamStream(null);
       }
-      
+
       // Exit fullscreen safely
       if (document.fullscreenElement && document.exitFullscreen) {
         try {
           await document.exitFullscreen();
         } catch (err) {}
       }
-      
+
       // Clear autosave
       sessionStorage.removeItem("exam_answers");
       sessionStorage.removeItem("exam_visited");
       sessionStorage.removeItem("exam_currentIndex");
       sessionStorage.removeItem("exam_timeLeft");
 
-      if (isTerminated) {
+      if (isTerminated || finalCount >= MAX_TAB_SWITCHES) {
         setTimeout(() => {
           window.location.href = "/student-dashboard";
-        }, 3000);
+        }, 3500);
       }
     } catch (err) {
       console.error("[ExamSubmit] Error:", err);
       setExamError(err.response?.data?.message || "Failed to submit exam. Please try again.");
     }
-  }, [questions, answers, webcamStream]);
+  }, [questions, answers, webcamStream, violationCount, violationsLog]);
+
+  // Security Violation Handler: Automatically terminates and submits when strikes >= 3
+  const triggerViolation = useCallback((reason = "Security Violation") => {
+    if (stage !== "assessment" || isSubmittingRef.current) return;
+
+    setViolationReason(reason);
+    setActiveBannerWarning(reason);
+
+    setViolationCount((prev) => {
+      const newCount = prev + 1;
+      const newEntry = {
+        reason,
+        timestamp: new Date().toISOString(),
+        strikeNumber: newCount,
+      };
+
+      setViolationsLog((vPrev) => {
+        const updatedLogs = [...vPrev, newEntry];
+
+        // 🚨 HARD ENFORCEMENT: If strikes >= 3, IMMEDIATELY terminate & submit the exam!
+        if (newCount >= MAX_TAB_SWITCHES) {
+          setShowViolationModal(true);
+          handleSubmitExam(true, newCount, updatedLogs);
+        }
+        return updatedLogs;
+      });
+
+      setShowViolationModal(true);
+      return newCount;
+    });
+
+    // Auto-clear banner after 8 seconds
+    setTimeout(() => {
+      setActiveBannerWarning("");
+    }, 8000);
+  }, [stage, handleSubmitExam]);
+
+  // Real-time AI Telemetry Receiver (Eye tracking, Head Pose, YOLO objects)
+  const handleTelemetryUpdate = useCallback((telemetry) => {
+    if (stage !== "assessment" || isSubmittingRef.current) return;
+
+    const eyesAway = Boolean(telemetry.gaze_violation || (telemetry.yaw_dev && Math.abs(telemetry.yaw_dev) > 25));
+
+    if (eyesAway) {
+      setIsEyeOffScreen(true);
+      if (!eyeOffTimerRef.current) {
+        let remaining = 7;
+        setEyeOffSeconds(remaining);
+
+        eyeOffTimerRef.current = setInterval(() => {
+          remaining -= 1;
+          setEyeOffSeconds(remaining);
+
+          if (remaining <= 0) {
+            clearInterval(eyeOffTimerRef.current);
+            eyeOffTimerRef.current = null;
+            setIsEyeOffScreen(false);
+            setEyeOffSeconds(7);
+            triggerViolation("Eyes / Head turned away from screen for > 7 continuous seconds");
+          }
+        }, 1000);
+      }
+    } else {
+      // Candidate looked back at screen! Reset timer cleanly
+      if (eyeOffTimerRef.current) {
+        clearInterval(eyeOffTimerRef.current);
+        eyeOffTimerRef.current = null;
+      }
+      setIsEyeOffScreen(false);
+      setEyeOffSeconds(7);
+    }
+  }, [stage, triggerViolation]);
 
   // Strict Validation: Candidate cannot submit unless all questions are attempted
   const handleManualSubmit = useCallback(() => {
     const answeredCount = Object.keys(answers).filter(
-      k => answers[k] !== undefined && answers[k] !== null
+      (k) => answers[k] !== undefined && answers[k] !== null
     ).length;
     const unanswered = questions.length - answeredCount;
 
@@ -113,32 +201,17 @@ export default function ExamFlowManager() {
     handleSubmitExam(false);
   }, [answers, questions.length, handleSubmitExam]);
 
-  // Security Violation Handler
-  const triggerViolation = useCallback((reason = "Security Violation") => {
-    if (stage !== "assessment" || isSubmittingRef.current) return;
-
-    setViolationCount(prev => {
-      const newCount = prev + 1;
-      setShowViolationModal(true);
-
-      if (newCount >= MAX_TAB_SWITCHES) {
-        handleSubmitExam(true); // Terminate exam immediately on 3 violations
-      }
-      return newCount;
-    });
-  }, [stage, handleSubmitExam]);
-
-  // Navigation & Option Selection Handlers (Declared before useEffect)
+  // Navigation & Option Selection Handlers
   const handleSelectOption = useCallback((optionIndex) => {
     if (!questions[currentIndex]) return;
     const qId = questions[currentIndex]._id;
-    setAnswers(prev => ({ ...prev, [qId]: optionIndex }));
+    setAnswers((prev) => ({ ...prev, [qId]: optionIndex }));
   }, [questions, currentIndex]);
 
   const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
       const nextIdx = currentIndex + 1;
-      setVisited(prev => ({ ...prev, [questions[nextIdx]._id]: true }));
+      setVisited((prev) => ({ ...prev, [questions[nextIdx]._id]: true }));
       setCurrentIndex(nextIdx);
     }
   }, [currentIndex, questions]);
@@ -146,14 +219,14 @@ export default function ExamFlowManager() {
   const handlePrev = useCallback(() => {
     if (currentIndex > 0) {
       const prevIdx = currentIndex - 1;
-      setVisited(prev => ({ ...prev, [questions[prevIdx]._id]: true }));
+      setVisited((prev) => ({ ...prev, [questions[prevIdx]._id]: true }));
       setCurrentIndex(prevIdx);
     }
   }, [currentIndex, questions]);
 
   const handleJump = useCallback((idx) => {
     if (questions[idx]) {
-      setVisited(prev => ({ ...prev, [questions[idx]._id]: true }));
+      setVisited((prev) => ({ ...prev, [questions[idx]._id]: true }));
       setCurrentIndex(idx);
     }
   }, [questions]);
@@ -161,10 +234,10 @@ export default function ExamFlowManager() {
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  // Handlers
+  // Generate Questions Handler
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
     setExamError(null);
@@ -178,24 +251,19 @@ export default function ExamFlowManager() {
     } catch (err) {
       console.error(err);
       if (err.response?.data?.completed || err.response?.status === 403) {
-        setExamResult({
-          completed: true,
-          score: err.response?.data?.score ?? 0,
-          status: err.response?.data?.status || "Completed",
-          message: err.response?.data?.error || "Single attempt limit reached. Retakes are not permitted."
-        });
+        setExamResult({ score: err.response?.data?.score || 0, isTerminated: true, integrityScore: 0 });
         setStage("completed_lock");
-      } else {
-        setExamError(err.response?.data?.message || "Failed to generate questions. Please try again.");
+        return;
       }
+      setExamError(err.response?.data?.message || "Failed to load examination blueprint.");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  // Start Exam & Request Fullscreen
   const handleStartExam = async () => {
     setStage("assessment");
-    // Request fullscreen
     if (document.documentElement.requestFullscreen) {
       try {
         await document.documentElement.requestFullscreen();
@@ -205,12 +273,12 @@ export default function ExamFlowManager() {
     }
   };
 
-  // Active 1-Second Exam Countdown Timer
+  // Active 1-Second Exam Countdown Timer (40 Minutes)
   useEffect(() => {
     if (stage !== "assessment") return;
 
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
           handleSubmitExam(false);
@@ -225,56 +293,37 @@ export default function ExamFlowManager() {
     return () => clearInterval(timer);
   }, [stage, handleSubmitExam]);
 
-  // Anti-cheat Listeners
+  // Anti-cheat Listeners (Browser & OS lockdowns)
   useEffect(() => {
     if (stage !== "assessment") return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        triggerViolation("Tab Switch / Window Hidden");
+        triggerViolation("Tab Switch / Window Minimized");
       }
     };
 
     const handleWindowBlur = () => {
-      triggerViolation("Window Blur / App Switch / External Screen Interaction");
+      triggerViolation("Window Unfocused / Switched Application");
     };
 
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && stage === "assessment") {
-        triggerViolation("Fullscreen Exit");
+        triggerViolation("Exited Fullscreen Mode");
       }
-    };
-
-    const handleMouseLeave = (e) => {
-      if (e.clientY <= 0 || e.clientX <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
-        triggerViolation("Cursor Left Assessment Viewport");
-      }
-    };
-
-    const handleResize = () => {
-      if (window.outerWidth < window.screen.availWidth * 0.75 || window.outerHeight < window.screen.availHeight * 0.75) {
-        triggerViolation("Split-Screen / Window Resizing Detected");
-      }
-    };
-
-    const checkMultiDisplay = () => {
-      if (window.screen && window.screen.isExtended) {
-        triggerViolation("Multiple Displays / Extended Monitor Detected");
-      }
-    };
-
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-      triggerViolation("Context Menu / Inspect Element Attempt");
     };
 
     const handleCopyPaste = (e) => {
       e.preventDefault();
-      triggerViolation("Copy / Paste Attempt");
+      triggerViolation("Clipboard Copy / Paste Attempt");
+    };
+
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+      triggerViolation("Right-Click / Inspect Attempt");
     };
 
     const handleKeyDown = (e) => {
-      // Allow numerical 1-4 for option selection, ArrowLeft/Right for nav
       if (["1", "2", "3", "4"].includes(e.key)) {
         const optionIdx = parseInt(e.key, 10) - 1;
         if (questions[currentIndex]) {
@@ -291,54 +340,41 @@ export default function ExamFlowManager() {
         return;
       }
 
-      // Block all non-essential shortcuts and navigation keys
       if (
         e.key === "F12" ||
         e.key === "Tab" ||
         e.key === "Meta" ||
         e.key === "Alt" ||
         e.key === "PrintScreen" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c")) ||
-        (e.ctrlKey && (e.key === "u" || e.key === "U")) ||
-        (e.ctrlKey && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V" || e.key === "x" || e.key === "X" || e.key === "a" || e.key === "A"))
+        (e.ctrlKey && (e.key === "c" || e.key === "v" || e.key === "x" || e.key === "u"))
       ) {
         e.preventDefault();
-        triggerViolation(`Restricted System Input (${e.key})`);
+        triggerViolation(`Restricted Shortcut Key (${e.key})`);
       }
     };
-
-    // Check display configuration on mount & interval
-    checkMultiDisplay();
-    const displayInterval = setInterval(checkMultiDisplay, 3000);
 
     window.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleWindowBlur);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    window.addEventListener("mouseleave", handleMouseLeave);
-    window.addEventListener("resize", handleResize);
     window.addEventListener("contextmenu", handleContextMenu);
     window.addEventListener("copy", handleCopyPaste);
-    window.addEventListener("cut", handleCopyPaste);
     window.addEventListener("paste", handleCopyPaste);
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      clearInterval(displayInterval);
       window.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", handleWindowBlur);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-      window.removeEventListener("resize", handleResize);
       window.removeEventListener("contextmenu", handleContextMenu);
       window.removeEventListener("copy", handleCopyPaste);
-      window.removeEventListener("cut", handleCopyPaste);
       window.removeEventListener("paste", handleCopyPaste);
       window.removeEventListener("keydown", handleKeyDown);
+      if (eyeOffTimerRef.current) clearInterval(eyeOffTimerRef.current);
     };
   }, [stage, triggerViolation, currentIndex, questions, handleSelectOption, handleNext, handlePrev]);
 
   return (
-    <div className="min-h-[85vh] text-slate-100 flex flex-col justify-center">
+    <div className="min-h-[85vh] text-slate-100 flex flex-col justify-center relative">
       {stage === "lobby" && (
         <ExamLobby
           user={user}
@@ -358,19 +394,69 @@ export default function ExamFlowManager() {
       )}
 
       {stage === "assessment" && (
-        <div className="max-w-6xl mx-auto py-6 px-4 w-full">
+        <div className="max-w-6xl mx-auto py-6 px-4 w-full relative">
+          {/* 🚨 1. BIG ON-SCREEN WARNING BANNER (TOP OF WEBPAGE) */}
+          {activeBannerWarning && (
+            <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-rose-950/90 via-red-900/90 to-rose-950/90 border-2 border-rose-500 shadow-[0_0_30px_rgba(244,63,94,0.4)] backdrop-blur-md flex items-center justify-between animate-pulse">
+              <div className="flex items-center space-x-3">
+                <div className="h-10 w-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/40">
+                  <AlertOctagon className="w-6 h-6 text-rose-400" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">
+                    PROCTORING SECURITY WARNING
+                  </h4>
+                  <p className="text-xs font-semibold text-rose-200">{activeBannerWarning}</p>
+                </div>
+              </div>
+              <div className="px-3.5 py-1.5 rounded-lg bg-rose-900/80 border border-rose-500/50 font-mono text-xs font-black text-rose-300">
+                STRIKE {violationCount} / {MAX_TAB_SWITCHES}
+              </div>
+            </div>
+          )}
+
+          {/* 👁️ 2. BIG 7-SECOND EYE GAZE & HEAD TURN COUNTDOWN HUD */}
+          {isEyeOffScreen && (
+            <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-amber-950/90 via-orange-950/90 to-amber-950/90 border-2 border-amber-500 shadow-[0_0_35px_rgba(245,158,11,0.4)] backdrop-blur-md flex items-center justify-between animate-bounce">
+              <div className="flex items-center space-x-3">
+                <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/40">
+                  <Eye className="w-7 h-7 text-amber-400 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-base font-black text-amber-200 uppercase tracking-wide">
+                    ⚠️ ATTENTION: EYES / HEAD TURNED OFF-SCREEN!
+                  </h4>
+                  <p className="text-xs text-amber-300">
+                    Refocus on your examination screen immediately to avoid a violation strike.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 bg-amber-900/80 px-4 py-2 rounded-xl border border-amber-400">
+                <span className="text-xs uppercase font-mono font-bold text-amber-300">Strike In:</span>
+                <span className="text-2xl font-black font-mono text-white tracking-widest">
+                  00:0{eyeOffSeconds}s
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-4 glass-card p-4 rounded-2xl border border-slate-800 shadow-lg w-full">
                 <div className="font-mono text-sm tracking-widest text-slate-400 uppercase font-semibold flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   Proctored Examination
                 </div>
-                <div className="font-mono text-xl tracking-widest text-white font-black bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-800">
-                  {formatTime(timeLeft)}
+                <div className="flex items-center space-x-4">
+                  <div className="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 font-mono text-xs text-slate-400">
+                    Strikes: <b className={violationCount > 0 ? "text-rose-400" : "text-emerald-400"}>{violationCount}/{MAX_TAB_SWITCHES}</b>
+                  </div>
+                  <div className="font-mono text-xl tracking-widest text-white font-black bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-800">
+                    {formatTime(timeLeft)}
+                  </div>
                 </div>
               </div>
-              
+
               {questions.length > 0 && (
                 <div className="flex-1">
                   <ExamQuestionView
@@ -389,7 +475,11 @@ export default function ExamFlowManager() {
             </div>
 
             <div className="w-full lg:w-80 space-y-6 shrink-0">
-              <ExamWebcamWidget webcamStream={webcamStream} onViolation={triggerViolation} />
+              <ExamWebcamWidget
+                webcamStream={webcamStream}
+                onViolation={triggerViolation}
+                onTelemetryUpdate={handleTelemetryUpdate}
+              />
               <ExamPaletteWidget
                 questions={questions}
                 answers={answers}
@@ -409,77 +499,16 @@ export default function ExamFlowManager() {
         />
       )}
 
-      {stage === "completed_lock" && (
-        <div className="max-w-xl mx-auto py-12 px-4 text-center">
-          <div className="glass-card rounded-2xl p-10 shadow-2xl border border-blue-500/30 bg-blue-950/20 space-y-6">
-            <div className="h-16 w-16 mx-auto rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-3xl shadow-inner border border-blue-500/20">
-              🔒
-            </div>
-            <div>
-              <span className="px-3.5 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 text-xs font-extrabold uppercase tracking-widest">
-                Single Attempt Limit Reached
-              </span>
-              <h3 className="text-2xl font-black text-white mt-3 mb-2">
-                Assessment Complete
-              </h3>
-              <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-                You have already attempted your technical examination. Results are encoded to the recruiter pipeline. Retakes are strictly prohibited.
-              </p>
-            </div>
-
-            <div className="py-4 px-6 rounded-xl bg-slate-900/60 border border-slate-800 inline-block">
-              <span className="text-xs text-slate-400 font-mono uppercase tracking-wider block">Recorded Score</span>
-              <span className="text-3xl font-black text-blue-400">{examResult?.score || 0}%</span>
-            </div>
-
-            <div className="pt-2">
-              <button
-                onClick={() => { window.location.href = "/student-dashboard"; }}
-                className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition border border-blue-400/30 cursor-pointer uppercase tracking-wider"
-              >
-                Return to Candidate Dashboard
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Unanswered Questions Block Modal ── */}
-      {showIncompleteModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-[#0c1222] border border-amber-500/40 text-white shadow-2xl space-y-4 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center mx-auto text-2xl">
-              ⚠️
-            </div>
-            <div>
-              <h3 className="text-lg font-black uppercase text-amber-400 tracking-tight">
-                Incomplete Assessment
-              </h3>
-              <p className="text-xs text-gray-300 mt-2 font-mono leading-relaxed">
-                You have <strong className="text-amber-300 text-sm font-bold">{questions.length - Object.keys(answers).filter(k => answers[k] !== undefined && answers[k] !== null).length}</strong> unanswered questions remaining out of {questions.length}.
-              </p>
-              <p className="text-[11px] text-gray-400 mt-1">
-                You must attempt all questions before submitting your assessment.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowIncompleteModal(false)}
-              className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg cursor-pointer"
-            >
-              ← Return &amp; Answer Questions
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* Violation Popup Modal */}
       <ExamViolationModal
         isOpen={showViolationModal}
         violationCount={violationCount}
         maxViolations={MAX_TAB_SWITCHES}
+        violationReason={violationReason}
         onDismiss={() => {
           setShowViolationModal(false);
-          if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {});
+          if (violationCount >= MAX_TAB_SWITCHES) {
+            handleSubmitExam(true);
           }
         }}
       />
