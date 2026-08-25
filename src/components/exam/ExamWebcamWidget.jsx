@@ -1,8 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Activity, UserCheck, AlertCircle, ShieldCheck } from "lucide-react";
-import axios from "axios";
+import api from "../../utils/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://veriproof-backend.onrender.com";
 const ACE_STREAM_URL = "http://localhost:8000/api/stream";
 const ACE_WS_URL = "ws://localhost:8000/ws/telemetry";
 
@@ -88,6 +87,67 @@ const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
   }, [onViolation, onTelemetryUpdate]);
+
+  // 2. Active In-Browser Optical Snapshot Loop (Runs continuously when in Browser Webcam Mode)
+  useEffect(() => {
+    if (aceConnected || !webcamStream) return;
+
+    let isMounted = true;
+    let isAnalyzing = false;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const snapshotInterval = setInterval(async () => {
+      if (isAnalyzing || !videoRef.current || videoRef.current.readyState < 2) return;
+      try {
+        isAnalyzing = true;
+        const video = videoRef.current;
+        canvas.width = 480;
+        canvas.height = 270;
+        ctx.drawImage(video, 0, 0, 480, 270);
+        const base64Data = canvas.toDataURL("image/jpeg", 0.7);
+
+        const { data } = await api.post("/api/exams/proctor-snapshot", {
+          image: base64Data,
+        });
+
+        if (!isMounted || !data) return;
+
+        if (data.violation) {
+          const violType = (data.violationType || data.type || "VIOLATION").toUpperCase();
+          const violReason = data.reason || data.details || "Proctoring violation detected";
+
+          setProctorState({
+            status: violType,
+            message: violReason,
+            provider: data.provider || "AI Vision Guard",
+            confidence: data.confidence || 0.95,
+          });
+
+          // Trigger violation modal & strike counter in ExamFlowManager
+          if (onViolation) {
+            onViolation(`${violType}: ${violReason}`);
+          }
+        } else {
+          setProctorState({
+            status: "VERIFIED",
+            message: "Live Stream Verified",
+            provider: data.provider || "AI Vision Guard",
+            confidence: 0.99,
+          });
+        }
+      } catch (err) {
+        // Silently handle transient network snapshot failure
+      } finally {
+        isAnalyzing = false;
+      }
+    }, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(snapshotInterval);
+    };
+  }, [aceConnected, webcamStream, onViolation, onTelemetryUpdate]);
 
   // Fallback video stream attachment if ACE is not running
   useEffect(() => {
