@@ -150,10 +150,44 @@ export default function ExamFlowManager() {
     }, 8000);
   }, [stage, handleSubmitExam]);
 
-  // Real-time AI Telemetry Receiver (Eye tracking, Head Pose, YOLO objects)
-  const handleTelemetryUpdate = useCallback((telemetry) => {
-    if (stage !== "assessment" || isSubmittingRef.current) return;
+  const lastViolationTriggerRef = useRef(0);
 
+  // Real-time AI Telemetry Receiver (Eye tracking, Head Pose, YOLO objects, Multi-face)
+  const handleTelemetryUpdate = useCallback((telemetry) => {
+    if (stage !== "assessment" || isSubmittingRef.current || !telemetry) return;
+
+    const now = Date.now();
+    const canTrigger = (now - lastViolationTriggerRef.current) > 3000;
+
+    // 1. Direct Optical Violations: Phone / Electronic Device
+    if (telemetry.phone_detected || (telemetry.active_warnings && telemetry.active_warnings.some(w => w.includes("PHONE")))) {
+      if (canTrigger) {
+        lastViolationTriggerRef.current = now;
+        triggerViolation("Mobile Phone / Electronic Device Detected in Camera View");
+      }
+      return;
+    }
+
+    // 2. Direct Optical Violations: Multiple Faces / Secondary Person
+    const faces = telemetry.face_count !== undefined ? telemetry.face_count : (telemetry.faces_count || 0);
+    if (faces > 1 || (telemetry.active_warnings && telemetry.active_warnings.some(w => w.includes("MULTIPLE")))) {
+      if (canTrigger) {
+        lastViolationTriggerRef.current = now;
+        triggerViolation(`Multiple People Detected (${faces} faces in camera frame)`);
+      }
+      return;
+    }
+
+    // 3. Direct Optical Violations: Book / Unauthorized Material
+    if (telemetry.book_detected || (telemetry.active_warnings && telemetry.active_warnings.some(w => w.includes("BOOK")))) {
+      if (canTrigger) {
+        lastViolationTriggerRef.current = now;
+        triggerViolation("Prohibited Book / Reference Material Detected in Workspace");
+      }
+      return;
+    }
+
+    // 4. Eyes Off-Screen / Head Pose Deviation
     const eyesAway = Boolean(telemetry.gaze_violation || (telemetry.yaw_dev && Math.abs(telemetry.yaw_dev) > 25));
 
     if (eyesAway) {

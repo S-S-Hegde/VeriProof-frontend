@@ -41,9 +41,49 @@ const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
             const data = JSON.parse(event.data);
 
             if (data.event === "telemetry") {
-              setTelemetry(data.data);
+              const t = data.data;
+              setTelemetry(t);
               if (onTelemetryUpdate) {
-                onTelemetryUpdate(data.data);
+                onTelemetryUpdate(t);
+              }
+
+              // Update visual HUD status dynamically from live telemetry
+              if (t.active_warnings && t.active_warnings.length > 0) {
+                const warnMsg = t.active_warnings[0].replace("WARNING: ", "");
+                setProctorState({
+                  status: warnMsg.toUpperCase().replace(/\s+/g, "_"),
+                  message: warnMsg,
+                  provider: "ACE Vision Guard",
+                  confidence: 0.99,
+                });
+              } else if (t.phone_detected) {
+                setProctorState({
+                  status: "PHONE_DETECTED",
+                  message: "Mobile phone detected in frame",
+                  provider: "YOLO Device Guard",
+                  confidence: 0.99,
+                });
+              } else if ((t.face_count || t.faces_count || 0) > 1) {
+                setProctorState({
+                  status: "MULTIPLE_FACES",
+                  message: "Multiple people detected in view",
+                  provider: "Face Landmarker Guard",
+                  confidence: 0.99,
+                });
+              } else if (t.gaze_violation || (t.yaw_dev && Math.abs(t.yaw_dev) > 25)) {
+                setProctorState({
+                  status: "GAZE_AWAY",
+                  message: "Looking away from screen",
+                  provider: "Head Pose Guard",
+                  confidence: 0.95,
+                });
+              } else {
+                setProctorState({
+                  status: "VERIFIED",
+                  message: "ACE Vision & Hardware Guard Active",
+                  provider: "ACE Engine + NVIDIA NIM",
+                  confidence: 0.99,
+                });
               }
             } else if (data.event === "violation") {
               const violType = (data.violation_type || "VIOLATION").toUpperCase();
