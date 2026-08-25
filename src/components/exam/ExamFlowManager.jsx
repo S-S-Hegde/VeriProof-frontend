@@ -84,11 +84,14 @@ export default function ExamFlowManager() {
 
       setExamResult(data);
 
-      // Stop webcam
+      // Stop webcam & release local ACE hardware
       if (webcamStream) {
         webcamStream.getTracks().forEach((track) => track.stop());
         setWebcamStream(null);
       }
+      try {
+        fetch("http://localhost:8000/api/exam/end_session", { method: "POST" }).catch(() => {});
+      } catch (err) {}
 
       // Exit fullscreen safely
       if (document.fullscreenElement && document.exitFullscreen) {
