@@ -84,13 +84,14 @@ export default function ExamFlowManager() {
 
       setExamResult(data);
 
-      // Stop webcam & release local ACE hardware
+      // Stop webcam & shutdown local ACE proctoring engine completely
       if (webcamStream) {
         webcamStream.getTracks().forEach((track) => track.stop());
         setWebcamStream(null);
       }
       try {
-        fetch("http://localhost:8000/api/exam/end_session", { method: "POST" }).catch(() => {});
+        fetch("http://localhost:8000/api/shutdown", { method: "POST" }).catch(() => {});
+        fetch("http://localhost:8000/api/engine/stop", { method: "POST" }).catch(() => {});
       } catch (err) {}
 
       // Exit fullscreen safely
