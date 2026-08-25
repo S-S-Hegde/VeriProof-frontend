@@ -82,6 +82,11 @@ const Navbar = () => {
     setProfileOpen(false);
   }, [location.pathname]);
 
+  // Hide Navbar completely when taking an exam to prevent accidental exits & preserve fullscreen lockdown
+  if (location.pathname === "/exams") {
+    return null;
+  }
+
   const isUnverifiedRecruiter =
     user?.role === "recruiter" &&
     user?.recruiterVerificationStatus &&

@@ -1,7 +1,12 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ShieldCheck, Twitter, Linkedin, Github, Activity } from "lucide-react";
 
 const Footer = () => {
+  const location = useLocation();
+
+  if (location.pathname === "/exams") {
+    return null;
+  }
   return (
     <footer className="mt-32 border-t border-[var(--color-border)] relative">
       {/* Gradient fade top border */}
