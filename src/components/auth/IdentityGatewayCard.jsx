@@ -334,12 +334,14 @@ const IdentityGatewayCard = ({
 
           {mode === "register" && !isRecruiter && setGithubUsername && (
             <div>
-              <label
-                htmlFor="register-github-username"
-                className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold"
-              >
-                GitHub Handle
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label
+                  htmlFor="register-github-username"
+                  className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 font-semibold"
+                >
+                  GitHub Handle <span className="text-[10px] text-slate-400 dark:text-gray-500 font-normal lowercase">(optional)</span>
+                </label>
+              </div>
               <div className="relative">
                 <Github className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-gray-500 pointer-events-none" />
                 <input
@@ -347,13 +349,15 @@ const IdentityGatewayCard = ({
                   name="username"
                   type="text"
                   autoComplete="username"
-                  required
                   placeholder="octocat"
                   value={githubUsername}
                   onChange={(e) => setGithubUsername(e.target.value)}
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-400 text-xs transition-colors"
                 />
               </div>
+              <p className="mt-1 text-[10px] font-mono text-slate-500 dark:text-gray-500">
+                Used for automated forensic code and repository intelligence analysis.
+              </p>
             </div>
           )}
 

@@ -119,6 +119,36 @@ const GitHubAnalysisBanner = ({ status }) => {
   );
 };
 
+/**
+ * MissingGitHubBanner — shown if candidate has no GitHub handle configured.
+ * Prompts them to link their GitHub to unlock automatic code analysis and skill trees.
+ */
+const MissingGitHubBanner = ({ onAddGithub }) => {
+  return (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-[var(--radius-md)] border border-cyan-500/30 bg-cyan-500/5 mb-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
+          <Github className="w-5 h-5" />
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase tracking-wider text-cyan-400">
+            Connect GitHub for Automated Repo Verification
+          </p>
+          <p className="text-[11px] text-[var(--color-muted)] font-mono mt-0.5">
+            Link your GitHub username to auto-analyze public projects and verify evidence.
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={onAddGithub}
+        className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-2 whitespace-nowrap cursor-pointer"
+      >
+        <Plus className="w-3 h-3" /> Link GitHub
+      </button>
+    </div>
+  );
+};
+
 const StudentDashboard = () => {
   const { user, setUser } = useAuth();
   const [projects, setProjects] = useState([]);
@@ -362,6 +392,11 @@ const StudentDashboard = () => {
         <Reveal delay={0.1}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 lg:mb-16">
             <div className="lg:col-span-8 space-y-4">
+              {/* Missing GitHub Banner */}
+              {!profileData?.githubUsername && !user?.githubUsername && (
+                <MissingGitHubBanner onAddGithub={() => navigate("/settings#github")} />
+              )}
+
               {/* GitHub Analysis Banner */}
               <GitHubAnalysisBanner status={githubAnalysisState} />
 
