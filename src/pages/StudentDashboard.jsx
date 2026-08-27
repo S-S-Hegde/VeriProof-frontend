@@ -11,6 +11,7 @@ import {
   ProfileCompletionCard,
 } from "../components/OnboardingComponents";
 import ResumeUploadModal from "../components/ResumeUploadModal";
+import ProjectVerificationModal from "../components/ProjectVerificationModal";
 import { useSkillTree } from "../context/SkillTreeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -130,6 +131,8 @@ const StudentDashboard = () => {
   const [analysisState, setAnalysisState] = useState(null);
   const [githubAnalysisState, setGithubAnalysisState] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedProjectForVerify, setSelectedProjectForVerify] = useState(null);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const navigate = useNavigate();
   const { progress } = useSkillTree();
 
@@ -560,7 +563,13 @@ const StudentDashboard = () => {
                   ease: [0.16, 1, 0.3, 1],
                 }}
               >
-                <ProjectCard3D project={project} />
+                <ProjectCard3D
+                  project={project}
+                  onOpenVerify={(p) => {
+                    setSelectedProjectForVerify(p);
+                    setIsVerifyModalOpen(true);
+                  }}
+                />
               </motion.div>
             ))}
           </div>
@@ -573,6 +582,16 @@ const StudentDashboard = () => {
         onUploadSuccess={(data) => {
           handleResumeUploadComplete(data);
           api.get("/api/users/profile").then(({ data }) => setProfileData(data)).catch(console.error);
+        }}
+      />
+
+      <ProjectVerificationModal
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        project={selectedProjectForVerify}
+        onVerified={(updated) => {
+          setProjects((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
+          setSelectedProjectForVerify(updated);
         }}
       />
     </PageTransition>
