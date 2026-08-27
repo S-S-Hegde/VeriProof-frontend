@@ -21,9 +21,10 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
 
     const pollPipeline = async () => {
       try {
-        const [resAnalysis, ghStatus] = await Promise.all([
+        const [resAnalysis, ghStatus, profileRes] = await Promise.all([
           api.get("/api/users/profile/resume-analysis").catch(() => ({ data: null })),
-          api.get("/api/github/status").catch(() => ({ data: null }))
+          api.get("/api/github/status").catch(() => ({ data: null })),
+          api.get("/api/users/profile").catch(() => ({ data: null }))
         ]);
 
         if (!isMounted) return;
@@ -35,10 +36,16 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
           setGithubState(ghStatus.data);
         }
 
+        const isUserAnalyzed = profileRes?.data?.resumeStatus === "Analyzed" ||
+                               profileRes?.data?.workflowState?.hasResume === true ||
+                               ["repository_analysis", "technical_assessment", "verification_complete"].includes(profileRes?.data?.pipelineStage);
+
         const isResumeDone = resAnalysis?.data?.status === "Analysis Complete" || 
                              resAnalysis?.data?.status === "Completed" ||
                              resAnalysis?.data?.status === "Analyzed" ||
-                             (resAnalysis?.data?.progress >= 100);
+                             (resAnalysis?.data?.progress >= 100) ||
+                             isUserAnalyzed;
+
         const isResumeFailed = resAnalysis?.data?.status === "Analysis Failed" || 
                                resAnalysis?.data?.status === "Failed" || 
                                resAnalysis?.data?.status === "Email Mismatch";
@@ -59,29 +66,29 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
 
           // Synchronize state by refetching profile & projects
           try {
-            const [profileRes, projectsRes] = await Promise.all([
-              api.get("/api/users/profile"),
-              api.get("/api/projects/myprojects"),
-            ]);
+            const projectsRes = await api.get("/api/projects/myprojects").catch(() => ({ data: [] }));
 
             if (!isMounted) return;
 
             // Refresh AuthContext
-            setUser((prev) => ({
-              ...prev,
-              resumeStatus: profileRes.data.resumeStatus,
-              workflowState: profileRes.data.workflowState,
-            }));
+            if (profileRes?.data) {
+              setUser((prev) => ({
+                ...prev,
+                resumeStatus: profileRes.data.resumeStatus,
+                workflowState: profileRes.data.workflowState,
+                githubUsername: profileRes.data.githubUsername || prev.githubUsername,
+              }));
+            }
 
             // Delay briefly so user sees 100% Complete status badge
             setTimeout(() => {
               if (onComplete) {
                 onComplete({
-                  profileData: profileRes.data,
+                  profileData: profileRes?.data || {},
                   projects: projectsRes.data || [],
                 });
               }
-            }, 1000);
+            }, 800);
           } catch (err) {
             console.error("[Processing Center] Synchronization error:", err);
             if (onComplete) onComplete();
@@ -94,7 +101,7 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
 
     // Immediate first check + tight polling
     pollPipeline();
-    pollingRef.current = setInterval(pollPipeline, 800);
+    pollingRef.current = setInterval(pollPipeline, 600);
 
     return () => {
       isMounted = false;
@@ -106,6 +113,7 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
   const isResumeDone = analysisState?.status === "Analysis Complete" || 
                        analysisState?.status === "Completed" || 
                        analysisState?.status === "Analyzed" || 
+                       user?.resumeStatus === "Analyzed" ||
                        isFinished;
   const resumeProgress = isResumeDone ? 100 : (analysisState?.progress || 35);
   const claimsCount = analysisState?.claims?.skills?.length || 0;
@@ -113,33 +121,31 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
   const isGhRunning = hasGithub && githubState?.status === "running";
 
   let targetProgress = 35;
-  if (isFinished) {
+  if (isFinished || isResumeDone) {
     targetProgress = 100;
-  } else if (isResumeDone) {
-    targetProgress = isGhRunning ? 85 : 100;
   } else {
-    targetProgress = Math.max(30, Math.min(95, resumeProgress));
+    targetProgress = Math.max(35, Math.min(95, resumeProgress));
   }
 
   // Smooth interpolation toward targetProgress
   useEffect(() => {
     const timer = setInterval(() => {
       setDisplayProgress((prev) => {
-        if (prev < targetProgress) return Math.min(targetProgress, prev + 2);
+        if (prev < targetProgress) return Math.min(targetProgress, prev + 5);
         if (prev > targetProgress) return targetProgress;
         return prev;
       });
-    }, 50);
+    }, 30);
     return () => clearInterval(timer);
   }, [targetProgress]);
 
   // Stages definition
   const STAGES = [
     { key: "upload", label: `Uploading Resume ${initialFileName ? `(${initialFileName})` : ""}`, done: true },
-    { key: "parsing", label: "Parsing Resume PDF", done: displayProgress >= 40, active: displayProgress < 40 },
-    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: displayProgress >= 70, active: displayProgress >= 40 && displayProgress < 70 },
-    { key: "skills", label: "Building Skill Tree", done: isResumeDone || displayProgress >= 90, active: displayProgress >= 70 && !isResumeDone },
-    { key: "github", label: "GitHub Repository Analysis", done: isFinished || githubState?.status === "complete" || !hasGithub, active: isGhRunning },
+    { key: "parsing", label: "Parsing Resume PDF", done: isResumeDone || displayProgress >= 40, active: !isResumeDone && displayProgress < 40 },
+    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: isResumeDone || displayProgress >= 70, active: !isResumeDone && displayProgress >= 40 && displayProgress < 70 },
+    { key: "skills", label: "Building Skill Tree", done: isResumeDone || displayProgress >= 90, active: !isResumeDone && displayProgress >= 70 },
+    { key: "github", label: "GitHub Repository Analysis", done: isFinished || isResumeDone || githubState?.status === "complete" || !hasGithub, active: isGhRunning },
     { key: "complete", label: "Candidate Profile Synchronization", done: isFinished || displayProgress >= 100, active: false },
   ];
 
