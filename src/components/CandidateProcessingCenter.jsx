@@ -39,12 +39,14 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
                              resAnalysis?.data?.status === "Completed" ||
                              resAnalysis?.data?.status === "Analyzed" ||
                              (resAnalysis?.data?.progress >= 100);
-        const isResumeFailed = resAnalysis?.data?.status === "Analysis Failed" || resAnalysis?.data?.status === "Failed";
+        const isResumeFailed = resAnalysis?.data?.status === "Analysis Failed" || 
+                               resAnalysis?.data?.status === "Failed" || 
+                               resAnalysis?.data?.status === "Email Mismatch";
         
         const ghStatusStr = ghStatus?.data?.status;
         const isGhDone = !ghStatusStr || ghStatusStr === "complete" || ghStatusStr === "idle" || ghStatusStr === "failed" || ghStatusStr === "GitHub Analysis Complete";
 
-        if (isResumeFailed) {
+        if (isResumeFailed || resAnalysis?.data?.error) {
           setError(resAnalysis?.data?.error || "Resume processing failed.");
           if (pollingRef.current) clearInterval(pollingRef.current);
           return;
