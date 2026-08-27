@@ -144,69 +144,129 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
   ];
 
   return (
-    <div className="p-6 sm:p-8 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
-      {/* Animated Glowing Ring */}
+    <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center text-center max-w-lg w-full mx-auto">
+      {/* ── Circular Orbital Loading Ring ── */}
       <div className="relative mb-6 flex items-center justify-center">
-        <div className="w-24 h-24 rounded-full border-4 border-[var(--color-border)] flex items-center justify-center relative overflow-hidden">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+        {/* Ambient Pulsing Glow Aura */}
+        <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-cyan-500/20 rounded-full blur-xl animate-pulse pointer-events-none" />
+
+        {/* Continuous Rotating Outer Track */}
+        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full relative flex items-center justify-center">
+          {/* Background Rotating Dash Ring */}
+          {!isFinished && (
+            <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-[spin_6s_linear_infinite]" />
+          )}
+
+          {/* SVG Progress & Spinner Arc */}
+          <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_0_12px_rgba(56,189,248,0.4)]" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="cyberProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#38bdf8" />
+                <stop offset="50%" stopColor="#818cf8" />
+                <stop offset="100%" stopColor="#06b6d4" />
+              </linearGradient>
+            </defs>
+
+            {/* Base Track */}
             <circle
               cx="50"
               cy="50"
-              r="42"
-              stroke="var(--color-accent)"
-              strokeWidth="8"
+              r="40"
+              stroke="rgba(255, 255, 255, 0.08)"
+              strokeWidth="6"
               fill="transparent"
-              strokeDasharray={264}
-              strokeDashoffset={264 - (264 * displayProgress) / 100}
+            />
+
+            {/* Animated Loading Sweep (Rotates continuously while loading) */}
+            {!isFinished && (
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="url(#cyberProgressGrad)"
+                strokeWidth="6"
+                fill="transparent"
+                strokeDasharray="40 210"
+                strokeLinecap="round"
+                className="animate-[spin_1.4s_linear_infinite] origin-center opacity-80"
+              />
+            )}
+
+            {/* Accurate Progress Arc */}
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              stroke="url(#cyberProgressGrad)"
+              strokeWidth="6"
+              fill="transparent"
+              strokeDasharray={251.2}
+              strokeDashoffset={251.2 - (251.2 * displayProgress) / 100}
+              strokeLinecap="round"
               className="transition-all duration-300 ease-out"
             />
           </svg>
+
+          {/* Center Content: Animated Percentage or Verified Check */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             {isFinished ? (
-              <CheckCircle className="w-10 h-10 text-emerald-400 animate-bounce" />
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]" />
+              </motion.div>
             ) : (
-              <span className="text-xl font-black text-[var(--color-accent)] font-mono">
-                {displayProgress}%
-              </span>
+              <div className="flex flex-col items-center">
+                <span className="text-xl sm:text-2xl font-black text-[var(--color-text)] font-mono tracking-tight">
+                  {displayProgress}<span className="text-xs text-cyan-400 font-sans ml-0.5">%</span>
+                </span>
+                <span className="text-[9px] font-mono uppercase tracking-widest text-[var(--color-muted)]">
+                  {displayProgress < 50 ? "Parsing" : displayProgress < 85 ? "Analyzing" : "Syncing"}
+                </span>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight mb-1">
+      <h3 className="text-base sm:text-lg md:text-xl font-black uppercase tracking-tight mb-1 text-[var(--color-text)]">
         {isFinished ? "Pipeline Processing Complete" : "Processing Candidate Intelligence"}
       </h3>
-      <p className="text-xs text-[var(--color-muted)] mb-6 font-mono">
+      <p className="text-[11px] sm:text-xs text-[var(--color-muted)] mb-5 font-mono">
         {analysisState?.stage || (isFinished ? "Profile Synchronized" : "Running automated analysis...")}
       </p>
 
       {/* Stage Checklist */}
-      <div className="w-full space-y-2 mb-6 text-left bg-[var(--color-bg-sunken)] p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
+      <div className="w-full space-y-2 mb-5 text-left bg-[var(--color-bg-sunken)] p-3 sm:p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
         {STAGES.map((s, idx) => (
-          <div key={idx} className="flex items-center justify-between py-1 text-xs">
-            <div className="flex items-center gap-2.5">
+          <div key={idx} className="flex items-center justify-between py-1 text-xs gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
               {s.done ? (
                 <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
               ) : s.active ? (
-                <Loader2 className="w-4 h-4 text-[var(--color-accent)] animate-spin shrink-0" />
+                <Loader2 className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
               ) : (
                 <div className="w-4 h-4 rounded-full border border-[var(--color-border)] shrink-0" />
               )}
-              <span className={`font-mono text-[11px] ${s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-[var(--color-accent)] font-bold" : "text-[var(--color-muted)]"}`}>
+              <span className={`font-mono text-[11px] truncate ${s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-cyan-400 font-bold" : "text-[var(--color-muted)]"}`}>
                 {s.label}
               </span>
             </div>
-            {s.active && <span className="text-[9px] uppercase tracking-widest text-[var(--color-accent)] font-bold animate-pulse">Running</span>}
-            {s.done && <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold">Done</span>}
+            {s.active && <span className="text-[9px] uppercase tracking-widest text-cyan-400 font-bold animate-pulse shrink-0">Running</span>}
+            {s.done && <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold shrink-0">Done</span>}
           </div>
         ))}
       </div>
 
       {error && (
-        <div className="w-full p-3 mb-4 rounded-[var(--radius-md)] bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-        </div>
+        <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="w-full p-3.5 mb-4 rounded-[var(--radius-md)] bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-left flex items-start gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+          <div className="flex-1 font-mono text-[11px] leading-relaxed">
+            {error}
+          </div>
+        </motion.div>
       )}
 
       {isFinished && (

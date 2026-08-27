@@ -196,7 +196,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-2xl rounded-[var(--radius-2xl)] border border-[var(--color-border)] bg-[var(--color-bg)] p-6 sm:p-8 shadow-2xl z-10 overflow-hidden vp-glass"
+          className="relative w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] rounded-[var(--radius-2xl)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 sm:p-6 md:p-8 shadow-2xl z-10 overflow-y-auto overscroll-contain vp-glass"
         >
           {/* Header Bar */}
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--color-border)]">
