@@ -6,6 +6,7 @@ import {
   getStoredUser,
   persistUserSession,
 } from "../utils/authStorage";
+import useServerKeepAlive from "../hooks/useServerKeepAlive";
 
 const AuthContext = createContext();
 const ONE_HOUR = 3600000;
@@ -39,6 +40,9 @@ export const AuthProvider = ({ children }) => {
   const [oauthError, setOauthError] = useState("");
   const [isExiting, setIsExiting] = useState(false);
   const logoutTimerRef = useRef(null);
+
+  // Keep both Node.js Backend & Python AI Engine warm while user is logged in
+  useServerKeepAlive(Boolean(user));
 
   const updateCurrentUser = (val) => {
     setUser((prev) => {
@@ -176,6 +180,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    try {
+      api.post("/api/keep-alive/release").catch(() => {});
+    } catch (e) {}
     updateCurrentUser(null);
   };
 
