@@ -76,7 +76,11 @@ export default function ExamFlowManager() {
         answerIndex: answers[q._id] !== undefined ? answers[q._id] : null,
       }));
 
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlJobId = urlParams.get("jobId") || urlParams.get("job_id") || urlParams.get("job");
+
       const { data } = await api.post("/api/exams/submit", {
+        jobId: urlJobId || undefined,
         answers: payload,
         isTerminated: Boolean(isTerminated || finalCount >= MAX_TAB_SWITCHES),
         violationCount: finalCount,
@@ -284,7 +288,13 @@ export default function ExamFlowManager() {
     setChosenQuestionCount(count);
     setChosenDuration(duration);
     try {
-      const { data } = await api.get(`/api/exams/start?count=${count}`);
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlJobId = urlParams.get("jobId") || urlParams.get("job_id") || urlParams.get("job");
+      const queryParams = new URLSearchParams();
+      queryParams.set("count", String(count));
+      if (urlJobId) queryParams.set("jobId", urlJobId);
+
+      const { data } = await api.get(`/api/exams/start?${queryParams.toString()}`);
       setQuestions(data);
       setTimeLeft(duration * 60);
       sessionStorage.setItem("exam_timeLeft", String(duration * 60));
