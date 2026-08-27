@@ -7,11 +7,12 @@ import {
 } from "lucide-react";
 
 export default function CandidateProcessingCenter({ onComplete, initialFileName = "" }) {
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const [analysisState, setAnalysisState] = useState(null);
   const [githubState, setGithubState] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
   const [error, setError] = useState(null);
+  const [displayProgress, setDisplayProgress] = useState(25);
   
   const pollingRef = useRef(null);
 
@@ -34,7 +35,10 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
           setGithubState(ghStatus.data);
         }
 
-        const isResumeDone = resAnalysis?.data?.status === "Analysis Complete" || resAnalysis?.data?.status === "Completed";
+        const isResumeDone = resAnalysis?.data?.status === "Analysis Complete" || 
+                             resAnalysis?.data?.status === "Completed" ||
+                             resAnalysis?.data?.status === "Analyzed" ||
+                             (resAnalysis?.data?.progress >= 100);
         const isResumeFailed = resAnalysis?.data?.status === "Analysis Failed" || resAnalysis?.data?.status === "Failed";
         
         const ghStatusStr = ghStatus?.data?.status;
@@ -49,8 +53,9 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
         if (isResumeDone && isGhDone) {
           if (pollingRef.current) clearInterval(pollingRef.current);
           setIsFinished(true);
+          setDisplayProgress(100);
 
-          // Synchronize state by refetching everything
+          // Synchronize state by refetching profile & projects
           try {
             const [profileRes, projectsRes] = await Promise.all([
               api.get("/api/users/profile"),
@@ -74,7 +79,7 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
                   projects: projectsRes.data || [],
                 });
               }
-            }, 1200);
+            }, 1000);
           } catch (err) {
             console.error("[Processing Center] Synchronization error:", err);
             if (onComplete) onComplete();
@@ -85,9 +90,9 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
       }
     };
 
-    // Immediate first check
+    // Immediate first check + tight polling
     pollPipeline();
-    pollingRef.current = setInterval(pollPipeline, 1000);
+    pollingRef.current = setInterval(pollPipeline, 800);
 
     return () => {
       isMounted = false;
@@ -95,23 +100,45 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
     };
   }, [setUser, onComplete]);
 
-  // Compute aggregate progress (0 to 100%)
-  const resumeProgress = analysisState?.progress || 20;
+  // Compute live progress
+  const isResumeDone = analysisState?.status === "Analysis Complete" || 
+                       analysisState?.status === "Completed" || 
+                       analysisState?.status === "Analyzed" || 
+                       isFinished;
+  const resumeProgress = isResumeDone ? 100 : (analysisState?.progress || 35);
   const claimsCount = analysisState?.claims?.skills?.length || 0;
-  const ghProgress = githubState?.status === "running" ? 60 : (githubState?.status === "complete" ? 100 : 0);
-  
-  let overallProgress = Math.min(99, Math.round((resumeProgress * 0.7) + (ghProgress * 0.3)));
-  if (isFinished) overallProgress = 100;
+  const hasGithub = Boolean(githubState?.githubUsername || user?.githubUsername);
+  const isGhRunning = hasGithub && githubState?.status === "running";
+
+  let targetProgress = 35;
+  if (isFinished) {
+    targetProgress = 100;
+  } else if (isResumeDone) {
+    targetProgress = isGhRunning ? 85 : 100;
+  } else {
+    targetProgress = Math.max(30, Math.min(95, resumeProgress));
+  }
+
+  // Smooth interpolation toward targetProgress
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDisplayProgress((prev) => {
+        if (prev < targetProgress) return Math.min(targetProgress, prev + 2);
+        if (prev > targetProgress) return targetProgress;
+        return prev;
+      });
+    }, 50);
+    return () => clearInterval(timer);
+  }, [targetProgress]);
 
   // Stages definition
   const STAGES = [
     { key: "upload", label: `Uploading Resume ${initialFileName ? `(${initialFileName})` : ""}`, done: true },
-    { key: "parsing", label: "Parsing Resume PDF", done: resumeProgress >= 30, active: resumeProgress < 30 },
-    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: resumeProgress >= 60, active: resumeProgress >= 30 && resumeProgress < 60 },
-    { key: "skills", label: "Building Skill Tree", done: resumeProgress >= 100, active: resumeProgress >= 60 && resumeProgress < 100 },
-    { key: "github", label: "GitHub Repository Analysis", done: githubState?.status === "complete" || isFinished, active: githubState?.status === "running" },
-    { key: "docs", label: "Generating Repository Documentation", done: githubState?.status === "complete" || isFinished, active: githubState?.status === "running" },
-    { key: "complete", label: "Candidate Profile Synchronization", done: isFinished, active: false },
+    { key: "parsing", label: "Parsing Resume PDF", done: displayProgress >= 40, active: displayProgress < 40 },
+    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: displayProgress >= 70, active: displayProgress >= 40 && displayProgress < 70 },
+    { key: "skills", label: "Building Skill Tree", done: isResumeDone || displayProgress >= 90, active: displayProgress >= 70 && !isResumeDone },
+    { key: "github", label: "GitHub Repository Analysis", done: isFinished || githubState?.status === "complete" || !hasGithub, active: isGhRunning },
+    { key: "complete", label: "Candidate Profile Synchronization", done: isFinished || displayProgress >= 100, active: false },
   ];
 
   return (
@@ -128,8 +155,8 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
               strokeWidth="8"
               fill="transparent"
               strokeDasharray={264}
-              strokeDashoffset={264 - (264 * overallProgress) / 100}
-              className="transition-all duration-500 ease-out"
+              strokeDashoffset={264 - (264 * displayProgress) / 100}
+              className="transition-all duration-300 ease-out"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -137,7 +164,7 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
               <CheckCircle className="w-10 h-10 text-emerald-400 animate-bounce" />
             ) : (
               <span className="text-xl font-black text-[var(--color-accent)] font-mono">
-                {overallProgress}%
+                {displayProgress}%
               </span>
             )}
           </div>

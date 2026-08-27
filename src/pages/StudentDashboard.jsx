@@ -159,6 +159,21 @@ const LinkGitHubModal = ({ isOpen, onClose, onSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (isOpen) {
+      const origBodyOverflow = document.body.style.overflow;
+      const origHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (window.__lenis) window.__lenis.stop();
+      return () => {
+        document.body.style.overflow = origBodyOverflow || "";
+        document.documentElement.style.overflow = origHtmlOverflow || "";
+        if (window.__lenis) window.__lenis.start();
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -184,7 +199,11 @@ const LinkGitHubModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overscroll-contain pointer-events-auto"
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

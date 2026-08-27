@@ -432,6 +432,8 @@ const AppContent = () => {
       syncTouch: true,
     });
 
+    window.__lenis = lenis;
+
     lenis.on("scroll", ScrollTrigger.update);
 
     let rafId;
@@ -444,6 +446,7 @@ const AppContent = () => {
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      window.__lenis = null;
     };
   }, []);
 

@@ -44,6 +44,22 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, uploading, isProcessing, onClose]);
 
+  // Disable background scrolling & stop Lenis smooth scroll while modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const origBodyOverflow = document.body.style.overflow;
+      const origHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (window.__lenis) window.__lenis.stop();
+      return () => {
+        document.body.style.overflow = origBodyOverflow || "";
+        document.documentElement.style.overflow = origHtmlOverflow || "";
+        if (window.__lenis) window.__lenis.start();
+      };
+    }
+  }, [isOpen]);
+
   // Fetch profile when modal opens
   useEffect(() => {
     if (!isOpen) return;
@@ -159,7 +175,11 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
 
   return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain pointer-events-auto"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
