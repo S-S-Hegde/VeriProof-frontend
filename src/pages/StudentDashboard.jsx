@@ -27,6 +27,8 @@ import {
   Loader2,
   Github,
   Sparkles,
+  X,
+  AlertCircle,
 } from "lucide-react";
 
 const Reveal = ({ children, delay = 0, className = "" }) => (
@@ -149,6 +151,120 @@ const MissingGitHubBanner = ({ onAddGithub }) => {
   );
 };
 
+/**
+ * LinkGitHubModal — Prompt modal for candidate to link their GitHub username directly.
+ */
+const LinkGitHubModal = ({ isOpen, onClose, onSuccess }) => {
+  const [username, setUsername] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const clean = username.replace(/^https?:\/\/github\.com\//i, "").replace(/^@/, "").trim();
+    if (!clean) {
+      setError("Please enter a valid GitHub username.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+    try {
+      await api.put("/api/users/profile", { githubUsername: clean });
+      await api.post("/api/github/trigger", { githubUsername: clean }).catch(() => {});
+      if (onSuccess) onSuccess(clean);
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to link GitHub account. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="w-full max-w-md p-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl relative"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-sunken)] transition-colors cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <Github className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-black uppercase tracking-wider text-[var(--color-text)]">
+              Link GitHub Account
+            </h3>
+            <p className="text-[11px] text-[var(--color-muted)] font-mono mt-0.5">
+              Automated repository forensics & evidence extraction
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5">
+              GitHub Username or Profile URL
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-[var(--color-muted)]">
+                @
+              </span>
+              <input
+                type="text"
+                autoFocus
+                placeholder="username (e.g. torvalds)"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-[var(--color-bg-sunken)] border border-[var(--color-border)] text-xs text-[var(--color-text)] font-mono focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+              />
+            </div>
+            {error && (
+              <p className="text-xs text-red-400 font-mono mt-1.5 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" /> {error}
+              </p>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-1/2 py-2.5 px-4 rounded-xl border border-[var(--color-border)] text-xs font-mono uppercase tracking-wider text-[var(--color-muted)] hover:bg-[var(--color-bg-sunken)] transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-1/2 py-2.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...
+                </>
+              ) : (
+                <>Connect & Analyze</>
+              )}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
 const StudentDashboard = () => {
   const { user, setUser } = useAuth();
   const [projects, setProjects] = useState([]);
@@ -158,6 +274,7 @@ const StudentDashboard = () => {
   const [analysisState, setAnalysisState] = useState(null);
   const [githubAnalysisState, setGithubAnalysisState] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
   const navigate = useNavigate();
   const { progress } = useSkillTree();
 
@@ -398,7 +515,7 @@ const StudentDashboard = () => {
             <div className="lg:col-span-8 space-y-4">
               {/* Missing GitHub Banner */}
               {!profileData?.githubUsername && !user?.githubUsername && (
-                <MissingGitHubBanner onAddGithub={() => navigate("/settings#github")} />
+                <MissingGitHubBanner onAddGithub={() => setIsGitHubModalOpen(true)} />
               )}
 
               {/* GitHub Analysis Banner */}
@@ -606,6 +723,22 @@ const StudentDashboard = () => {
         onUploadSuccess={(data) => {
           handleResumeUploadComplete(data);
           api.get("/api/users/profile").then(({ data }) => setProfileData(data)).catch(console.error);
+        }}
+      />
+
+      <LinkGitHubModal
+        isOpen={isGitHubModalOpen}
+        onClose={() => setIsGitHubModalOpen(false)}
+        onSuccess={(handle) => {
+          setProfileData((prev) => prev ? { ...prev, githubUsername: handle } : null);
+          setUser((prev) => prev ? { ...prev, githubUsername: handle } : null);
+          setGithubAnalysisState({ status: "running" });
+          api.get("/api/users/profile").then(({ data }) => {
+            setProfileData(data);
+            if (data.workflowState) {
+              setUser((prev) => ({ ...prev, workflowState: data.workflowState }));
+            }
+          }).catch(console.error);
         }}
       />
     </PageTransition>

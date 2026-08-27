@@ -15,7 +15,13 @@ import {
 const ACE_STREAM_URL = "http://localhost:8000/api/stream";
 const ACE_STATUS_URL = "http://localhost:8000/api/proctor/status";
 
-const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
+const ExamInstructions = ({
+  onStartExam,
+  webcamStream,
+  setWebcamStream,
+  questionCount = 35,
+  durationMinutes = 40,
+}) => {
   const videoRef = useRef(null);
   const [agreed, setAgreed] = useState(false);
   const [camStatus, setCamStatus] = useState("checking"); // 'checking' | 'ace_active' | 'active' | 'error' | 'idle'
@@ -100,14 +106,14 @@ const ExamInstructions = ({ onStartExam, webcamStream, setWebcamStream }) => {
               <CheckSquare className="w-5 h-5 text-blue-400" />
               <div>
                 <p className="text-xs text-slate-400">Total Questions</p>
-                <p className="font-bold text-white">35 Technical MCQs</p>
+                <p className="font-bold text-white">{questionCount} Technical MCQs</p>
               </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
               <Clock className="w-5 h-5 text-cyan-400" />
               <div>
                 <p className="text-xs text-slate-400">Duration</p>
-                <p className="font-bold text-white">40 Minutes</p>
+                <p className="font-bold text-white">{durationMinutes} Minutes</p>
               </div>
             </div>
           </div>

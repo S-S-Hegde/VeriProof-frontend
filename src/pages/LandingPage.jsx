@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   motion,
   useMotionValue,
@@ -202,9 +203,19 @@ const METRICS = [
 export default function Demo() {
   const compRef = useRef(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isShutterOpen, setIsShutterOpen] = useState(false);
 
   useEffect(() => {
+    if (user) {
+      if (user.role === "recruiter") {
+        navigate("/bulk-screening", { replace: true });
+      } else {
+        navigate("/student-dashboard", { replace: true });
+      }
+      return;
+    }
+
     const timer = setTimeout(() => setIsShutterOpen(true), 200);
     const ctx = gsap.context(() => {
       gsap.from(".demo-cta-title", {
@@ -220,7 +231,7 @@ export default function Demo() {
       clearTimeout(timer);
       ctx.revert();
     };
-  }, []);
+  }, [user, navigate]);
 
   return (
     <div ref={compRef} className="overflow-hidden">

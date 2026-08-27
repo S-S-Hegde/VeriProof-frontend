@@ -23,6 +23,8 @@ export default function ExamFlowManager() {
   const [questions, setQuestions] = useState([]);
   const [examResult, setExamResult] = useState(null);
   const [examError, setExamError] = useState(null);
+  const [chosenQuestionCount, setChosenQuestionCount] = useState(35);
+  const [chosenDuration, setChosenDuration] = useState(40);
 
   // Exam State (with sessionStorage hydration)
   const [answers, setAnswers] = useState(() => {
@@ -276,12 +278,16 @@ export default function ExamFlowManager() {
   };
 
   // Generate Questions Handler
-  const handleGenerateQuestions = async () => {
+  const handleGenerateQuestions = async (count = 35, duration = 40) => {
     setIsGenerating(true);
     setExamError(null);
+    setChosenQuestionCount(count);
+    setChosenDuration(duration);
     try {
-      const { data } = await api.get("/api/exams/start");
+      const { data } = await api.get(`/api/exams/start?count=${count}`);
       setQuestions(data);
+      setTimeLeft(duration * 60);
+      sessionStorage.setItem("exam_timeLeft", String(duration * 60));
       if (data.length > 0) {
         setVisited({ [data[0]._id]: true });
       }
@@ -413,6 +419,13 @@ export default function ExamFlowManager() {
 
   return (
     <div className="min-h-[85vh] text-slate-100 flex flex-col justify-center relative">
+      {examError && (
+        <div className="max-w-3xl mx-auto mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono flex items-center justify-between">
+          <span>⚠️ {examError}</span>
+          <button onClick={() => setExamError(null)} className="text-slate-400 hover:text-white ml-3">✕</button>
+        </div>
+      )}
+
       {stage === "lobby" && (
         <ExamLobby
           user={user}
@@ -428,6 +441,8 @@ export default function ExamFlowManager() {
           onStartExam={handleStartExam}
           webcamStream={webcamStream}
           setWebcamStream={setWebcamStream}
+          questionCount={chosenQuestionCount}
+          durationMinutes={chosenDuration}
         />
       )}
 

@@ -159,6 +159,12 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  const logoDestination = !user
+    ? "/"
+    : user.role === "recruiter"
+      ? "/bulk-screening"
+      : "/student-dashboard";
+
   return (
     <>
       {/* ════════════════════════════════════════════
@@ -174,7 +180,7 @@ const Navbar = () => {
         <div className="max-w-[1600px] mx-auto px-6 xl:px-10 flex items-center justify-between">
           {/* ── Left: Logo + Forensic Status ── */}
           <div className="flex items-center gap-6">
-            <Link to="/" className="group relative flex items-center">
+            <Link to={logoDestination} className="group relative flex items-center">
               <span className="text-xl font-black italic tracking-tighter uppercase leading-none text-[var(--color-text)]">
                 VeriProof
                 <span className="text-[var(--color-accent)] not-italic">.</span>
@@ -182,7 +188,7 @@ const Navbar = () => {
               <motion.div
                 className="absolute -bottom-1 left-0 h-[2px] bg-[var(--color-accent)]"
                 initial={false}
-                animate={{ width: isActive("/") ? "100%" : "0%" }}
+                animate={{ width: isActive(logoDestination) ? "100%" : "0%" }}
                 whileHover={{ width: "100%" }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               />
@@ -451,7 +457,7 @@ const Navbar = () => {
       >
         <div className="px-4 flex items-center justify-between">
           <Link
-            to="/"
+            to={logoDestination}
             className="text-lg font-black italic tracking-tighter uppercase text-[var(--color-text)]"
           >
             VP<span className="text-[var(--color-accent)] not-italic">.</span>

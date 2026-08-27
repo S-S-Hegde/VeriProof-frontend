@@ -10,8 +10,17 @@ import {
   Clock,
   HelpCircle,
   ExternalLink,
+  Sliders,
+  Sparkles,
 } from "lucide-react";
 import api from "../../utils/api";
+
+const QUESTION_CONFIGS = [
+  { count: 10, duration: 15, label: "10 MCQs", desc: "Quick Diagnostic (15 Mins)" },
+  { count: 20, duration: 25, label: "20 MCQs", desc: "Standard Assessment (25 Mins)" },
+  { count: 35, duration: 40, label: "35 MCQs", desc: "Full Comprehensive (40 Mins)" },
+  { count: 50, duration: 60, label: "50 MCQs", desc: "Deep Technical Mastery (60 Mins)" },
+];
 
 const ExamLobby = ({
   user,
@@ -24,9 +33,11 @@ const ExamLobby = ({
   const [loading, setLoading] = useState(true);
   const [resumeData, setResumeData] = useState(null);
   const [isResumeVerified, setIsResumeVerified] = useState(false);
-  const [sourceDescription, setSourceDescription] = useState(
-    "Stored Candidate Profile",
-  );
+  const [hasSkills, setHasSkills] = useState(false);
+  const [sourceDescription, setSourceDescription] = useState("Stored Candidate Profile");
+  const [selectedConfig, setSelectedConfig] = useState(QUESTION_CONFIGS[2]); // Default 35 MCQs
+
+  const isInvited = user?.origin === "recruiter_invited";
 
   useEffect(() => {
     const fetchDashboardResumeAnalysis = async () => {
@@ -38,7 +49,6 @@ const ExamLobby = ({
           ...(data?.matchedSkills || []),
           ...(data?.analysis?.skills || []),
           ...(data?.skills || []),
-          ...(user?.skills || [])
         ];
 
         const extracted = [...new Set(
@@ -47,38 +57,52 @@ const ExamLobby = ({
             .filter(Boolean)
         )];
 
-        if (extracted.length > 0) {
+        if (isInvited) {
+          // Recruiter invited candidate
           setResumeData(data);
-          setSkills(extracted);
+          setSkills(extracted.length > 0 ? extracted : ["Software Engineering", "Full Stack Development", "API Design", "Databases"]);
           setIsResumeVerified(true);
-          setSourceDescription(user?.origin === "recruiter_invited" ? "Recruiter Pre-Analyzed Assessment Blueprint" : "Dashboard AI Resume Analysis");
-        } else {
-          const defaultBlueprint = ["Software Engineering", "Full Stack Development", "System Architecture", "API Design"];
-          setResumeData(data);
-          setSkills(defaultBlueprint);
-          setIsResumeVerified(true);
+          setHasSkills(true);
           setSourceDescription("Recruiter Pre-Analyzed Assessment Blueprint");
+        } else {
+          // Self-registered candidate: strictly require completed resume analysis
+          if (data && data.status === "Analysis Complete" && extracted.length > 0) {
+            setResumeData(data);
+            setSkills(extracted);
+            setIsResumeVerified(true);
+            setHasSkills(true);
+            setSourceDescription("Dashboard AI Resume Analysis");
+          } else {
+            setResumeData(data);
+            setSkills([]);
+            setIsResumeVerified(false);
+            setHasSkills(false);
+            setSourceDescription("Awaiting Resume Analysis");
+          }
         }
       } catch (err) {
         console.warn("Resume analysis auto-fetch notice:", err.message);
-        const defaultBlueprint = ["Software Engineering", "Full Stack Development", "System Architecture", "API Design"];
-        setSkills(defaultBlueprint);
-        setIsResumeVerified(true);
-        setSourceDescription("Recruiter Pre-Analyzed Assessment Blueprint");
+        if (isInvited) {
+          const defaultBlueprint = ["Software Engineering", "Full Stack Development", "System Architecture", "API Design"];
+          setSkills(defaultBlueprint);
+          setIsResumeVerified(true);
+          setHasSkills(true);
+          setSourceDescription("Recruiter Pre-Analyzed Assessment Blueprint");
+        } else {
+          setSkills([]);
+          setIsResumeVerified(false);
+          setHasSkills(false);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardResumeAnalysis();
-  }, [user]);
+  }, [user, isInvited, setSkills]);
 
-  const isInvited = user?.origin === "recruiter_invited" || true;
   const candidateName = resumeData?.claims?.name || user?.name || "Candidate";
-  const effectiveSkillsList = (skills && skills.length > 0) 
-    ? skills 
-    : ["Software Engineering", "Full Stack Development", "System Architecture", "API Design"];
-  const hasSkills = true;
+  const effectiveSkillsList = skills || [];
 
   if (loading) {
     return (
@@ -103,40 +127,47 @@ const ExamLobby = ({
           Candidate Assessment Lobby
         </h2>
         <p className="text-[var(--color-text-secondary)] text-sm max-w-xl mx-auto">
-          Your technical examination is automatically generated based on the AI
-          resume analysis stored in your Student Dashboard profile.
+          Your technical examination is automatically synthesized based on the AI
+          resume analysis stored in your candidate profile.
         </p>
       </div>
 
-      {/* NO RESUME FOUND STATE */}
+      {/* NO RESUME FOUND / ANALYSIS REQUIRED GATE */}
       {!hasSkills ? (
         <div className="glass-card rounded-2xl p-8 text-center border border-amber-500/40 bg-amber-500/5 shadow-2xl space-y-6">
           <div className="h-16 w-16 mx-auto rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-3xl shadow-inner">
             <FileText className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-[var(--color-text)] mb-2">
-              No Resume Analysis Found
+            <span className="px-3 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
+              Resume Analysis Required
+            </span>
+            <h3 className="text-xl font-bold text-[var(--color-text)] mt-3 mb-2">
+              Missing Verified Resume Skills
             </h3>
             <p className="text-xs text-[var(--color-text-secondary)] max-w-md mx-auto leading-relaxed">
-              No resume analysis or verified technical skills were found on
-              file. Please upload your resume from the Student Dashboard before
-              taking the technical assessment.
+              Technical assessment questions are dynamically tailored to your verified resume skills. You have not uploaded or analyzed your resume yet. Please upload your resume first to unlock your personalized examination.
             </p>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => navigate("/resume-upload")}
+              className="px-6 py-3 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold text-sm shadow-lg transition inline-flex items-center gap-2 cursor-pointer"
+            >
+              <span>Go to Resume Upload Page</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
             <button
               onClick={() => navigate("/student-dashboard")}
-              className="px-6 py-3 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold text-sm shadow-lg transition inline-flex items-center gap-2"
+              className="px-5 py-3 rounded-xl bg-[var(--color-bg-sunken)] hover:bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] font-semibold text-xs transition border border-[var(--color-border)] inline-flex items-center gap-1.5 cursor-pointer"
             >
-              <span>Go to Student Dashboard</span>
-              <ExternalLink className="w-4 h-4" />
+              <span>Back to Dashboard</span>
             </button>
           </div>
         </div>
       ) : (
-        /* CLEAN ASSESSMENT SUMMARY CARD */
+        /* ASSESSMENT SUMMARY CARD */
         <div className="glass-card rounded-2xl p-8 border border-[var(--color-border)] bg-[var(--color-surface-card)] shadow-xl space-y-6">
           <div className="flex flex-wrap justify-between items-start gap-4 pb-4 border-b border-[var(--color-border)]">
             <div>
@@ -154,8 +185,7 @@ const ExamLobby = ({
               </span>
             ) : (
               <span className="px-3.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-amber-500" /> Stored
-                Profile Skills
+                <ShieldCheck className="w-4 h-4 text-amber-500" /> Stored Profile Skills
               </span>
             )}
           </div>
@@ -165,14 +195,16 @@ const ExamLobby = ({
             <div className="p-3.5 rounded-xl bg-[var(--color-bg-raised)] border border-[var(--color-border)]">
               <span className="text-[var(--color-muted)] block mb-1">Questions</span>
               <strong className="text-[var(--color-text)] text-base font-bold flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-[var(--color-accent)]" /> 35 MCQs
+                <HelpCircle className="w-4 h-4 text-[var(--color-accent)]" />{" "}
+                {isInvited ? 35 : selectedConfig.count} MCQs
               </strong>
             </div>
 
             <div className="p-3.5 rounded-xl bg-[var(--color-bg-raised)] border border-[var(--color-border)]">
               <span className="text-[var(--color-muted)] block mb-1">Duration</span>
               <strong className="text-[var(--color-text)] text-base font-bold flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> 40 Minutes
+                <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />{" "}
+                {isInvited ? 40 : selectedConfig.duration} Minutes
               </strong>
             </div>
 
@@ -183,6 +215,42 @@ const ExamLobby = ({
               </strong>
             </div>
           </div>
+
+          {/* QUESTION COUNT SELECTOR (Only for self-registered candidates) */}
+          {!isInvited && (
+            <div className="p-4 rounded-xl bg-[var(--color-bg-sunken)] border border-[var(--color-border)] space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-[var(--color-text)] flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-[var(--color-accent)]" /> Choose Assessment Length
+                </label>
+                <span className="text-[11px] font-mono text-[var(--color-accent)]">
+                  {selectedConfig.desc}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {QUESTION_CONFIGS.map((cfg) => {
+                  const isSelected = selectedConfig.count === cfg.count;
+                  return (
+                    <button
+                      key={cfg.count}
+                      type="button"
+                      onClick={() => setSelectedConfig(cfg)}
+                      className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-[var(--color-accent)] text-white border-[var(--color-accent)] shadow-md scale-[1.02]"
+                          : "bg-[var(--color-surface-card)] text-[var(--color-text)] border-[var(--color-border)] hover:border-[var(--color-accent)]/50"
+                      }`}
+                    >
+                      <p className="text-xs font-black">{cfg.count} Questions</p>
+                      <p className={`text-[10px] mt-0.5 ${isSelected ? "text-white/80" : "text-[var(--color-muted)]"}`}>
+                        {cfg.duration} Mins
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Detected Technical Skills List */}
           <div>
@@ -205,18 +273,18 @@ const ExamLobby = ({
           {/* Primary & Secondary Action Buttons */}
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
             <button
-              onClick={onGenerateQuestions}
+              onClick={() => onGenerateQuestions(isInvited ? 35 : selectedConfig.count, isInvited ? 40 : selectedConfig.duration)}
               disabled={isGenerating}
               className="flex-1 py-4 rounded-xl bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold text-base shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
             >
               {isGenerating ? (
                 <span className="flex items-center gap-2">
                   <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                  Generating 35 AI Questions...
+                  Generating {isInvited ? 35 : selectedConfig.count} AI Questions...
                 </span>
               ) : (
                 <>
-                  <span>Generate 35 AI Exam Questions</span>
+                  <span>Generate {isInvited ? 35 : selectedConfig.count} AI Exam Questions</span>
                   <Wand2 className="w-5 h-5 ml-1" />
                 </>
               )}
@@ -225,7 +293,7 @@ const ExamLobby = ({
             <button
               type="button"
               onClick={() => navigate("/student-dashboard")}
-              className="px-5 py-4 rounded-xl bg-[var(--color-bg-sunken)] hover:bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] font-semibold text-xs transition border border-[var(--color-border)] flex items-center justify-center gap-1.5"
+              className="px-5 py-4 rounded-xl bg-[var(--color-bg-sunken)] hover:bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] font-semibold text-xs transition border border-[var(--color-border)] flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Manage Resume in Dashboard</span>
               <ExternalLink className="w-3.5 h-3.5 text-[var(--color-muted)]" />
