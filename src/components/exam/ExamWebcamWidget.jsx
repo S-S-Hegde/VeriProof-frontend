@@ -148,6 +148,7 @@ const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
         const base64Data = canvas.toDataURL("image/jpeg", 0.7);
 
         const { data } = await api.post("/api/exams/proctor-snapshot", {
+          imageBase64: base64Data,
           image: base64Data,
         });
 
@@ -171,9 +172,9 @@ const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
         } else {
           setProctorState({
             status: "VERIFIED",
-            message: "Live Stream Verified",
+            message: data.reason || "Face Locked & Verified",
             provider: data.provider || "AI Vision Guard",
-            confidence: 0.99,
+            confidence: data.confidence || 0.99,
           });
         }
       } catch (err) {
