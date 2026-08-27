@@ -264,6 +264,10 @@ const StudentDashboard = () => {
         if (!isMounted) return;
         setGithubAnalysisState(data);
 
+        if (data.status === "idle") {
+          api.post("/api/github/trigger").catch(console.error);
+        }
+
         if (data.status === "complete") {
           if (intervalId) clearInterval(intervalId);
           // Refresh projects and profile to reflect newly auto-created projects
