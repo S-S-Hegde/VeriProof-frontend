@@ -2,9 +2,10 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   UploadCloud, FileText, X, AlertCircle, CheckCircle,
-  Users, Loader2, Mail, Clock, RefreshCw, ChevronDown, Trash2,
+  Users, Loader2, Mail, Clock, RefreshCw, ChevronDown, Trash2, Sliders,
 } from "lucide-react";
 import api from "../utils/api";
+import AssessmentConfigModal from "../components/AssessmentConfigModal";
 
 /* ═══════════════════════════════════════════════════
    INTAKE — Bulk Resume Upload
@@ -40,6 +41,7 @@ export default function Intake() {
   const [error, setError]             = useState("");
   const [emailsSent, setEmailsSent]   = useState(0);
   const [strictMode, setStrictMode]   = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const fileInputRef = useRef(null);
 
   const fetchJobs = useCallback(async () => {
@@ -87,10 +89,11 @@ export default function Intake() {
 
   const removeFile = (idx) => setFiles(prev => prev.filter((_, i) => i !== idx));
 
-  // ── Submit ─────────────────────────────────────────────────────────────
-  const handleSubmit = async () => {
+  // ── Submit with Custom Assessment Parameters ───────────────────────────
+  const handleSubmit = async (config = {}) => {
     if (!selectedJobId || !files.length) return;
     setIsProcessing(true);
+    setShowConfigModal(false);
     setError("");
     setResults([]);
     setEmailsSent(0);
@@ -98,6 +101,10 @@ export default function Intake() {
     const fd = new FormData();
     fd.append("jobId", selectedJobId);
     fd.append("strictMode", strictMode);
+    fd.append("questionCount", config.questionCount || 40);
+    fd.append("durationMinutes", config.durationMinutes || 45);
+    fd.append("jdRatio", config.jdRatio !== undefined ? config.jdRatio : 0.70);
+    fd.append("resumeRatio", config.resumeRatio !== undefined ? config.resumeRatio : 0.30);
     files.forEach(f => fd.append("resumes", f));
 
     try {
@@ -321,17 +328,27 @@ export default function Intake() {
             )}
             <button
               disabled={!files.length || !selectedJobId || isProcessing || jobs.length === 0}
-              onClick={handleSubmit}
+              onClick={() => setShowConfigModal(true)}
               className="vp-btn vp-btn-accent w-full py-3 text-xs gap-2 disabled:opacity-40"
             >
               {isProcessing
                 ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing AI Dataset…</>
-                : <><UploadCloud className="w-3.5 h-3.5" /> Import &amp; Process Candidates</>
+                : <><Sliders className="w-3.5 h-3.5" /> Configure Assessment &amp; Invite ({files.length})</>
               }
             </button>
           </div>
         </div>
       </div>
+
+      {/* ── Assessment Configuration & Invite Dispatch Modal ── */}
+      <AssessmentConfigModal
+        isOpen={showConfigModal}
+        onClose={() => setShowConfigModal(false)}
+        onConfirm={handleSubmit}
+        jobTitle={selectedJob?.title}
+        candidateCount={files.length}
+        isProcessing={isProcessing}
+      />
 
       {/* ── Results & Python Engine Module Status ── */}
       <AnimatePresence>
