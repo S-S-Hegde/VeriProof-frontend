@@ -222,37 +222,33 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
             <div className="flex justify-center items-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-[var(--color-accent)]" />
             </div>
-          ) : isProcessing ? (
-            <CandidateProcessingCenter
-              initialFileName={selectedFileName}
-              onComplete={(freshData) => {
-                setIsProcessing(false);
-                setUploadSuccess(true);
-                if (onUploadSuccess) {
-                  onUploadSuccess(freshData);
-                }
-                onClose();
-              }}
-            />
+          ) : (isProcessing || (isAnalyzing && !uploadSuccess)) ? (
+            <div className="w-full">
+              <CandidateProcessingCenter
+                initialFileName={selectedFileName || profileData?.originalFileName || "resume.pdf"}
+                onComplete={(freshData) => {
+                  setIsProcessing(false);
+                  setUploadSuccess(true);
+                  if (onUploadSuccess) {
+                    onUploadSuccess(freshData);
+                  }
+                  onClose();
+                }}
+              />
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => {
+                    setIsProcessing(false);
+                    setProfileData((prev) => ({ ...prev, resumeStatus: "Not Uploaded" }));
+                  }}
+                  className="text-xs text-[var(--color-muted)] hover:text-[var(--color-text)] underline cursor-pointer"
+                >
+                  Upload a different resume instead
+                </button>
+              </div>
+            </div>
           ) : (
             <>
-              {/* Compact Active Analysis Banner if previous file is analyzing */}
-              {isAnalyzing && !uploadSuccess && (
-                <div className="p-3.5 rounded-[var(--radius-md)] mb-5 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <Loader2 className="w-4 h-4 text-[var(--color-accent)] animate-spin shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-[var(--color-accent)]">
-                        Analysis In Progress ({analysisState?.progress || 20}%)
-                      </p>
-                      <p className="text-[10px] text-[var(--color-muted)]">
-                        Uploading a new file below will restart the analysis pipeline.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Upload Success Card */}
               {uploadSuccess && (
                 <motion.div
