@@ -237,39 +237,39 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
         </div>
       </div>
 
-      <h3 className="text-base sm:text-lg md:text-xl font-black uppercase tracking-tight mb-1 text-[var(--color-text)]">
+      <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight mb-1.5 text-[var(--color-text)]">
         {isFinished ? "Pipeline Processing Complete" : "Processing Candidate Intelligence"}
       </h3>
-      <p className="text-[11px] sm:text-xs text-[var(--color-muted)] mb-5 font-mono">
+      <p className="text-xs sm:text-sm text-[var(--color-muted)] mb-5 font-medium">
         {analysisState?.stage || (isFinished ? "Profile Synchronized" : "Running automated analysis...")}
       </p>
 
       {/* Stage Checklist */}
-      <div className="w-full space-y-2 mb-5 text-left bg-[var(--color-bg-sunken)] p-3 sm:p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
+      <div className="w-full space-y-2.5 mb-5 text-left bg-[var(--color-bg-sunken)] p-4 sm:p-5 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
         {STAGES.map((s, idx) => (
-          <div key={idx} className="flex items-center justify-between py-1 text-xs gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
+          <div key={idx} className="flex items-center justify-between py-1 text-sm gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               {s.done ? (
-                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
               ) : s.active ? (
-                <Loader2 className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
+                <Loader2 className="w-5 h-5 text-cyan-400 animate-spin shrink-0" />
               ) : (
-                <div className="w-4 h-4 rounded-full border border-[var(--color-border)] shrink-0" />
+                <div className="w-5 h-5 rounded-full border border-[var(--color-border)] shrink-0" />
               )}
-              <span className={`font-mono text-[11px] truncate ${s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-cyan-400 font-bold" : "text-[var(--color-muted)]"}`}>
+              <span className={`text-xs sm:text-sm truncate ${s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-cyan-400 font-bold" : "text-[var(--color-muted)]"}`}>
                 {s.label}
               </span>
             </div>
-            {s.active && <span className="text-[9px] uppercase tracking-widest text-cyan-400 font-bold animate-pulse shrink-0">Running</span>}
-            {s.done && <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold shrink-0">Done</span>}
+            {s.active && <span className="text-[11px] font-mono uppercase tracking-widest text-cyan-400 font-bold animate-pulse px-2 py-0.5 rounded bg-cyan-400/10 border border-cyan-400/20 shrink-0">Running</span>}
+            {s.done && <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-400/10 border border-emerald-400/20 shrink-0">Done</span>}
           </div>
         ))}
       </div>
 
       {error && (
-        <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="w-full p-3.5 mb-4 rounded-[var(--radius-md)] bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-left flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
-          <div className="flex-1 font-mono text-[11px] leading-relaxed">
+        <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="w-full p-4 mb-4 rounded-[var(--radius-lg)] bg-red-950/40 border border-red-500/40 text-red-200 text-sm text-left flex items-start gap-3 shadow-lg">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400" />
+          <div className="flex-1 font-sans text-xs sm:text-sm leading-relaxed font-medium">
             {error}
           </div>
         </motion.div>
@@ -277,8 +277,8 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
 
       {isFinished && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-[var(--radius-md)] text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4" /> Profile Synchronized. Loading Dashboard...
+          <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-[var(--radius-lg)] text-emerald-400 text-sm font-bold uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
+            <Sparkles className="w-5 h-5" /> Profile Synchronized. Loading Dashboard...
           </div>
         </motion.div>
       )}

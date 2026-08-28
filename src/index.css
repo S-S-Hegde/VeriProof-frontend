@@ -247,37 +247,49 @@
   }
 
   /* ─── Typography Hierarchy ─── */
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5, h6 {
     @apply font-sans;
     transition: color var(--duration-slower) var(--ease-out-expo);
   }
 
   h1 {
-    font-size: var(--text-hero);
+    font-size: clamp(1.85rem, 3.5vw + 0.5rem, 3.25rem);
     font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: 0.9;
+    letter-spacing: -0.035em;
+    line-height: 1.08;
   }
 
   h2 {
-    font-size: var(--text-display);
+    font-size: clamp(1.45rem, 2.4vw + 0.4rem, 2.25rem);
     font-weight: 800;
-    letter-spacing: -0.035em;
-    line-height: 0.92;
+    letter-spacing: -0.025em;
+    line-height: 1.18;
   }
 
   h3 {
-    font-size: var(--text-heading);
+    font-size: clamp(1.18rem, 1.6vw + 0.35rem, 1.6rem);
     font-weight: 700;
-    letter-spacing: -0.025em;
-    line-height: 1;
+    letter-spacing: -0.015em;
+    line-height: 1.28;
   }
 
   h4 {
-    font-size: var(--text-title);
-    font-weight: 700;
-    letter-spacing: -0.015em;
-    line-height: 1.15;
+    font-size: clamp(1.02rem, 1.1vw + 0.25rem, 1.3rem);
+    font-weight: 600;
+    line-height: 1.38;
+  }
+
+  p {
+    font-size: clamp(0.875rem, 0.3vw + 0.8rem, 1rem);
+    line-height: 1.65;
+  }
+
+  /* Universal High-Readability Alert Banners */
+  .vp-alert, .vp-alert-error {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    font-family: var(--font-sans);
+    font-weight: 500;
   }
 
   /* Theme-specific heading treatments */
