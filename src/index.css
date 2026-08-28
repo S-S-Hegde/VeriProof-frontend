@@ -180,13 +180,13 @@
 
   /* ─── Lenis Smooth Scroll Core Rules & 165Hz Hardware Acceleration ─── */
   html {
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
   html.lenis, html.lenis body {
     height: auto;
+    min-height: 100%;
   }
 
   .lenis.lenis-smooth {
