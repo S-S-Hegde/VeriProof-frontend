@@ -335,24 +335,6 @@ const StudentDashboard = () => {
                   Dashboard.
                 </span>
               </h1>
-              <div className="flex gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/add-project")}
-                  className="vp-btn vp-btn-accent text-[10px] py-3 px-6 gap-2 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Upload Projects
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/skill-tree")}
-                  className="vp-btn vp-btn-secondary text-[10px] py-3 px-6 gap-2"
-                >
-                  <GitBranch className="w-3.5 h-3.5" /> Verified Skills
-                </motion.button>
-              </div>
             </div>
             <div className="flex items-center gap-3 mt-4">
               <span className="vp-status-dot" />
