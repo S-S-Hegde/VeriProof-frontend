@@ -62,17 +62,23 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
 
   // Fetch profile when modal opens
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setIsProcessing(false);
+      setUploadSuccess(false);
+      setError(null);
+      return;
+    }
     let isMounted = true;
+    setIsProcessing(false);
+    setUploadSuccess(false);
+    setError(null);
+
     const fetchProfile = async () => {
       setLoading(true);
       try {
         const { data } = await api.get("/api/users/profile");
         if (!isMounted) return;
         setProfileData(data);
-        if (data.resumeStatus === "Pending Evaluation") {
-          fetchAnalysisState();
-        }
       } catch (err) {
         console.error("Failed to load profile:", err);
       } finally {
@@ -222,7 +228,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
             <div className="flex justify-center items-center py-12">
               <Loader2 className="w-7 h-7 animate-spin text-[var(--color-accent)]" />
             </div>
-          ) : (isProcessing || (isAnalyzing && !uploadSuccess)) ? (
+          ) : isProcessing ? (
             <div className="w-full">
               <CandidateProcessingCenter
                 initialFileName={selectedFileName || profileData?.originalFileName || "resume.pdf"}

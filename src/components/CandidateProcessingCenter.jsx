@@ -12,7 +12,7 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
   const [githubState, setGithubState] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
   const [error, setError] = useState(null);
-  const [displayProgress, setDisplayProgress] = useState(25);
+  const [displayProgress, setDisplayProgress] = useState(15);
   
   const pollingRef = useRef(null);
 
@@ -116,18 +116,19 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
                        analysisState?.status === "Analyzed" || 
                        user?.resumeStatus === "Analyzed" ||
                        isFinished);
-  const resumeProgress = isFailed ? 0 : (isResumeDone ? 100 : (analysisState?.progress !== undefined ? analysisState.progress : 35));
+  const rawProgress = analysisState?.progress !== undefined ? analysisState.progress : 15;
+  const resumeProgress = isFailed ? 0 : (isResumeDone ? 100 : rawProgress);
   const claimsCount = analysisState?.claims?.skills?.length || 0;
   const hasGithub = Boolean(githubState?.githubUsername || user?.githubUsername);
   const isGhRunning = !isFailed && hasGithub && githubState?.status === "running";
 
-  let targetProgress = 35;
+  let targetProgress = 15;
   if (isFailed) {
     targetProgress = 0;
   } else if (isFinished || isResumeDone) {
     targetProgress = 100;
   } else {
-    targetProgress = Math.max(25, Math.min(95, resumeProgress));
+    targetProgress = Math.max(15, Math.min(95, resumeProgress));
   }
 
   // Smooth interpolation toward targetProgress
@@ -139,16 +140,16 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
         if (prev > targetProgress) return targetProgress;
         return prev;
       });
-    }, 30);
+    }, 25);
     return () => clearInterval(timer);
   }, [targetProgress, isFailed]);
 
   // Stages definition
   const STAGES = [
     { key: "upload", label: `Uploading Resume ${initialFileName ? `(${initialFileName})` : ""}`, done: true, failed: false },
-    { key: "parsing", label: "Parsing Resume PDF", done: isResumeDone || (!isFailed && displayProgress >= 40), active: !isFailed && !isResumeDone && displayProgress < 40, failed: isFailed },
-    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: isResumeDone || (!isFailed && displayProgress >= 70), active: !isFailed && !isResumeDone && displayProgress >= 40 && displayProgress < 70, failed: false },
-    { key: "skills", label: "Building Skill Tree", done: isResumeDone || (!isFailed && displayProgress >= 90), active: !isFailed && !isResumeDone && displayProgress >= 70, failed: false },
+    { key: "parsing", label: "Parsing Resume PDF", done: isResumeDone || (!isFailed && displayProgress >= 30), active: !isFailed && !isResumeDone && displayProgress < 30, failed: isFailed },
+    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: isResumeDone || (!isFailed && displayProgress >= 60), active: !isFailed && !isResumeDone && displayProgress >= 30 && displayProgress < 60, failed: false },
+    { key: "skills", label: "Building Skill Tree", done: isResumeDone || (!isFailed && displayProgress >= 85), active: !isFailed && !isResumeDone && displayProgress >= 60, failed: false },
     { key: "github", label: "GitHub Repository Analysis", done: isFinished || isResumeDone || githubState?.status === "complete" || !hasGithub, active: isGhRunning, failed: false },
     { key: "complete", label: "Candidate Profile Synchronization", done: isFinished || displayProgress >= 100, active: false, failed: false },
   ];
@@ -164,58 +165,58 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full relative flex items-center justify-center">
           {/* Background Rotating Dash Ring */}
           {!isFinished && !isFailed && (
-            <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-[spin_6s_linear_infinite]" />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+              className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30"
+            />
           )}
 
           {/* SVG Progress & Spinner Arc */}
-          <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_0_10px_rgba(56,189,248,0.4)]" viewBox="0 0 100 100">
-            <defs>
-              <linearGradient id="cyberProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#38bdf8" />
-                <stop offset="50%" stopColor="#818cf8" />
-                <stop offset="100%" stopColor="#06b6d4" />
-              </linearGradient>
-            </defs>
+          <div className="relative w-full h-full">
+            <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_0_10px_rgba(56,189,248,0.4)]" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="cyberProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#38bdf8" />
+                  <stop offset="50%" stopColor="#818cf8" />
+                  <stop offset="100%" stopColor="#06b6d4" />
+                </linearGradient>
+              </defs>
 
-            {/* Base Track */}
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              stroke={isFailed ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.08)"}
-              strokeWidth="6"
-              fill="transparent"
-            />
-
-            {/* Animated Loading Sweep (Rotates continuously while loading) */}
-            {!isFinished && !isFailed && (
+              {/* Base Track */}
               <circle
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="url(#cyberProgressGrad)"
+                stroke={isFailed ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.08)"}
                 strokeWidth="6"
                 fill="transparent"
-                strokeDasharray="40 210"
+              />
+
+              {/* Accurate Progress Arc */}
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke={isFailed ? "#ef4444" : "url(#cyberProgressGrad)"}
+                strokeWidth="6"
+                fill="transparent"
+                strokeDasharray={251.2}
+                strokeDashoffset={isFailed ? 0 : 251.2 - (251.2 * displayProgress) / 100}
                 strokeLinecap="round"
-                className="animate-[spin_1.4s_linear_infinite] origin-center opacity-80"
+                className="transition-all duration-300 ease-out"
+              />
+            </svg>
+
+            {/* Rotating Halo Flare */}
+            {!isFinished && !isFailed && (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
+                className="absolute inset-0 rounded-full border-t-2 border-r-2 border-cyan-400 opacity-80 pointer-events-none"
               />
             )}
-
-            {/* Accurate Progress Arc */}
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              stroke={isFailed ? "#ef4444" : "url(#cyberProgressGrad)"}
-              strokeWidth="6"
-              fill="transparent"
-              strokeDasharray={251.2}
-              strokeDashoffset={isFailed ? 0 : 251.2 - (251.2 * displayProgress) / 100}
-              strokeLinecap="round"
-              className="transition-all duration-300 ease-out"
-            />
-          </svg>
+          </div>
 
           {/* Center Content: Animated Percentage or Verified Check */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
