@@ -150,21 +150,21 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
   ];
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center text-center max-w-lg w-full mx-auto">
+    <div className="p-1 sm:p-2 flex flex-col items-center justify-center text-center max-w-lg w-full mx-auto">
       {/* ── Circular Orbital Loading Ring ── */}
-      <div className="relative mb-6 flex items-center justify-center">
+      <div className="relative mb-3 flex items-center justify-center">
         {/* Ambient Pulsing Glow Aura */}
-        <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-cyan-500/20 rounded-full blur-xl animate-pulse pointer-events-none" />
+        <div className="absolute -inset-1.5 bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-cyan-500/20 rounded-full blur-lg animate-pulse pointer-events-none" />
 
         {/* Continuous Rotating Outer Track */}
-        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full relative flex items-center justify-center">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full relative flex items-center justify-center">
           {/* Background Rotating Dash Ring */}
           {!isFinished && (
             <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-[spin_6s_linear_infinite]" />
           )}
 
           {/* SVG Progress & Spinner Arc */}
-          <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_0_12px_rgba(56,189,248,0.4)]" viewBox="0 0 100 100">
+          <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_0_10px_rgba(56,189,248,0.4)]" viewBox="0 0 100 100">
             <defs>
               <linearGradient id="cyberProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#38bdf8" />
@@ -221,14 +221,14 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]" />
+                <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]" />
               </motion.div>
             ) : (
               <div className="flex flex-col items-center">
-                <span className="text-xl sm:text-2xl font-black text-[var(--color-text)] font-mono tracking-tight">
-                  {displayProgress}<span className="text-xs text-cyan-400 font-sans ml-0.5">%</span>
+                <span className="text-lg sm:text-xl font-black text-[var(--color-text)] font-mono tracking-tight leading-none">
+                  {displayProgress}<span className="text-[10px] text-cyan-400 font-sans ml-0.5">%</span>
                 </span>
-                <span className="text-[9px] font-mono uppercase tracking-widest text-[var(--color-muted)]">
+                <span className="text-[8px] font-mono uppercase tracking-widest text-[var(--color-muted)] mt-0.5">
                   {displayProgress < 50 ? "Parsing" : displayProgress < 85 ? "Analyzing" : "Syncing"}
                 </span>
               </div>
@@ -237,39 +237,39 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
         </div>
       </div>
 
-      <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight mb-1.5 text-[var(--color-text)]">
+      <h3 className="text-base sm:text-lg font-black uppercase tracking-tight mb-1 text-[var(--color-text)]">
         {isFinished ? "Pipeline Processing Complete" : "Processing Candidate Intelligence"}
       </h3>
-      <p className="text-xs sm:text-sm text-[var(--color-muted)] mb-5 font-medium">
+      <p className="text-xs text-[var(--color-muted)] mb-3 font-medium">
         {analysisState?.stage || (isFinished ? "Profile Synchronized" : "Running automated analysis...")}
       </p>
 
       {/* Stage Checklist */}
-      <div className="w-full space-y-2.5 mb-5 text-left bg-[var(--color-bg-sunken)] p-4 sm:p-5 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
+      <div className="w-full space-y-1.5 mb-3 text-left bg-[var(--color-bg-sunken)] p-3 sm:p-3.5 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
         {STAGES.map((s, idx) => (
-          <div key={idx} className="flex items-center justify-between py-1 text-sm gap-3">
-            <div className="flex items-center gap-3 min-w-0">
+          <div key={idx} className="flex items-center justify-between py-0.5 text-xs sm:text-sm gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
               {s.done ? (
-                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
               ) : s.active ? (
-                <Loader2 className="w-5 h-5 text-cyan-400 animate-spin shrink-0" />
+                <Loader2 className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
               ) : (
-                <div className="w-5 h-5 rounded-full border border-[var(--color-border)] shrink-0" />
+                <div className="w-4 h-4 rounded-full border border-[var(--color-border)] shrink-0" />
               )}
-              <span className={`text-xs sm:text-sm truncate ${s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-cyan-400 font-bold" : "text-[var(--color-muted)]"}`}>
+              <span className={`text-xs sm:text-[13px] truncate ${s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-cyan-400 font-bold" : "text-[var(--color-muted)]"}`}>
                 {s.label}
               </span>
             </div>
-            {s.active && <span className="text-[11px] font-mono uppercase tracking-widest text-cyan-400 font-bold animate-pulse px-2 py-0.5 rounded bg-cyan-400/10 border border-cyan-400/20 shrink-0">Running</span>}
-            {s.done && <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-400/10 border border-emerald-400/20 shrink-0">Done</span>}
+            {s.active && <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold animate-pulse px-1.5 py-0.5 rounded bg-cyan-400/10 border border-cyan-400/20 shrink-0">Running</span>}
+            {s.done && <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-400/10 border border-emerald-400/20 shrink-0">Done</span>}
           </div>
         ))}
       </div>
 
       {error && (
-        <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="w-full p-4 mb-4 rounded-[var(--radius-lg)] bg-red-950/40 border border-red-500/40 text-red-200 text-sm text-left flex items-start gap-3 shadow-lg">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400" />
-          <div className="flex-1 font-sans text-xs sm:text-sm leading-relaxed font-medium">
+        <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="w-full p-3 mb-2.5 rounded-[var(--radius-lg)] bg-red-950/40 border border-red-500/40 text-red-200 text-xs sm:text-sm text-left flex items-start gap-2.5 shadow-lg">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+          <div className="flex-1 font-sans text-xs sm:text-[13px] leading-relaxed font-medium">
             {error}
           </div>
         </motion.div>
@@ -277,8 +277,8 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
 
       {isFinished && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-          <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-[var(--radius-lg)] text-emerald-400 text-sm font-bold uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
-            <Sparkles className="w-5 h-5" /> Profile Synchronized. Loading Dashboard...
+          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-[var(--radius-lg)] text-emerald-400 text-xs sm:text-sm font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-2">
+            <Sparkles className="w-4 h-4" /> Profile Synchronized. Loading Dashboard...
           </div>
         </motion.div>
       )}

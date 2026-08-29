@@ -196,31 +196,31 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl max-h-[90vh] rounded-[var(--radius-2xl)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 sm:p-6 md:p-8 shadow-2xl z-10 overflow-y-auto overscroll-contain vp-glass"
+          className="relative w-full max-w-[95vw] sm:max-w-lg md:max-w-xl max-h-[88vh] rounded-[var(--radius-2xl)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 sm:p-5 md:p-6 shadow-2xl z-10 overflow-y-auto overscroll-contain vp-glass"
         >
           {/* Header Bar */}
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--color-border)]">
+          <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-[var(--color-border)]">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <FileText className="w-4 h-4 text-[var(--color-accent)]" />
-                <span className="vp-label-accent">Candidate_Verification</span>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <FileText className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                <span className="vp-label-accent text-[10px]">Candidate_Verification</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black italic uppercase tracking-tighter">
+              <h2 className="text-lg sm:text-xl font-black italic uppercase tracking-tighter">
                 {hasResume ? "Replace / Re-upload" : "Upload"} <span className="text-[var(--color-accent)] not-italic">Resume.</span>
               </h2>
             </div>
             <button
               onClick={() => !uploading && onClose()}
               disabled={uploading}
-              className="p-2 rounded-full text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-sunken)] transition-colors disabled:opacity-40 cursor-pointer"
+              className="p-1.5 rounded-full text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-sunken)] transition-colors disabled:opacity-40 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-[var(--color-accent)]" />
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="w-7 h-7 animate-spin text-[var(--color-accent)]" />
             </div>
           ) : (isProcessing || (isAnalyzing && !uploadSuccess)) ? (
             <div className="w-full">
@@ -235,7 +235,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
                   onClose();
                 }}
               />
-              <div className="mt-4 text-center">
+              <div className="mt-2.5 text-center">
                 <button
                   onClick={() => {
                     setIsProcessing(false);
