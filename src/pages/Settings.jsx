@@ -113,7 +113,8 @@ const Settings = () => {
     setDeleteError("");
     setDeleteStepIndex(0);
 
-    const targetPassword = typeof confirmData === "string" ? confirmData : confirmData?.password || confirmData?.confirmText || "DELETE";
+    const submittedPassword = typeof confirmData === "string" ? confirmData : confirmData?.password || "";
+    const submittedConfirmText = typeof confirmData === "object" ? confirmData?.confirmText || "DELETE" : "DELETE";
     const activeToken = user?.token || localStorage.getItem("token");
 
     try {
@@ -127,10 +128,13 @@ const Settings = () => {
       setDeleteStepIndex(3);
 
       await api.delete("/api/users/profile", {
-        data: { password: targetPassword },
+        data: {
+          password: submittedPassword,
+          confirmText: submittedConfirmText,
+        },
         headers: {
           ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
-          "x-confirm-password": targetPassword,
+          "x-confirm-password": submittedPassword || submittedConfirmText,
         },
       });
 
