@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import {
-  Loader2, CheckCircle, Sparkles, AlertCircle
+  Loader2, CheckCircle, Sparkles, AlertCircle, XCircle
 } from "lucide-react";
 
 export default function CandidateProcessingCenter({ onComplete, initialFileName = "" }) {
@@ -109,44 +109,48 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
     };
   }, [setUser, onComplete]);
 
-  // Compute live progress
-  const isResumeDone = analysisState?.status === "Analysis Complete" || 
+  // Compute live progress and states
+  const isFailed = Boolean(error || analysisState?.status === "Email Mismatch" || analysisState?.status === "Analysis Failed" || analysisState?.status === "Failed");
+  const isResumeDone = !isFailed && (analysisState?.status === "Analysis Complete" || 
                        analysisState?.status === "Completed" || 
                        analysisState?.status === "Analyzed" || 
                        user?.resumeStatus === "Analyzed" ||
-                       isFinished;
-  const resumeProgress = isResumeDone ? 100 : (analysisState?.progress || 35);
+                       isFinished);
+  const resumeProgress = isFailed ? 0 : (isResumeDone ? 100 : (analysisState?.progress !== undefined ? analysisState.progress : 35));
   const claimsCount = analysisState?.claims?.skills?.length || 0;
   const hasGithub = Boolean(githubState?.githubUsername || user?.githubUsername);
-  const isGhRunning = hasGithub && githubState?.status === "running";
+  const isGhRunning = !isFailed && hasGithub && githubState?.status === "running";
 
   let targetProgress = 35;
-  if (isFinished || isResumeDone) {
+  if (isFailed) {
+    targetProgress = 0;
+  } else if (isFinished || isResumeDone) {
     targetProgress = 100;
   } else {
-    targetProgress = Math.max(35, Math.min(95, resumeProgress));
+    targetProgress = Math.max(25, Math.min(95, resumeProgress));
   }
 
   // Smooth interpolation toward targetProgress
   useEffect(() => {
     const timer = setInterval(() => {
       setDisplayProgress((prev) => {
+        if (isFailed) return 0;
         if (prev < targetProgress) return Math.min(targetProgress, prev + 5);
         if (prev > targetProgress) return targetProgress;
         return prev;
       });
     }, 30);
     return () => clearInterval(timer);
-  }, [targetProgress]);
+  }, [targetProgress, isFailed]);
 
   // Stages definition
   const STAGES = [
-    { key: "upload", label: `Uploading Resume ${initialFileName ? `(${initialFileName})` : ""}`, done: true },
-    { key: "parsing", label: "Parsing Resume PDF", done: isResumeDone || displayProgress >= 40, active: !isResumeDone && displayProgress < 40 },
-    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: isResumeDone || displayProgress >= 70, active: !isResumeDone && displayProgress >= 40 && displayProgress < 70 },
-    { key: "skills", label: "Building Skill Tree", done: isResumeDone || displayProgress >= 90, active: !isResumeDone && displayProgress >= 70 },
-    { key: "github", label: "GitHub Repository Analysis", done: isFinished || isResumeDone || githubState?.status === "complete" || !hasGithub, active: isGhRunning },
-    { key: "complete", label: "Candidate Profile Synchronization", done: isFinished || displayProgress >= 100, active: false },
+    { key: "upload", label: `Uploading Resume ${initialFileName ? `(${initialFileName})` : ""}`, done: true, failed: false },
+    { key: "parsing", label: "Parsing Resume PDF", done: isResumeDone || (!isFailed && displayProgress >= 40), active: !isFailed && !isResumeDone && displayProgress < 40, failed: isFailed },
+    { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: isResumeDone || (!isFailed && displayProgress >= 70), active: !isFailed && !isResumeDone && displayProgress >= 40 && displayProgress < 70, failed: false },
+    { key: "skills", label: "Building Skill Tree", done: isResumeDone || (!isFailed && displayProgress >= 90), active: !isFailed && !isResumeDone && displayProgress >= 70, failed: false },
+    { key: "github", label: "GitHub Repository Analysis", done: isFinished || isResumeDone || githubState?.status === "complete" || !hasGithub, active: isGhRunning, failed: false },
+    { key: "complete", label: "Candidate Profile Synchronization", done: isFinished || displayProgress >= 100, active: false, failed: false },
   ];
 
   return (
@@ -154,12 +158,12 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
       {/* ── Circular Orbital Loading Ring ── */}
       <div className="relative mb-3 flex items-center justify-center">
         {/* Ambient Pulsing Glow Aura */}
-        <div className="absolute -inset-1.5 bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-cyan-500/20 rounded-full blur-lg animate-pulse pointer-events-none" />
+        <div className={`absolute -inset-1.5 ${isFailed ? "bg-red-500/20" : "bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-cyan-500/20"} rounded-full blur-lg animate-pulse pointer-events-none`} />
 
         {/* Continuous Rotating Outer Track */}
         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full relative flex items-center justify-center">
           {/* Background Rotating Dash Ring */}
-          {!isFinished && (
+          {!isFinished && !isFailed && (
             <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/30 animate-[spin_6s_linear_infinite]" />
           )}
 
@@ -178,13 +182,13 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
               cx="50"
               cy="50"
               r="40"
-              stroke="rgba(255, 255, 255, 0.08)"
+              stroke={isFailed ? "rgba(239, 68, 68, 0.15)" : "rgba(255, 255, 255, 0.08)"}
               strokeWidth="6"
               fill="transparent"
             />
 
             {/* Animated Loading Sweep (Rotates continuously while loading) */}
-            {!isFinished && (
+            {!isFinished && !isFailed && (
               <circle
                 cx="50"
                 cy="50"
@@ -203,11 +207,11 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
               cx="50"
               cy="50"
               r="40"
-              stroke="url(#cyberProgressGrad)"
+              stroke={isFailed ? "#ef4444" : "url(#cyberProgressGrad)"}
               strokeWidth="6"
               fill="transparent"
               strokeDasharray={251.2}
-              strokeDashoffset={251.2 - (251.2 * displayProgress) / 100}
+              strokeDashoffset={isFailed ? 0 : 251.2 - (251.2 * displayProgress) / 100}
               strokeLinecap="round"
               className="transition-all duration-300 ease-out"
             />
@@ -215,7 +219,17 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
 
           {/* Center Content: Animated Percentage or Verified Check */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            {isFinished ? (
+            {isFailed ? (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="flex flex-col items-center"
+              >
+                <XCircle className="w-8 h-8 sm:w-9 sm:h-9 text-red-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.6)]" />
+                <span className="text-[8px] font-mono uppercase tracking-widest text-red-400 font-bold mt-0.5">Blocked</span>
+              </motion.div>
+            ) : isFinished ? (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -238,10 +252,10 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
       </div>
 
       <h3 className="text-base sm:text-lg font-black uppercase tracking-tight mb-1 text-[var(--color-text)]">
-        {isFinished ? "Pipeline Processing Complete" : "Processing Candidate Intelligence"}
+        {isFailed ? "Verification Blocked" : isFinished ? "Pipeline Processing Complete" : "Processing Candidate Intelligence"}
       </h3>
       <p className="text-xs text-[var(--color-muted)] mb-3 font-medium">
-        {analysisState?.stage || (isFinished ? "Profile Synchronized" : "Running automated analysis...")}
+        {isFailed ? "Security Forensic Alert" : analysisState?.stage || (isFinished ? "Profile Synchronized" : "Running automated analysis...")}
       </p>
 
       {/* Stage Checklist */}
@@ -249,17 +263,20 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
         {STAGES.map((s, idx) => (
           <div key={idx} className="flex items-center justify-between py-0.5 text-xs sm:text-sm gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
-              {s.done ? (
+              {s.failed ? (
+                <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+              ) : s.done ? (
                 <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
               ) : s.active ? (
                 <Loader2 className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
               ) : (
                 <div className="w-4 h-4 rounded-full border border-[var(--color-border)] shrink-0" />
               )}
-              <span className={`text-xs sm:text-[13px] truncate ${s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-cyan-400 font-bold" : "text-[var(--color-muted)]"}`}>
+              <span className={`text-xs sm:text-[13px] truncate ${s.failed ? "text-red-400 font-semibold" : s.done ? "text-[var(--color-text)] font-semibold" : s.active ? "text-cyan-400 font-bold" : "text-[var(--color-muted)]"}`}>
                 {s.label}
               </span>
             </div>
+            {s.failed && <span className="text-[10px] font-mono uppercase tracking-widest text-red-400 font-bold px-1.5 py-0.5 rounded bg-red-400/10 border border-red-400/20 shrink-0">Blocked</span>}
             {s.active && <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold animate-pulse px-1.5 py-0.5 rounded bg-cyan-400/10 border border-cyan-400/20 shrink-0">Running</span>}
             {s.done && <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-400/10 border border-emerald-400/20 shrink-0">Done</span>}
           </div>
