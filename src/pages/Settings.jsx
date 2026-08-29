@@ -134,7 +134,6 @@ const Settings = () => {
         },
         headers: {
           ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {}),
-          "x-confirm-password": submittedPassword || submittedConfirmText,
         },
       });
 
@@ -205,7 +204,7 @@ const Settings = () => {
       }
     };
     fetchProfile();
-  }, [user.token]);
+  }, [user?.token]);
 
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
