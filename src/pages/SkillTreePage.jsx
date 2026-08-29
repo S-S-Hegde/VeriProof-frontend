@@ -19,7 +19,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Award,
@@ -1217,7 +1217,6 @@ const SkillTreePage = () => {
 
     const rect = nodeEl.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
 
     const tooltipWidth = 240;
     const tooltipHeight = 180;

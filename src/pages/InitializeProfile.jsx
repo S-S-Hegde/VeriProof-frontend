@@ -29,7 +29,7 @@ const Register = () => {
   const [githubStep, setGithubStep] = useState(false);            // shows GitHub username prompt
   const [githubSaving, setGithubSaving] = useState(false);
 
-  const { user, setUser, loginWithGoogle, authLoading, oauthError } = useAuth();
+  const { setUser, loginWithGoogle, authLoading, oauthError } = useAuth();
   useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -121,7 +121,7 @@ const Register = () => {
       setUser(updatedUser);
       persistUserSession(updatedUser);
       navigate("/dashboard");
-    } catch (err) {
+    } catch {
       // Even if saving fails, proceed to dashboard — username can be added in Settings
       setUser(pendingOAuthData);
       persistUserSession(pendingOAuthData);

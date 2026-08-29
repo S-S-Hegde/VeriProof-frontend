@@ -19,7 +19,7 @@ const RESUME_STATUS_MAP = {
 };
 
 const ResumeUploadPage = () => {
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   const [uploading, setUploading] = useState(false);
@@ -116,7 +116,7 @@ const ResumeUploadPage = () => {
         setUploadProgress((prev) => (prev < 90 ? prev + 15 : prev));
       }, 150);
 
-      const { data } = await api.post("/api/users/profile/resume-file", formData);
+      await api.post("/api/users/profile/resume-file", formData);
 
       clearInterval(progressInterval);
       setUploadProgress(100);

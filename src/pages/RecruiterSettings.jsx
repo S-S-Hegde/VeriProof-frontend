@@ -258,7 +258,7 @@ export default function RecruiterSettings() {
 
     try {
       if (typeof logout === "function") logout();
-    } catch (e) {
+    } catch {
       // ignore
     }
     localStorage.clear();

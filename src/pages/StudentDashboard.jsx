@@ -210,8 +210,6 @@ const StudentDashboard = () => {
     if (resumeStatus === "Pending Evaluation") {
       checkAnalysisStatus();
       intervalId = setInterval(checkAnalysisStatus, 4000);
-    } else {
-      setAnalysisState(null);
     }
 
     return () => {
@@ -237,21 +235,14 @@ const StudentDashboard = () => {
       try {
         const { data } = await api.get("/api/github/status");
         if (!isMounted) return;
-        setGithubAnalysisState(data);
 
-        if (data.status === "idle") {
-          api.post("/api/github/trigger").catch(console.error);
-        }
-
-        if (data.status === "complete") {
-          if (intervalId) clearInterval(intervalId);
-          // Refresh projects and profile to reflect newly auto-created projects
-          const [profileRes, projectsRes] = await Promise.all([
-            api.get("/api/users/profile"),
+        // If GitHub analysis has completed, refresh projects list and workflowState
+        if (data.hasRepoAnalysis) {
+          const [projectsRes, profileRes] = await Promise.all([
             api.get("/api/projects/myprojects"),
+            api.get("/api/users/profile"),
           ]);
           if (!isMounted) return;
-          setProfileData(profileRes.data);
           setProjects(projectsRes.data || []);
           if (profileRes.data.workflowState) {
             setUser((prev) => ({
@@ -260,7 +251,7 @@ const StudentDashboard = () => {
             }));
           }
         }
-      } catch (err) {
+      } catch {
         // Silence — GitHub status is non-critical
       }
     };

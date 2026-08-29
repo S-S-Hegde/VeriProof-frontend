@@ -124,36 +124,37 @@ const WordStagger = ({ text, delay = 0, className = "" }) => {
   );
 };
 
-const FloatingParticles = () => {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 16 }, (_, i) => ({
-        id: i,
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        opacity: Math.random() * 0.25 + 0.05,
-        duration: Math.random() * 5 + 4,
-        delay: Math.random() * 3,
-      })),
-    [],
-  );
+const STATIC_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
+  id: i,
+  left: `${((i * 37) % 100)}%`,
+  top: `${((i * 53) % 100)}%`,
+  opacity: ((i % 5) * 0.05) + 0.08,
+  duration: 4 + (i % 4),
+  delay: (i % 3) * 0.8,
+}));
 
+const FloatingParticles = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
+      {STATIC_PARTICLES.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute w-1 h-1 rounded-full bg-[var(--color-accent)]"
-          style={{ left: p.left, top: p.top, opacity: p.opacity }}
+          className="absolute w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]"
+          style={{
+            left: p.left,
+            top: p.top,
+            opacity: p.opacity,
+          }}
           animate={{
-            y: [0, -25, 0],
-            opacity: [p.opacity * 0.5, p.opacity, p.opacity * 0.5],
+            y: [0, -30, 0],
+            x: [0, 15, 0],
+            scale: [1, 1.2, 1],
           }}
           transition={{
             duration: p.duration,
             repeat: Infinity,
-            delay: p.delay,
             ease: "easeInOut",
+            delay: p.delay,
           }}
         />
       ))}
@@ -235,8 +236,6 @@ export default function Home() {
     offset: ["start end", "end start"],
   });
   const statsY = useTransform(statsProgress, [0, 1], [60, -60]);
-
-  const [hoveredFeature, setHoveredFeature] = useState(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {

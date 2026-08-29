@@ -46,7 +46,7 @@ const VerificationRequests = () => {
     try {
       const { data } = await api.get("/api/verify/applicants");
       setRequests(data || []);
-    } catch (err) {
+    } catch {
       setError("Failed to load audit queue. Please check connection.");
       setRequests([]);
     } finally {
@@ -96,6 +96,14 @@ const VerificationRequests = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Error Banner */}
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl text-xs font-mono flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError("")} className="hover:text-white cursor-pointer">✕</button>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
