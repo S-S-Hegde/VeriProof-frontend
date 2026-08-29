@@ -13,122 +13,198 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
   const [isFinished, setIsFinished] = useState(false);
   const [error, setError] = useState(null);
   const [displayProgress, setDisplayProgress] = useState(15);
+  const [isAnalyzedGlobal, setIsAnalyzedGlobal] = useState(false);
   
   const pollingRef = useRef(null);
+  const completionHandledRef = useRef(false);
+  const latestProfileRef = useRef(null);
+  const consecutiveErrorsRef = useRef(0);
+  const startTimeRef = useRef(Date.now());
 
+  // Poll pipeline status
   useEffect(() => {
     let isMounted = true;
+    startTimeRef.current = Date.now();
+    consecutiveErrorsRef.current = 0;
 
     const pollPipeline = async () => {
       try {
-        const [resAnalysis, ghStatus, profileRes] = await Promise.all([
-          api.get("/api/users/profile/resume-analysis").catch(() => ({ data: null })),
-          api.get("/api/github/status").catch(() => ({ data: null })),
-          api.get("/api/users/profile").catch(() => ({ data: null }))
-        ]);
+        let resAnalysis = null;
+        let ghStatus = null;
+        let profileRes = null;
+        let fatalError = null;
+
+        // 1. Fetch granular resume analysis status
+        try {
+          resAnalysis = await api.get("/api/users/profile/resume-analysis");
+          consecutiveErrorsRef.current = 0;
+        } catch (err) {
+          const status = err.response?.status;
+          if (status >= 500) {
+            fatalError = err.response?.data?.message || `Server error (${status}) during resume analysis.`;
+          } else if (status === 401 || status === 403) {
+            fatalError = "Session expired or unauthorized. Please log in again.";
+          } else if (!err.response) {
+            consecutiveErrorsRef.current += 1;
+            if (consecutiveErrorsRef.current >= 4) {
+              fatalError = "Network connection lost. Unable to reach verification servers.";
+            }
+          }
+        }
+
+        // 2. Fetch global profile status
+        try {
+          profileRes = await api.get("/api/users/profile");
+          consecutiveErrorsRef.current = 0;
+        } catch (err) {
+          const status = err.response?.status;
+          if (status >= 500 && !fatalError) {
+            fatalError = err.response?.data?.message || `Server error (${status}) fetching candidate profile.`;
+          }
+        }
+
+        // 3. Fetch GitHub analysis status (non-critical, fail-soft)
+        try {
+          ghStatus = await api.get("/api/github/status");
+        } catch (_) {}
 
         if (!isMounted) return;
 
-        if (resAnalysis?.data) {
-          setAnalysisState(resAnalysis.data);
+        // Surface fatal network or 500 server error and halt polling
+        if (fatalError) {
+          setError(fatalError);
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          return;
+        }
+
+        // Check for explicit backend error or failure status
+        const isResumeFailed = resAnalysis?.data?.status === "Analysis Failed" || 
+                               resAnalysis?.data?.status === "Failed" || 
+                               resAnalysis?.data?.status === "Email Mismatch";
+
+        if (isResumeFailed || resAnalysis?.data?.error) {
+          setError(resAnalysis?.data?.error || "Resume processing encountered an error.");
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          return;
+        }
+
+        // Guard against runaway polling (> 60 seconds without terminal state)
+        if (Date.now() - startTimeRef.current > 60000) {
+          setError("Resume analysis is taking longer than expected. Please verify on your dashboard or try again.");
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          return;
+        }
+
+        if (profileRes?.data) {
+          latestProfileRef.current = profileRes.data;
         }
         if (ghStatus?.data) {
           setGithubState(ghStatus.data);
         }
 
-        const isUserAnalyzed = profileRes?.data?.resumeStatus === "Analyzed" ||
-                               profileRes?.data?.workflowState?.hasResume === true ||
-                               ["repository_analysis", "technical_assessment", "verification_complete"].includes(profileRes?.data?.pipelineStage);
+        // Explicit verification: only consider complete when valid payload is received
+        const hasValidProfile = Boolean(profileRes?.data && typeof profileRes.data === "object");
+        const hasValidAnalysis = Boolean(resAnalysis?.data && typeof resAnalysis.data === "object");
 
-        const isResumeDone = resAnalysis?.data?.status === "Analysis Complete" || 
-                             resAnalysis?.data?.status === "Completed" ||
-                             resAnalysis?.data?.status === "Analyzed" ||
-                             (resAnalysis?.data?.progress >= 100) ||
-                             isUserAnalyzed;
+        const isUserAnalyzed = hasValidProfile && (
+          profileRes.data.resumeStatus === "Analyzed" ||
+          profileRes.data.resumeStatus === "Verified" ||
+          profileRes.data.workflowState?.hasResume === true ||
+          ["repository_analysis", "technical_assessment", "verification_complete"].includes(profileRes.data.pipelineStage)
+        );
 
-        const isResumeFailed = resAnalysis?.data?.status === "Analysis Failed" || 
-                               resAnalysis?.data?.status === "Failed" || 
-                               resAnalysis?.data?.status === "Email Mismatch";
-        
-        const ghStatusStr = ghStatus?.data?.status;
-        const isGhDone = !ghStatusStr || ghStatusStr === "complete" || ghStatusStr === "idle" || ghStatusStr === "failed" || ghStatusStr === "GitHub Analysis Complete";
+        const isAnalysisComplete = hasValidAnalysis && (
+          resAnalysis.data.status === "Analysis Complete" || 
+          resAnalysis.data.status === "Completed" || 
+          (Number(resAnalysis.data.progress) >= 100)
+        );
 
-        if (isResumeFailed || resAnalysis?.data?.error) {
-          setError(resAnalysis?.data?.error || "Resume processing failed.");
-          if (pollingRef.current) clearInterval(pollingRef.current);
-          return;
-        }
+        const isResumeDone = isUserAnalyzed || isAnalysisComplete;
 
-        if (isResumeDone && isGhDone) {
-          if (pollingRef.current) clearInterval(pollingRef.current);
-          setIsFinished(true);
-          setDisplayProgress(100);
+        if (isResumeDone) {
+          setIsAnalyzedGlobal(true);
 
-          // Synchronize state by refetching profile & projects
-          try {
-            const projectsRes = await api.get("/api/projects/myprojects").catch(() => ({ data: [] }));
+          // Force analysisState to full completion with valid payload data
+          setAnalysisState((prev) => {
+            const incoming = resAnalysis?.data || {};
+            return {
+              ...prev,
+              ...incoming,
+              status: "Analysis Complete",
+              progress: 100,
+              stage: incoming.stage || "Ready",
+              claims: incoming.claims || prev?.claims || { skills: [] },
+            };
+          });
 
-            if (!isMounted) return;
+          // Synchronize global AuthContext immediately
+          if (profileRes?.data) {
+            setUser((prev) => ({
+              ...prev,
+              resumeStatus: profileRes.data.resumeStatus || "Analyzed",
+              workflowState: profileRes.data.workflowState || prev?.workflowState,
+              githubUsername: profileRes.data.githubUsername || prev?.githubUsername,
+              pipelineStage: profileRes.data.pipelineStage || prev?.pipelineStage,
+            }));
+          }
 
-            // Refresh AuthContext
-            if (profileRes?.data) {
-              setUser((prev) => ({
-                ...prev,
-                resumeStatus: profileRes.data.resumeStatus,
-                workflowState: profileRes.data.workflowState,
-                githubUsername: profileRes.data.githubUsername || prev.githubUsername,
-              }));
-            }
-
-            // Delay briefly so user sees 100% Complete status badge
-            setTimeout(() => {
-              if (onComplete) {
-                onComplete({
-                  profileData: profileRes?.data || {},
-                  projects: projectsRes.data || [],
-                });
-              }
-            }, 800);
-          } catch (err) {
-            console.error("[Processing Center] Synchronization error:", err);
-            if (onComplete) onComplete();
+          // Verified complete; halt further polling
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+        } else {
+          if (resAnalysis?.data) {
+            setAnalysisState(resAnalysis.data);
           }
         }
       } catch (err) {
-        console.error("[Processing Center] Polling error:", err);
+        console.error("[Processing Center] Unexpected polling error:", err);
       }
     };
 
     // Immediate first check + tight polling
     pollPipeline();
-    pollingRef.current = setInterval(pollPipeline, 600);
+    pollingRef.current = setInterval(pollPipeline, 500);
 
     return () => {
       isMounted = false;
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, [setUser, onComplete]);
+  }, [setUser]);
 
-  // Compute live progress and states
+  // Determine failure and completion statuses
   const isFailed = Boolean(error || analysisState?.status === "Email Mismatch" || analysisState?.status === "Analysis Failed" || analysisState?.status === "Failed");
-  const isResumeDone = !isFailed && (analysisState?.status === "Analysis Complete" || 
-                       analysisState?.status === "Completed" || 
-                       analysisState?.status === "Analyzed" || 
-                       user?.resumeStatus === "Analyzed" ||
-                       isFinished);
-  const rawProgress = analysisState?.progress !== undefined ? analysisState.progress : 15;
-  const resumeProgress = isFailed ? 0 : (isResumeDone ? 100 : rawProgress);
+  const isResumeDone = !isFailed && (
+    isAnalyzedGlobal ||
+    analysisState?.status === "Analysis Complete" || 
+    analysisState?.status === "Completed" || 
+    (analysisState?.progress !== undefined && Number(analysisState.progress) >= 100) ||
+    isFinished
+  );
+
   const claimsCount = analysisState?.claims?.skills?.length || 0;
   const hasGithub = Boolean(githubState?.githubUsername || user?.githubUsername);
   const isGhRunning = !isFailed && hasGithub && githubState?.status === "running";
 
+  // Calculate target progress: strictly 100% only on validated success, 0% on failure
   let targetProgress = 15;
   if (isFailed) {
     targetProgress = 0;
-  } else if (isFinished || isResumeDone) {
+  } else if (isResumeDone || isFinished) {
     targetProgress = 100;
   } else {
-    targetProgress = Math.max(15, Math.min(95, resumeProgress));
+    const rawProgress = analysisState?.progress !== undefined ? analysisState.progress : 15;
+    targetProgress = Math.max(15, Math.min(95, rawProgress));
   }
 
   // Smooth interpolation toward targetProgress
@@ -136,22 +212,54 @@ export default function CandidateProcessingCenter({ onComplete, initialFileName 
     const timer = setInterval(() => {
       setDisplayProgress((prev) => {
         if (isFailed) return 0;
-        if (prev < targetProgress) return Math.min(targetProgress, prev + 5);
+        if (prev < targetProgress) {
+          // Accelerate transition if completing to 100%
+          const step = targetProgress === 100 ? Math.max(6, Math.ceil((100 - prev) / 4)) : 5;
+          return Math.min(targetProgress, prev + step);
+        }
         if (prev > targetProgress) return targetProgress;
         return prev;
       });
-    }, 25);
+    }, 30);
     return () => clearInterval(timer);
   }, [targetProgress, isFailed]);
+
+  // Trigger completion once display reaches 100%
+  useEffect(() => {
+    if (isResumeDone && displayProgress >= 100 && !completionHandledRef.current) {
+      completionHandledRef.current = true;
+      setIsFinished(true);
+
+      const finalize = async () => {
+        try {
+          const projectsRes = await api.get("/api/projects/myprojects").catch(() => ({ data: [] }));
+          
+          setTimeout(() => {
+            if (onComplete) {
+              onComplete({
+                profileData: latestProfileRef.current || {},
+                projects: projectsRes.data || [],
+              });
+            }
+          }, 700);
+        } catch (err) {
+          console.error("[Processing Center] Finalization error:", err);
+          if (onComplete) onComplete();
+        }
+      };
+
+      finalize();
+    }
+  }, [isResumeDone, displayProgress, onComplete]);
 
   // Stages definition
   const STAGES = [
     { key: "upload", label: `Uploading Resume ${initialFileName ? `(${initialFileName})` : ""}`, done: true, failed: false },
     { key: "parsing", label: "Parsing Resume PDF", done: isResumeDone || (!isFailed && displayProgress >= 30), active: !isFailed && !isResumeDone && displayProgress < 30, failed: isFailed },
     { key: "claims", label: `Extracting Claims ${claimsCount > 0 ? `(${claimsCount} Found)` : ""}`, done: isResumeDone || (!isFailed && displayProgress >= 60), active: !isFailed && !isResumeDone && displayProgress >= 30 && displayProgress < 60, failed: false },
-    { key: "skills", label: "Building Skill Tree", done: isResumeDone || (!isFailed && displayProgress >= 85), active: !isFailed && !isResumeDone && displayProgress >= 60, failed: false },
-    { key: "github", label: "GitHub Repository Analysis", done: isFinished || isResumeDone || githubState?.status === "complete" || !hasGithub, active: isGhRunning, failed: false },
-    { key: "complete", label: "Candidate Profile Synchronization", done: isFinished || displayProgress >= 100, active: false, failed: false },
+    { key: "skills", label: "Building Skill Tree", done: isResumeDone || (!isFailed && displayProgress >= 85), active: !isFailed && !isResumeDone && displayProgress >= 60 && displayProgress < 85, failed: false },
+    { key: "github", label: "GitHub Repository Analysis", done: isFinished || isResumeDone || githubState?.status === "complete" || !hasGithub, active: isGhRunning && !isResumeDone, failed: false },
+    { key: "complete", label: "Candidate Profile Synchronization", done: isFinished || displayProgress >= 100, active: !isFailed && !isFinished && displayProgress >= 85 && displayProgress < 100, failed: false },
   ];
 
   return (
