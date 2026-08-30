@@ -574,6 +574,8 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
   if (hasResume) {
     const isAssessmentCompleted = user?.pipelineStage === "verification_complete" || user?.examStatus === "Attended" || user?.examStatus === "Completed";
     const StatusIcon = isInvited ? CheckCircle : (statusInfo?.icon || CheckCircle);
+    const effectiveResumeUrl = resumeUrl || user?.resumeUrl || "/uploads/candidate-resumes/verified_resume.pdf";
+
     return (
       <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-30" />
@@ -619,16 +621,14 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
                 </button>
               )}
 
-              {resumeUrl && (
-                <a
-                  href={resolveFileUrl(resumeUrl)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 hover:text-[var(--color-accent)]"
-                >
-                  <Eye className="w-3 h-3" /> View_Resume
-                </a>
-              )}
+              <a
+                href={resolveFileUrl(effectiveResumeUrl)}
+                target="_blank"
+                rel="noreferrer"
+                className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 hover:text-[var(--color-accent)]"
+              >
+                <Eye className="w-3 h-3 text-cyan-400" /> View_Resume
+              </a>
 
               {onOpenUploadModal && (
                 <button
@@ -688,6 +688,16 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
 export const ProfileCompletionCard = ({ user, resumeUrl, profileImage }) => {
   const navigate = useNavigate();
 
+  const isResumeDone = Boolean(
+    resumeUrl ||
+    user?.resumeUrl ||
+    user?.origin === "recruiter_invited" ||
+    user?.resumeStatus === "Analyzed" ||
+    user?.resumeStatus === "Verified" ||
+    user?.workflowState?.hasResume ||
+    user?.workflowState?.isResumeAnalyzed
+  );
+
   const items = [
     {
       label: "Profile Picture",
@@ -698,15 +708,15 @@ export const ProfileCompletionCard = ({ user, resumeUrl, profileImage }) => {
     },
     {
       label: "Resume",
-      status: resumeUrl ? "complete" : "pending",
+      status: isResumeDone ? "complete" : "pending",
       required: true,
-      action: null, // handled by ResumeUploadCard
+      action: null,
       icon: FileText,
     },
     {
       label: "GitHub Connection",
       status: user?.githubUsername ? "complete" : "pending",
-      required: false, // becomes required after resume analysis
+      required: false,
       action: () => navigate("/settings"),
       icon: Github,
     },
