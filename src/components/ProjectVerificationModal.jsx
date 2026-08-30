@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck,
@@ -29,7 +30,7 @@ export default function ProjectVerificationModal({
   useEffect(() => {
     if (project) {
       setLiveDemoUrl(project.liveDemoUrl || project.liveUrl || "");
-      if (project.verificationStatus === "Verified" && project.liveAuditReport) {
+      if ((project.isVerified || project.status === "Verified" || project.verificationStatus === "Verified") && project.liveAuditReport) {
         setAuditResult({
           matchScore: project.matchScore || project.liveAuditReport.resumeFidelityScore || 90,
           isVerified: true,
@@ -45,15 +46,22 @@ export default function ProjectVerificationModal({
   }, [project, isOpen]);
 
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isOpen && !verifying) {
+        onClose();
+      }
+    };
     if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
       if (window.__lenis) window.__lenis.stop();
-      return () => {
-        document.body.style.overflow = "";
-        if (window.__lenis) window.__lenis.start();
-      };
     }
-  }, [isOpen]);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+      if (window.__lenis) window.__lenis.start();
+    };
+  }, [isOpen, verifying, onClose]);
 
   if (!isOpen || !project) return null;
 
@@ -92,16 +100,20 @@ export default function ProjectVerificationModal({
     }
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain"
       onWheel={(e) => e.stopPropagation()}
       onTouchMove={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !verifying) onClose();
+      }}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh]"
       >
         {/* Close Button */}
@@ -268,6 +280,7 @@ export default function ProjectVerificationModal({
           </motion.div>
         )}
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }

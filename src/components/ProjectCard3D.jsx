@@ -25,7 +25,12 @@ const ProjectCard3D = ({ project, isSaved = false, onToggleSaved, saveBusy = fal
     y.set(0);
   };
 
-  const isVerified = project.isVerified || project.verificationStatus === "Verified";
+  const isVerified =
+    project.isVerified ||
+    project.status === "Verified" ||
+    project.verificationStatus === "Verified" ||
+    Boolean(project.githubStats?.commitsCount > 0) ||
+    Boolean(project.aiGenerated?.analyzedAt);
   const isDiscrepancy = project.verificationStatus === "Discrepancy";
 
   return (

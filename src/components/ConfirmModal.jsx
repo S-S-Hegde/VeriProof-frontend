@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Trash2, X, Loader2 } from "lucide-react";
 
@@ -56,7 +57,7 @@ export default function ConfirmModal({
   const currentVariant = variantStyles[variant] || variantStyles.danger;
   const IconComponent = currentVariant.icon;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -82,7 +83,7 @@ export default function ConfirmModal({
             <button
               onClick={() => !loading && onClose()}
               disabled={loading}
-              className="absolute top-4 right-4 p-1.5 rounded-full text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-sunken)] transition-colors disabled:opacity-40"
+              className="absolute top-4 right-4 p-1.5 rounded-full text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-sunken)] transition-colors disabled:opacity-40 cursor-pointer"
               aria-label="Close modal"
             >
               <X className="w-4 h-4" />
@@ -123,7 +124,7 @@ export default function ConfirmModal({
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="px-5 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] text-xs font-mono font-bold uppercase tracking-wider text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text)] transition-all disabled:opacity-40"
+                className="px-5 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] text-xs font-mono font-bold uppercase tracking-wider text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text)] transition-all disabled:opacity-40 cursor-pointer"
               >
                 {cancelText}
               </button>
@@ -131,7 +132,7 @@ export default function ConfirmModal({
                 type="button"
                 onClick={onConfirm}
                 disabled={loading}
-                className={`px-5 py-2.5 rounded-[var(--radius-md)] text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition-all disabled:opacity-50 ${currentVariant.btnBg}`}
+                className={`px-5 py-2.5 rounded-[var(--radius-md)] text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer ${currentVariant.btnBg}`}
               >
                 {loading ? (
                   <>
@@ -146,6 +147,7 @@ export default function ConfirmModal({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
