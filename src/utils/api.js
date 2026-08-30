@@ -7,12 +7,13 @@ const defaultBaseUrl =
 
 const api = axios.create({
   baseURL: defaultBaseUrl,
+  timeout: 15000,
 });
 
-// ── In-Memory Fast Cache Store ──
+// ── In-Memory Ultra-Fast Cache Store ──
 const memoryCache = new Map();
 const DEFAULT_TTL_MS = 60 * 1000; // 60 seconds fresh
-const MAX_STALE_MS = 5 * 60 * 1000; // 5 minutes max stale
+const MAX_STALE_MS = 10 * 60 * 1000; // 10 minutes max stale (serves instant UI)
 
 const getCacheKey = (config) => {
   const url = config.url || "";
@@ -72,7 +73,7 @@ api.interceptors.response.use(
   (response) => {
     // Cache successful GET responses
     const config = response.config;
-    if (config.method?.toLowerCase() === "get" && config.useCache !== false) {
+    if (config.method?.toLowerCase() === "get" && config.bypassCache !== true) {
       const key = getCacheKey(config);
       memoryCache.set(key, {
         data: response.data,
@@ -121,26 +122,53 @@ api.interceptors.response.use(
   }
 );
 
-// ── Smart Cache-First SWR Fetch Wrapper ──
-api.cachedGet = async (url, config = {}) => {
+// ── Global Cache-First SWR Interception on all GET requests ──
+const rawGet = api.get.bind(api);
+
+api.get = async (url, config = {}) => {
+  if (config.bypassCache) {
+    return rawGet(url, config);
+  }
+
   const reqConfig = { ...config, method: "GET", url };
   const key = getCacheKey(reqConfig);
   const cached = memoryCache.get(key);
 
   const now = Date.now();
   if (cached && now - cached.timestamp < MAX_STALE_MS) {
-    // If cache is fresh, return immediately without network call
+    // If cache is completely fresh, return with 0ms delay
     if (now - cached.timestamp < DEFAULT_TTL_MS) {
       return { data: cached.data, status: cached.status, cached: true };
     }
 
-    // If cache is slightly stale, trigger background revalidation and return stale data instantly
-    api.get(url, { ...config, useCache: true }).catch(() => {});
+    // If cache is stale, trigger silent background revalidation without blocking UI
+    rawGet(url, { ...config, bypassCache: true })
+      .then((res) => {
+        memoryCache.set(key, {
+          data: res.data,
+          status: res.status,
+          statusText: res.statusText,
+          headers: res.headers,
+          timestamp: Date.now(),
+        });
+      })
+      .catch(() => {});
+
     return { data: cached.data, status: cached.status, cached: true, isStale: true };
   }
 
-  // No valid cache, make network call
-  return api.get(url, { ...config, useCache: true });
+  // No valid cache, make network call and cache response
+  const res = await rawGet(url, config);
+  memoryCache.set(key, {
+    data: res.data,
+    status: res.status,
+    statusText: res.statusText,
+    headers: res.headers,
+    timestamp: Date.now(),
+  });
+  return res;
 };
+
+api.cachedGet = api.get;
 
 export default api;
