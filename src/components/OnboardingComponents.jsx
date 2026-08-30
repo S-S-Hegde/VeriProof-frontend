@@ -515,7 +515,7 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
 export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user, onOpenUploadModal }) => {
   const navigate = useNavigate();
   const isInvited = user?.origin === "recruiter_invited";
-  const hasResume = !!resumeUrl || isInvited;
+  const hasResume = !!resumeUrl || isInvited || ["Analyzed", "Verified", "Pending Evaluation"].includes(resumeStatus) || user?.workflowState?.hasResume;
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
 
   // ─── Resume under analysis / processing status ───
@@ -573,7 +573,7 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
   // ─── Resume already uploaded or Recruiter Invited ───
   if (hasResume) {
     const isAssessmentCompleted = user?.pipelineStage === "verification_complete" || user?.examStatus === "Attended" || user?.examStatus === "Completed";
-    const StatusIcon = isInvited ? CheckCircle : (statusInfo?.icon || AlertCircle);
+    const StatusIcon = isInvited ? CheckCircle : (statusInfo?.icon || CheckCircle);
     return (
       <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-30" />
@@ -587,15 +587,15 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
           {/* Status */}
           <div className="flex-1 space-y-4">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center ${isInvited ? "bg-emerald-500/10" : (statusInfo?.bg || "bg-[var(--color-accent-subtle)]")}`}>
-                <StatusIcon className={`w-5 h-5 ${isInvited ? "text-emerald-400" : (statusInfo?.color || "text-[var(--color-accent)]")}`} />
+              <div className={`w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center ${isInvited ? "bg-emerald-500/10" : (statusInfo?.bg || "bg-emerald-500/10")}`}>
+                <StatusIcon className={`w-5 h-5 ${isInvited ? "text-emerald-400" : (statusInfo?.color || "text-emerald-400")}`} />
               </div>
               <div>
                 <p className="text-sm font-black uppercase tracking-tight">
-                  {isInvited ? "Pre-Verified Candidate Profile" : (statusInfo?.label || resumeStatus)}
+                  {isInvited ? "Pre-Verified Candidate Profile" : (statusInfo?.label || (resumeStatus === "Not Submitted" ? "Resume on File" : resumeStatus))}
                 </p>
                 <p className="vp-label mt-0.5">
-                  {isInvited ? "Uploaded & pre-analyzed by recruiter during intake" : "Resume on file"}
+                  {isInvited ? "Uploaded & pre-analyzed by recruiter during intake" : "Verified candidate resume on file"}
                 </p>
               </div>
             </div>
@@ -624,10 +624,20 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
                   href={resolveFileUrl(resumeUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5"
+                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 hover:text-[var(--color-accent)]"
                 >
                   <Eye className="w-3 h-3" /> View_Resume
                 </a>
+              )}
+
+              {onOpenUploadModal && (
+                <button
+                  type="button"
+                  onClick={onOpenUploadModal}
+                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 opacity-75 hover:opacity-100 cursor-pointer"
+                >
+                  <Upload className="w-3 h-3" /> Upload New Version
+                </button>
               )}
             </div>
           </div>

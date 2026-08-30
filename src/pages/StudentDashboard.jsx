@@ -171,8 +171,20 @@ const StudentDashboard = () => {
   }, [setUser]);
 
   const workflowState = profileData?.workflowState || user?.workflowState;
-  const resumeUrl = profileData?.resumeUrl || "";
-  const resumeStatus = profileData?.resumeStatus || "Not Submitted";
+  const resumeUrl =
+    profileData?.resumeUrl ||
+    user?.resumeUrl ||
+    profileData?.resumeHistory?.[profileData?.resumeHistory?.length - 1]?.resumeUrl ||
+    user?.resumeHistory?.[user?.resumeHistory?.length - 1]?.resumeUrl ||
+    "";
+  const resumeStatus =
+    (profileData?.resumeStatus && profileData.resumeStatus !== "Not Submitted")
+      ? profileData.resumeStatus
+      : (user?.resumeStatus && user.resumeStatus !== "Not Submitted")
+      ? user.resumeStatus
+      : (resumeUrl || workflowState?.hasResume)
+      ? "Analyzed"
+      : "Not Submitted";
   const profileImage = profileData?.profileImage || user?.profileImage || "";
 
   // ── Resume analysis polling ──────────────────────────────────────────────
