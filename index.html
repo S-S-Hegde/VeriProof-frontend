@@ -1,15 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="theme-dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-    <title>frontend</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>VeriProof — Cryptographic Portfolio Validation</title>
+    <style>
+      /* Zero white flash guaranteed before scripts load */
+      html, body, #root {
+        background-color: #0a0e1a !important;
+        color: #e8ecf4 !important;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        width: 100%;
+        overflow-x: hidden;
+      }
+    </style>
   </head>
-  <body>
+  <body class="theme-dark bg-[#0a0e1a] text-[#e8ecf4]">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

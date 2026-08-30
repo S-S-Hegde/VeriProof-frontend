@@ -76,15 +76,28 @@ const SettingsRouter = () => {
   );
 };
 
-// Premium loading screen
+// Premium Forensic Loading Screen with Glowing Halo Effect
 const LoadingScreen = () => (
-  <div className="flex h-[60vh] items-center justify-center">
-    <div className="flex flex-col items-center gap-6">
-      <div className="relative w-10 h-10">
-        <div className="absolute inset-0 rounded-full border-2 border-[var(--color-border)]" />
-        <div className="absolute inset-0 rounded-full border-2 border-[var(--color-accent)] border-t-transparent animate-spin" />
+  <div className="flex min-h-[65vh] w-full items-center justify-center bg-[var(--color-bg,#0a0e1a)] select-none">
+    <div className="flex flex-col items-center gap-7">
+      <div className="relative w-16 h-16 flex items-center justify-center">
+        {/* Glowing Halo Aura */}
+        <div className="halo-aura" />
+        {/* Outer Orbit Ring */}
+        <div className="halo-ring-outer" />
+        {/* Inner Spinning Ring */}
+        <div className="halo-ring-inner" />
+        {/* Central Core Pulse */}
+        <div className="w-3 h-3 rounded-full bg-[var(--color-accent,#6b8aff)] shadow-[0_0_12px_var(--color-accent,#6b8aff)] animate-ping opacity-75" />
       </div>
-      <p className="vp-label-accent animate-pulse">Initializing_Protocol...</p>
+      <div className="flex flex-col items-center gap-1.5">
+        <p className="vp-label-accent tracking-[0.25em] font-mono text-xs uppercase animate-pulse">
+          Initializing_Protocol...
+        </p>
+        <span className="text-[10px] font-mono tracking-widest text-[var(--color-muted)] opacity-60 uppercase">
+          VeriProof OS // Node Synchronization
+        </span>
+      </div>
     </div>
   </div>
 );
