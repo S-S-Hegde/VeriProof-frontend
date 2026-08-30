@@ -235,9 +235,15 @@ const StudentDashboard = () => {
       try {
         const { data } = await api.get("/api/github/status");
         if (!isMounted) return;
+        setGithubAnalysisState(data);
 
-        // If GitHub analysis has completed, refresh projects list and workflowState
-        if (data.hasRepoAnalysis) {
+        // Auto-trigger if idle and needs repository analysis
+        if (data.status === "idle" && !data.hasRepoAnalysis) {
+          api.post("/api/github/trigger").catch(console.error);
+        }
+
+        // If GitHub analysis has completed or hasRepoAnalysis is true, refresh projects list and workflowState
+        if (data.hasRepoAnalysis || data.status === "complete") {
           const [projectsRes, profileRes] = await Promise.all([
             api.get("/api/projects/myprojects"),
             api.get("/api/users/profile"),
@@ -258,7 +264,7 @@ const StudentDashboard = () => {
 
     // Start polling immediately
     checkGitHubStatus();
-    intervalId = setInterval(checkGitHubStatus, 5000);
+    intervalId = setInterval(checkGitHubStatus, 4000);
 
     return () => {
       isMounted = false;
@@ -361,11 +367,13 @@ const StudentDashboard = () => {
                   if (stepId === "resume" || stepId === "analysis") {
                     setIsUploadModalOpen(true);
                   } else if (stepId === "repo") {
-                    // If GitHub analysis hasn't started yet, trigger it
-                    if (!githubAnalysisState || githubAnalysisState.status === "idle") {
-                      api.post("/api/github/trigger").catch(console.error);
+                    // Trigger GitHub analysis and update UI immediately
+                    if (!githubAnalysisState || githubAnalysisState.status !== "running") {
+                      setGithubAnalysisState({ status: "running", reposProcessed: 0, totalRepos: 3 });
+                      api.post("/api/github/trigger").then(({ data }) => {
+                        if (data.status) setGithubAnalysisState(data.status);
+                      }).catch(console.error);
                     }
-                    navigate("/add-project");
                   } else if (stepId === "assessment") {
                     navigate("/exams");
                   } else if (stepId === "verified") {
