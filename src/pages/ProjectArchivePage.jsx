@@ -19,11 +19,14 @@ import {
   ArrowRight,
   ShieldAlert,
   SlidersHorizontal,
+  Server,
+  Layout,
 } from "lucide-react";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import ProjectVerificationModal from "../components/ProjectVerificationModal";
+import CoupleRepositoriesModal from "../components/CoupleRepositoriesModal";
 
 const ProjectArchivePage = () => {
   const { user } = useAuth();
@@ -34,6 +37,7 @@ const ProjectArchivePage = () => {
   const [selectedTech, setSelectedTech] = useState("all");
   const [verifyingProject, setVerifyingProject] = useState(null);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [isCoupleModalOpen, setIsCoupleModalOpen] = useState(false);
 
   const fetchMyProjects = useCallback(async () => {
     try {
@@ -129,7 +133,15 @@ const ProjectArchivePage = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setIsCoupleModalOpen(true)}
+                className="vp-btn vp-btn-secondary text-xs py-2.5 px-4 gap-2 border border-cyan-500/40 text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 shadow-md cursor-pointer"
+                title="Couple multiple separate repositories into a unified full-stack architecture"
+              >
+                <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Couple Multi-Repo Project</span>
+              </button>
               <button
                 onClick={fetchMyProjects}
                 disabled={loading}
@@ -321,6 +333,31 @@ const ProjectArchivePage = () => {
                       </p>
                     </div>
 
+                    {/* Coupled Microservices Details */}
+                    {(project.isComposite || (project.linkedRepositories && project.linkedRepositories.length > 0)) && (
+                      <div className="p-2.5 rounded-lg bg-cyan-500/[0.04] border border-cyan-500/20 space-y-1.5">
+                        <div className="flex items-center justify-between text-[10px] font-mono text-cyan-400 font-bold">
+                          <span className="flex items-center gap-1">
+                            <Layers className="w-3 h-3" /> Coupled Microservices ({project.linkedRepositories?.length || 0})
+                          </span>
+                          <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400">
+                            Full-Stack
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {(project.linkedRepositories || []).map((lr, idx) => (
+                            <span
+                              key={idx}
+                              className="text-[9px] font-mono px-2 py-0.5 rounded bg-black/40 text-gray-300 border border-white/5 flex items-center gap-1"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                              {lr.name} ({lr.role})
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Technologies */}
                     <div className="flex flex-wrap gap-1.5 pt-2">
                       {(project.technologies || []).slice(0, 4).map((tech, i) => (
@@ -409,6 +446,16 @@ const ProjectArchivePage = () => {
           }}
           project={verifyingProject}
           onVerified={handleVerificationSuccess}
+        />
+
+        {/* Portaled Couple Multi-Repo Modal */}
+        <CoupleRepositoriesModal
+          isOpen={isCoupleModalOpen}
+          onClose={() => setIsCoupleModalOpen(false)}
+          existingProjects={projects}
+          onCoupled={(newProj) => {
+            setProjects((prev) => [newProj, ...prev.filter((p) => p._id !== newProj._id)]);
+          }}
         />
       </div>
     </PageTransition>
