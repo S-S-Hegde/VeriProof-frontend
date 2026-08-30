@@ -142,7 +142,6 @@ const ForensicShaderBackgroundInner = () => {
     const render = (time) => {
       if (!running || document.hidden) return;
       try {
-        resize();
         gl.useProgram(program);
         gl.enableVertexAttribArray(locations.position);
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);

@@ -484,6 +484,29 @@ const AnimatedRoutes = () => {
   );
 };
 
+// Isolated Scroll Progress Bar (prevents root component re-rendering on scroll)
+const ScrollProgressBar = React.memo(() => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 35,
+    restDelta: 0.001,
+  });
+
+  return (
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-[2px] z-[9999] origin-left pointer-events-none"
+      style={{
+        scaleX,
+        willChange: "transform",
+        background:
+          "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, white))",
+        boxShadow: "0 0 12px var(--vp-glow)",
+      }}
+    />
+  );
+});
+
 const AppContent = () => {
   const { user, isExiting, setIsExiting, logout } = useAuth();
 
@@ -497,13 +520,6 @@ const AppContent = () => {
   const [isAppVisible, setIsAppVisible] = useState(() => {
     if (getStoredUser() || user) return true;
     return Boolean(sessionStorage.getItem("vp-session-intro-seen"));
-  });
-
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
   });
 
   const handleIntroComplete = () => {
@@ -521,48 +537,42 @@ const AppContent = () => {
   useEffect(() => {
     window.history.scrollRestoration = "manual";
 
-    const lenis = new Lenis({
-      lerp: 0.1,
-      duration: 0.8,
-      orientation: "vertical",
-      gestureOrientation: "vertical",
-      smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.0,
-      syncTouch: false,
-    });
+    const isLowPowerDevice = window.matchMedia("(prefers-reduced-motion: reduce)").matches || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
 
-    window.__lenis = lenis;
+    let lenis = null;
+    let rafId = null;
 
-    lenis.on("scroll", ScrollTrigger.update);
+    if (!isLowPowerDevice) {
+      lenis = new Lenis({
+        lerp: 0.1,
+        duration: 0.8,
+        smoothWheel: true,
+        wheelMultiplier: 1.0,
+        syncTouch: false,
+      });
 
-    const updateTicker = (time) => {
-      lenis.raf(time * 1000);
-    };
+      window.__lenis = lenis;
 
-    gsap.ticker.add(updateTicker);
-    gsap.ticker.lagSmoothing(0);
+      const raf = (time) => {
+        lenis.raf(time);
+        rafId = requestAnimationFrame(raf);
+      };
+      rafId = requestAnimationFrame(raf);
+    }
 
     return () => {
-      gsap.ticker.remove(updateTicker);
-      lenis.destroy();
-      window.__lenis = null;
+      if (rafId) cancelAnimationFrame(rafId);
+      if (lenis) {
+        lenis.destroy();
+        window.__lenis = null;
+      }
     };
   }, []);
 
   return (
     <Router>
       <CursorTracker />
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-[2px] z-[9999] origin-left"
-        style={{
-          scaleX,
-          willChange: "transform",
-          background:
-            "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, white))",
-          boxShadow: "0 0 12px var(--vp-glow)",
-        }}
-      />
+      <ScrollProgressBar />
 
       <AnimatePresence>
         {showIntro && (
