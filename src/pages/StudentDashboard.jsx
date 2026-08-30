@@ -412,25 +412,45 @@ const StudentDashboard = () => {
         </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-12 lg:mb-16">
-          {stats.map((stat, i) => (
-            <Reveal key={i} delay={0.2 + i * 0.08}>
-              <motion.div
-                whileHover={{ y: -4, boxShadow: "var(--vp-surface-2-shadow)" }}
-                className="vp-surface-1 p-6 group cursor-default transition-all duration-300"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-9 h-9 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] flex items-center justify-center group-hover:bg-[var(--color-accent)] transition-colors">
-                    <stat.icon className="w-4 h-4 text-[var(--color-accent)] group-hover:text-white transition-colors" />
+          {stats.map((stat, i) => {
+            const targetPath =
+              stat.id === "01"
+                ? "/project-archive"
+                : stat.id === "03"
+                ? "/certifications"
+                : stat.id === "04"
+                ? "/skill-tree"
+                : null;
+
+            return (
+              <Reveal key={i} delay={0.2 + i * 0.08}>
+                <motion.div
+                  onClick={() => {
+                    if (targetPath) navigate(targetPath);
+                    else if (stat.id === "02") setIsUploadModalOpen(true);
+                  }}
+                  whileHover={{ y: -4, boxShadow: "var(--vp-surface-2-shadow)" }}
+                  className="vp-surface-1 p-6 group cursor-pointer transition-all duration-300 relative overflow-hidden hover:border-[var(--color-accent)]/50"
+                >
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="w-9 h-9 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] flex items-center justify-center group-hover:bg-[var(--color-accent)] transition-colors">
+                      <stat.icon className="w-4 h-4 text-[var(--color-accent)] group-hover:text-white transition-colors" />
+                    </div>
+                    <span className="vp-label">Stat_{stat.id}</span>
                   </div>
-                  <span className="vp-label">Stat_{stat.id}</span>
-                </div>
-                <p className="vp-label mb-2">{stat.label}</p>
-                <p className="text-2xl font-black italic uppercase tracking-tight">
-                  {stat.val}
-                </p>
-              </motion.div>
-            </Reveal>
-          ))}
+                  <p className="vp-label mb-2 flex items-center justify-between">
+                    <span>{stat.label}</span>
+                    <span className="text-[9px] font-mono text-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      EXPLORE &rarr;
+                    </span>
+                  </p>
+                  <p className="text-2xl font-black italic uppercase tracking-tight">
+                    {stat.val}
+                  </p>
+                </motion.div>
+              </Reveal>
+            );
+          })}
         </div>
 
         <Reveal delay={0.4}>

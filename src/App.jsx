@@ -58,6 +58,7 @@ const Exams = lazy(() => import("./pages/Exams"));
 const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
 const ResumeUploadPage = lazy(() => import("./pages/ResumeUploadPage"));
 const ProjectArchivePage = lazy(() => import("./pages/ProjectArchivePage"));
+const CertificationsPage = lazy(() => import("./pages/CertificationsPage"));
 
 const CandidateVerificationRequests = lazy(
   () => import("./pages/VerificationRequests"),
@@ -291,6 +292,18 @@ const AnimatedRoutes = () => {
               <RoleBasedRouter allowedRoles={["student"]}>
                 <PageTransition>
                   <ProjectArchivePage />
+                </PageTransition>
+              </RoleBasedRouter>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/certifications"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <RoleBasedRouter allowedRoles={["student", "recruiter"]}>
+                <PageTransition>
+                  <CertificationsPage />
                 </PageTransition>
               </RoleBasedRouter>
             </Suspense>

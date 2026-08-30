@@ -14,6 +14,7 @@ import {
   Activity,
   Wand2,
   FileText,
+  Award,
   Info,
   Mail,
   BarChart3,
@@ -123,6 +124,7 @@ const Navbar = () => {
       ]
     : [
         { name: "Dashboard",       path: "/dashboard",       icon: LayoutDashboard },
+        { name: "Certifications",  path: "/certifications",  icon: Award },
         { name: "Exams",           path: "/exams",           icon: FileText },
         { name: "Skills",          path: "/skill-tree",      icon: GitBranch },
         { name: "Project Archive", path: "/project-archive", icon: FolderGit2 },
