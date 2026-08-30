@@ -1,46 +1,55 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../utils/api";
+import { resolveFileUrl } from "../utils/fileUrl";
 import {
   Award,
+  Sparkles,
   ShieldCheck,
-  Upload,
+  CheckCircle,
+  AlertCircle,
   Plus,
   Trash2,
   ExternalLink,
-  Calendar,
-  Sparkles,
   FileText,
-  CheckCircle,
-  AlertCircle,
-  Eye,
+  UploadCloud,
   X,
-  Loader2,
-  Building,
-  Layers,
-  ArrowRight,
-  RefreshCw,
   Search,
-  Check,
+  Filter,
+  RefreshCw,
+  Eye,
+  Calendar,
+  Layers,
+  Zap,
+  Tag,
+  Download,
+  Sliders,
+  Cpu,
 } from "lucide-react";
-import api from "../utils/api";
 
 const PRESET_ISSUERS = [
   "Amazon Web Services (AWS)",
   "Google Cloud Platform (GCP)",
   "Microsoft Azure",
-  "Meta / Coursera",
+  "Meta / Facebook",
   "DeepLearning.AI",
-  "HackerRank",
-  "Linux Foundation",
+  "Stanford Online",
+  "Coursera",
+  "edX",
+  "Udacity",
+  "Linux Foundation (CNCF)",
   "Oracle",
-  "Stanford University Online",
-  "HarvardX",
+  "Cisco",
+  "IBM",
+  "HashiCorp",
+  "MongoDB University",
+  "HackerRank",
+  "freeCodeCamp",
 ];
 
-const SUGGESTED_SKILLS = [
+const PRESET_SKILLS = [
   "React",
   "Node.js",
   "Python",
@@ -63,8 +72,9 @@ const CertificationsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
-  // Form State
+  // Form State & Mode
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [uploadMode, setUploadMode] = useState("auto"); // "auto" (AI Extract) or "manual" (Specify Details)
   const [title, setTitle] = useState("");
   const [issuer, setIssuer] = useState("");
   const [customIssuer, setCustomIssuer] = useState("");
@@ -80,10 +90,11 @@ const CertificationsPage = () => {
   const [formError, setFormError] = useState("");
   const [successNotice, setSuccessNotice] = useState("");
 
-  // Modal Preview
+  // Modal Lightbox Preview
   const [previewCert, setPreviewCert] = useState(null);
 
   const fileInputRef = useRef(null);
+  const autoFileInputRef = useRef(null);
 
   const fetchCertificates = async () => {
     try {
@@ -118,6 +129,7 @@ const CertificationsPage = () => {
 
   const processFile = (selectedFile) => {
     setFile(selectedFile);
+    setFormError("");
     if (selectedFile.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => setFilePreview(e.target.result);
@@ -158,29 +170,43 @@ const CertificationsPage = () => {
     setIsFormOpen(false);
   };
 
+  // Submit Handler supporting both AI Auto-Extract and Manual Specification
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
 
-    const finalIssuer = issuer === "Other" ? customIssuer.trim() : issuer.trim();
-    if (!title.trim() || !finalIssuer) {
-      setFormError("Certificate title and issuing organization are required.");
+    if (!file && uploadMode === "auto") {
+      setFormError("Please select or drop a certificate file (PDF or Image) to extract.");
       return;
+    }
+
+    if (uploadMode === "manual") {
+      const finalIssuer = issuer === "Other" ? customIssuer.trim() : issuer.trim();
+      if (!title.trim() || !finalIssuer) {
+        setFormError("Certificate title and issuing organization are required.");
+        return;
+      }
     }
 
     try {
       setSubmitting(true);
       const formData = new FormData();
-      formData.append("title", title.trim());
-      formData.append("issuer", finalIssuer);
-      if (issueDate) formData.append("issueDate", issueDate);
-      if (expiryDate) formData.append("expiryDate", expiryDate);
-      if (credentialId) formData.append("credentialId", credentialId.trim());
-      if (credentialUrl) formData.append("credentialUrl", credentialUrl.trim());
-      formData.append("skills", JSON.stringify(selectedSkills));
 
-      if (file) {
+      if (uploadMode === "auto") {
+        formData.append("autoExtract", "true");
         formData.append("certificate", file);
+      } else {
+        const finalIssuer = issuer === "Other" ? customIssuer.trim() : issuer.trim();
+        formData.append("title", title.trim());
+        formData.append("issuer", finalIssuer);
+        if (issueDate) formData.append("issueDate", issueDate);
+        if (expiryDate) formData.append("expiryDate", expiryDate);
+        if (credentialId) formData.append("credentialId", credentialId.trim());
+        if (credentialUrl) formData.append("credentialUrl", credentialUrl.trim());
+        formData.append("skills", JSON.stringify(selectedSkills));
+        if (file) {
+          formData.append("certificate", file);
+        }
       }
 
       const { data } = await api.post("/api/certificates", formData, {
@@ -188,7 +214,11 @@ const CertificationsPage = () => {
       });
 
       setCertificates((prev) => [data, ...prev]);
-      setSuccessNotice(`Credential "${data.title}" successfully verified and added to your proof ledger! (+250 XP)`);
+      setSuccessNotice(
+        uploadMode === "auto"
+          ? `⚡ AI extracted and verified "${data.title}" from ${data.issuer}! (+250 XP)`
+          : `🛡️ Credential "${data.title}" verified and saved to ledger! (+250 XP)`
+      );
       setTimeout(() => setSuccessNotice(""), 6000);
 
       // Refresh global user state for skillProgress & stats
@@ -206,7 +236,7 @@ const CertificationsPage = () => {
 
       resetForm();
     } catch (err) {
-      setFormError(err.response?.data?.message || "Failed to upload certificate.");
+      setFormError(err.response?.data?.message || "Failed to upload and verify certificate.");
     } finally {
       setSubmitting(false);
     }
@@ -272,7 +302,7 @@ const CertificationsPage = () => {
               className="vp-btn vp-btn-accent text-xs px-5 py-2.5 gap-2 shadow-[0_0_20px_rgba(107,138,255,0.3)]"
             >
               {isFormOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              {isFormOpen ? "Close Vault Intake" : "Upload Credential"}
+              {isFormOpen ? "Close Upload Panel" : "Upload Credential"}
             </button>
           </div>
         </div>
@@ -322,7 +352,7 @@ const CertificationsPage = () => {
           )}
         </AnimatePresence>
 
-        {/* ── Credential Intake Form (Interactive Matrix) ── */}
+        {/* ── Streamlined Credential Intake Form (Two Options) ── */}
         <AnimatePresence>
           {isFormOpen && (
             <motion.div
@@ -332,26 +362,50 @@ const CertificationsPage = () => {
               className="overflow-hidden"
             >
               <div className="p-6 sm:p-8 rounded-[var(--radius-2xl)] bg-[var(--color-bg-sunken)] border border-[var(--color-accent)]/30 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
-                <div className="flex items-center justify-between pb-6 border-b border-[var(--color-border)] mb-6">
+                
+                {/* Form Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[var(--color-border)] mb-6 gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30 flex items-center justify-center">
                       <Award className="w-5 h-5 text-[var(--color-accent)]" />
                     </div>
                     <div>
                       <h3 className="text-lg font-black uppercase tracking-tight text-white">
-                        Submit Credential Proof
+                        Upload Certificate Credential
                       </h3>
                       <p className="text-xs font-mono text-[var(--color-muted)]">
-                        Attach document evidence &amp; map technical skills to verify.
+                        Select your preferred verification method below.
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setIsFormOpen(false)}
-                    className="text-[var(--color-muted)] hover:text-white p-1 rounded hover:bg-white/5 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+
+                  {/* Two-Option Mode Switcher */}
+                  <div className="flex items-center p-1 bg-[var(--color-bg-base)] rounded-xl border border-[var(--color-border)] self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => { setUploadMode("auto"); setFormError(""); }}
+                      className={`px-4 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all ${
+                        uploadMode === "auto"
+                          ? "bg-[var(--color-accent)] text-white shadow-md"
+                          : "text-[var(--color-muted)] hover:text-white"
+                      }`}
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>1-Click AI Auto-Extract</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setUploadMode("manual"); setFormError(""); }}
+                      className={`px-4 py-1.5 text-xs font-mono rounded-lg font-bold flex items-center gap-2 transition-all ${
+                        uploadMode === "manual"
+                          ? "bg-[var(--color-accent)] text-white shadow-md"
+                          : "text-[var(--color-muted)] hover:text-white"
+                      }`}
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span>Manual Details + Upload</span>
+                    </button>
+                  </div>
                 </div>
 
                 {formError && (
@@ -362,230 +416,277 @@ const CertificationsPage = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Left: Metadata Inputs */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                          Certificate Title *
-                        </label>
+                  {/* ──────────────── OPTION 1: 1-CLICK AI AUTO-EXTRACT ──────────────── */}
+                  {uploadMode === "auto" && (
+                    <div className="space-y-6">
+                      <div
+                        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                        onDragLeave={() => setDragActive(false)}
+                        onDrop={handleFileDrop}
+                        onClick={() => autoFileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-2xl p-10 sm:p-14 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-4 ${
+                          dragActive
+                            ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 scale-[1.01]"
+                            : file
+                            ? "border-emerald-500/50 bg-emerald-500/5"
+                            : "border-[var(--color-border)] hover:border-[var(--color-accent)]/50 bg-[var(--color-bg-base)]/50"
+                        }`}
+                      >
                         <input
-                          type="text"
-                          required
-                          placeholder="e.g. AWS Certified Solutions Architect - Associate"
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          className="vp-input w-full text-xs font-mono py-2.5"
+                          ref={autoFileInputRef}
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg,.webp"
+                          className="hidden"
+                          onChange={handleFileChange}
                         />
-                      </div>
 
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                          Issuing Organization *
-                        </label>
-                        <select
-                          value={issuer}
-                          onChange={(e) => setIssuer(e.target.value)}
-                          className="vp-input w-full text-xs font-mono py-2.5 mb-2"
-                        >
-                          <option value="">Select Issuing Body / Provider</option>
-                          {PRESET_ISSUERS.map((org) => (
-                            <option key={org} value={org}>
-                              {org}
-                            </option>
-                          ))}
-                          <option value="Other">Other / Custom Organization</option>
-                        </select>
-                        {issuer === "Other" && (
-                          <input
-                            type="text"
-                            required
-                            placeholder="Enter issuing organization name"
-                            value={customIssuer}
-                            onChange={(e) => setCustomIssuer(e.target.value)}
-                            className="vp-input w-full text-xs font-mono py-2.5"
-                          />
+                        <div className="w-16 h-16 rounded-2xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 flex items-center justify-center text-[var(--color-accent)]">
+                          {file ? (
+                            <CheckCircle className="w-8 h-8 text-emerald-400" />
+                          ) : (
+                            <UploadCloud className="w-8 h-8 animate-bounce" />
+                          )}
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-bold text-white uppercase tracking-tight">
+                            {file ? file.name : "Drop Certificate File (PDF / Image) Here"}
+                          </p>
+                          <p className="text-xs font-mono text-[var(--color-muted)] mt-1">
+                            {file
+                              ? `${(file.size / 1024 / 1024).toFixed(2)} MB • Ready for AI extraction`
+                              : "or click to browse from device (PDF, PNG, JPG, WEBP • Max 15MB)"}
+                          </p>
+                        </div>
+
+                        {!file && (
+                          <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[11px] font-mono text-cyan-400">
+                            <Cpu className="w-3.5 h-3.5" />
+                            <span>AI automatically extracts Title, Issuer, Date &amp; Skills</span>
+                          </div>
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                            Issue Date
-                          </label>
-                          <input
-                            type="date"
-                            value={issueDate}
-                            onChange={(e) => setIssueDate(e.target.value)}
-                            className="vp-input w-full text-xs font-mono py-2"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                            Expiry Date (Optional)
-                          </label>
-                          <input
-                            type="date"
-                            value={expiryDate}
-                            onChange={(e) => setExpiryDate(e.target.value)}
-                            className="vp-input w-full text-xs font-mono py-2"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                            Credential ID / License No.
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. AWS-PSA-108924"
-                            value={credentialId}
-                            onChange={(e) => setCredentialId(e.target.value)}
-                            className="vp-input w-full text-xs font-mono py-2.5"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                            Verification URL
-                          </label>
-                          <input
-                            type="url"
-                            placeholder="https://www.credly.com/badges/..."
-                            value={credentialUrl}
-                            onChange={(e) => setCredentialUrl(e.target.value)}
-                            className="vp-input w-full text-xs font-mono py-2.5"
-                          />
-                        </div>
+                      <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+                        <button
+                          type="button"
+                          onClick={resetForm}
+                          className="vp-btn vp-btn-secondary text-xs px-5 py-2.5"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submitting || !file}
+                          className="vp-btn vp-btn-accent text-xs px-6 py-2.5 gap-2 shadow-lg disabled:opacity-50"
+                        >
+                          <Zap className={`w-4 h-4 ${submitting ? "animate-spin" : ""}`} />
+                          <span>{submitting ? "Analyzing & Verifying..." : "⚡ Auto-Extract & Verify Credential"}</span>
+                        </button>
                       </div>
                     </div>
+                  )}
 
-                    {/* Right: File Upload & Skill Tagging */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                          Certificate Proof Document (PDF / Image)
-                        </label>
-                        <div
-                          onDragEnter={(e) => {
-                            e.preventDefault();
-                            setDragActive(true);
-                          }}
-                          onDragLeave={(e) => {
-                            e.preventDefault();
-                            setDragActive(false);
-                          }}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={handleFileDrop}
-                          onClick={() => fileInputRef.current?.click()}
-                          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-                            dragActive
-                              ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                              : file
-                              ? "border-emerald-500/50 bg-emerald-500/5"
-                              : "border-[var(--color-border)] hover:border-[var(--color-accent)]/50 bg-black/20"
-                          }`}
-                        >
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".pdf,.png,.jpg,.jpeg,.webp"
-                            onChange={handleFileChange}
-                            className="hidden"
-                          />
-                          {file ? (
-                            <div className="flex flex-col items-center gap-2">
-                              <CheckCircle className="w-8 h-8 text-emerald-400" />
-                              <p className="text-xs font-mono font-bold text-white truncate max-w-xs">
-                                {file.name}
-                              </p>
-                              <span className="text-[10px] font-mono text-[var(--color-muted)]">
-                                {(file.size / (1024 * 1024)).toFixed(2)} MB · Click to replace
-                              </span>
+                  {/* ──────────────── OPTION 2: MANUAL SPECIFICATION + UPLOAD ──────────────── */}
+                  {uploadMode === "manual" && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left: Metadata Inputs */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                              Certificate Title *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. AWS Certified Solutions Architect - Associate"
+                              value={title}
+                              onChange={(e) => setTitle(e.target.value)}
+                              className="vp-input w-full text-xs font-mono py-2.5"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                              Issuing Organization *
+                            </label>
+                            <select
+                              value={issuer}
+                              onChange={(e) => setIssuer(e.target.value)}
+                              className="vp-input w-full text-xs font-mono py-2.5 mb-2"
+                            >
+                              <option value="">Select Issuing Body / Provider</option>
+                              {PRESET_ISSUERS.map((org) => (
+                                <option key={org} value={org}>
+                                  {org}
+                                </option>
+                              ))}
+                              <option value="Other">Other / Custom Organization</option>
+                            </select>
+                            {issuer === "Other" && (
+                              <input
+                                type="text"
+                                required
+                                placeholder="Enter issuing organization name"
+                                value={customIssuer}
+                                onChange={(e) => setCustomIssuer(e.target.value)}
+                                className="vp-input w-full text-xs font-mono py-2.5"
+                              />
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                                Issue Date
+                              </label>
+                              <input
+                                type="date"
+                                value={issueDate}
+                                onChange={(e) => setIssueDate(e.target.value)}
+                                className="vp-input w-full text-xs font-mono py-2"
+                              />
                             </div>
-                          ) : (
-                            <div className="flex flex-col items-center gap-2">
-                              <Upload className="w-8 h-8 text-[var(--color-muted)] group-hover:text-[var(--color-accent)]" />
-                              <p className="text-xs font-mono text-white">
-                                Drop PDF or Certificate Image here, or <span className="text-[var(--color-accent)] underline">Browse</span>
-                              </p>
-                              <span className="text-[10px] font-mono text-[var(--color-muted)]">
-                                Max 15MB · PDF, PNG, JPG, WEBP
-                              </span>
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                                Expiry Date (Optional)
+                              </label>
+                              <input
+                                type="date"
+                                value={expiryDate}
+                                onChange={(e) => setExpiryDate(e.target.value)}
+                                className="vp-input w-full text-xs font-mono py-2"
+                              />
                             </div>
-                          )}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                                Credential ID / License No.
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. AWS-PSA-108924"
+                                value={credentialId}
+                                onChange={(e) => setCredentialId(e.target.value)}
+                                className="vp-input w-full text-xs font-mono py-2.5"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                                Verification URL
+                              </label>
+                              <input
+                                type="url"
+                                placeholder="https://www.credly.com/badges/..."
+                                value={credentialUrl}
+                                onChange={(e) => setCredentialUrl(e.target.value)}
+                                className="vp-input w-full text-xs font-mono py-2.5"
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Skill Tags */}
-                      <div>
-                        <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                          Mapped Technical Skills ({selectedSkills.length})
-                        </label>
-                        <div className="flex flex-wrap gap-1.5 mb-2.5 max-h-28 overflow-y-auto p-2 bg-black/20 rounded-lg border border-[var(--color-border)]">
-                          {SUGGESTED_SKILLS.map((sk) => {
-                            const active = selectedSkills.includes(sk);
-                            return (
+                        {/* Right: File Drop + Skills */}
+                        <div className="space-y-4 flex flex-col justify-between">
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                              Certificate Proof Document (PDF / Image)
+                            </label>
+                            <div
+                              onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                              onDragLeave={() => setDragActive(false)}
+                              onDrop={handleFileDrop}
+                              onClick={() => fileInputRef.current?.click()}
+                              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                                dragActive
+                                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
+                                  : file
+                                  ? "border-emerald-500/50 bg-emerald-500/5"
+                                  : "border-[var(--color-border)] hover:border-[var(--color-accent)]/50 bg-[var(--color-bg-base)]"
+                              }`}
+                            >
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".pdf,.png,.jpg,.jpeg,.webp"
+                                className="hidden"
+                                onChange={handleFileChange}
+                              />
+                              <UploadCloud className="w-8 h-8 mx-auto text-[var(--color-muted)] mb-2" />
+                              <p className="text-xs font-bold text-white uppercase tracking-tight">
+                                {file ? file.name : "Drop PDF or Certificate Image here, or Browse"}
+                              </p>
+                              <p className="text-[10px] font-mono text-[var(--color-muted)] mt-1">
+                                Max 15MB • PDF, PNG, JPG, WEBP
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Skill Tagger */}
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                              Mapped Technical Skills ({selectedSkills.length})
+                            </label>
+                            <div className="flex flex-wrap gap-1.5 mb-2 max-h-24 overflow-y-auto p-1.5 bg-[var(--color-bg-base)] rounded-xl border border-[var(--color-border)]">
+                              {PRESET_SKILLS.map((sk) => (
+                                <button
+                                  type="button"
+                                  key={sk}
+                                  onClick={() => toggleSkill(sk)}
+                                  className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                                    selectedSkills.includes(sk)
+                                      ? "bg-[var(--color-accent)] text-white font-bold"
+                                      : "bg-white/5 text-[var(--color-muted)] hover:text-white"
+                                  }`}
+                                >
+                                  {sk}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Add custom skill (e.g. GraphQL, Solidity)..."
+                                value={customSkillInput}
+                                onChange={(e) => setCustomSkillInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddCustomSkill(); } }}
+                                className="vp-input flex-1 text-xs font-mono py-2"
+                              />
                               <button
                                 type="button"
-                                key={sk}
-                                onClick={() => toggleSkill(sk)}
-                                className={`text-[10px] font-mono px-2.5 py-1 rounded-md transition-all flex items-center gap-1 border ${
-                                  active
-                                    ? "bg-[var(--color-accent)] text-white border-[var(--color-accent)] shadow-sm"
-                                    : "bg-white/5 text-[var(--color-muted)] border-white/5 hover:border-white/20 hover:text-white"
-                                }`}
+                                onClick={handleAddCustomSkill}
+                                className="vp-btn vp-btn-secondary text-xs px-3 py-2"
                               >
-                                {active && <Check className="w-3 h-3" />}
-                                {sk}
+                                Add Tag
                               </button>
-                            );
-                          })}
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Add custom skill (e.g. GraphQL, Solidity)..."
-                            value={customSkillInput}
-                            onChange={(e) => setCustomSkillInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                handleAddCustomSkill();
-                              }
-                            }}
-                            className="vp-input flex-1 text-xs font-mono py-2"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleAddCustomSkill}
-                            className="vp-btn vp-btn-secondary text-xs px-3 py-2"
-                          >
-                            Add Tag
-                          </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="pt-4 border-t border-[var(--color-border)] flex items-center justify-end gap-3">
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="vp-btn vp-btn-secondary text-xs px-4 py-2.5"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="vp-btn vp-btn-accent text-xs px-6 py-2.5 gap-2 shadow-lg disabled:opacity-50"
-                    >
-                      {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                      {submitting ? "Cryptographically Stamping..." : "Verify & Save Credential"}
-                    </button>
-                  </div>
+                      <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+                        <button
+                          type="button"
+                          onClick={resetForm}
+                          className="vp-btn vp-btn-secondary text-xs px-5 py-2.5"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className="vp-btn vp-btn-accent text-xs px-6 py-2.5 gap-2 shadow-lg"
+                        >
+                          <ShieldCheck className={`w-4 h-4 ${submitting ? "animate-spin" : ""}`} />
+                          <span>{submitting ? "Verifying..." : "🛡️ Verify & Save Credential"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </form>
               </div>
             </motion.div>
@@ -595,228 +696,229 @@ const CertificationsPage = () => {
         {/* ── Search & Filter Controls ── */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
-            <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-muted)]" />
+            <Search className="w-4 h-4 text-[var(--color-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search certificates, skills, or providers..."
+              placeholder="Search credentials, issuers, skills..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="vp-input w-full pl-9 pr-4 py-2 text-xs font-mono"
+              className="vp-input w-full text-xs font-mono pl-10 py-2.5"
             />
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)]">
-              Ledger Vault: {filteredCertificates.length} {filteredCertificates.length === 1 ? "Proof" : "Proofs"}
-            </span>
+          <div className="flex items-center gap-2 self-start sm:self-auto overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+            {["all", "Verified", "Pending"].map((flt) => (
+              <button
+                key={flt}
+                onClick={() => setActiveFilter(flt)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap ${
+                  activeFilter === flt
+                    ? "bg-[var(--color-accent)] text-white font-bold shadow"
+                    : "bg-[var(--color-bg-sunken)] border border-[var(--color-border)] text-[var(--color-muted)] hover:text-white"
+                }`}
+              >
+                {flt === "all" ? "All Credentials" : flt}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* ── Certificate Vault Grid ── */}
+        {/* ── Certificate Proof Ledger Grid ── */}
         {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-3 border border-dashed border-[var(--color-border)] rounded-2xl bg-black/10">
-            <Loader2 className="w-7 h-7 text-[var(--color-accent)] animate-spin" />
-            <p className="text-xs font-mono uppercase tracking-widest text-[var(--color-muted)]">
-              Loading Proof Ledger &amp; Badges...
+          <div className="py-24 text-center space-y-4">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[var(--color-accent)]" />
+            <p className="text-xs font-mono text-[var(--color-muted)] uppercase tracking-widest">
+              Querying cryptographically signed credential ledger...
             </p>
           </div>
         ) : filteredCertificates.length === 0 ? (
-          <div className="p-12 text-center border border-[var(--color-border)] rounded-2xl bg-black/20 space-y-4">
-            <Award className="w-12 h-12 text-amber-400/40 mx-auto" />
-            <h3 className="text-lg font-bold uppercase tracking-tight text-white">
-              {searchQuery ? "No Matching Credentials Found" : "No Certifications Added Yet"}
-            </h3>
-            <p className="text-xs font-mono text-[var(--color-muted)] max-w-md mx-auto">
-              {searchQuery
-                ? "Try searching with different skill keywords or provider names."
-                : "Upload your professional licenses, course completions, and cloud badges to prove technical capability and boost your candidate ranking."}
-            </p>
-            {!searchQuery && (
+          <div className="py-20 text-center rounded-[var(--radius-2xl)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)] space-y-4">
+            <Award className="w-12 h-12 text-[var(--color-muted)] mx-auto opacity-50" />
+            <div>
+              <h4 className="text-lg font-bold text-white uppercase tracking-tight">
+                No Verified Credentials Found
+              </h4>
+              <p className="text-xs font-mono text-[var(--color-muted)] mt-1 max-w-md mx-auto">
+                {searchQuery
+                  ? "No credentials matched your search query."
+                  : "Upload your professional certificates, AWS/GCP badges, or university proof to unlock verified status."}
+              </p>
+            </div>
+            {!isFormOpen && (
               <button
                 onClick={() => setIsFormOpen(true)}
-                className="vp-btn vp-btn-accent text-xs py-2.5 px-5 inline-flex gap-2"
+                className="vp-btn vp-btn-accent text-xs px-5 py-2.5 gap-2 mx-auto"
               >
-                <Plus className="w-3.5 h-3.5" /> Upload First Credential
+                <Plus className="w-4 h-4" /> Upload First Credential
               </button>
             )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCertificates.map((cert) => {
-              const formattedDate = cert.issueDate
-                ? new Date(cert.issueDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })
-                : "Verified Proof";
+            {filteredCertificates.map((cert) => (
+              <motion.div
+                key={cert._id}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="rounded-[var(--radius-xl)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 p-6 flex flex-col justify-between space-y-6 group transition-all relative overflow-hidden shadow-lg"
+              >
+                <div className="absolute top-0 right-0 w-28 h-28 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-[var(--color-accent)]/10 transition-colors pointer-events-none" />
 
-              return (
-                <motion.div
-                  key={cert._id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-[var(--radius-xl)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)] hover:border-amber-400/50 transition-all duration-300 flex flex-col justify-between overflow-hidden relative group shadow-md hover:shadow-[0_0_30px_rgba(251,191,36,0.1)]"
-                >
-                  {/* Glowing Top Amber Stripe */}
-                  <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+                <div className="space-y-4">
+                  {/* Top Badges */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck className="w-3 h-3" />
+                      {cert.verificationStatus || "Verified"}
+                    </span>
+                    <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                      +250 XP
+                    </span>
+                  </div>
 
-                  <div className="p-6 space-y-4">
-                    {/* Header: Verified Stamp & Node ID */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-sm)] text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/30">
-                        <ShieldCheck className="w-3 h-3 text-amber-400" />
-                        Verified Badge
+                  {/* Title & Issuer */}
+                  <div>
+                    <h4 className="text-base font-bold text-white group-hover:text-[var(--color-accent)] transition-colors leading-snug line-clamp-2">
+                      {cert.title}
+                    </h4>
+                    <p className="text-xs font-mono text-cyan-400 mt-1 flex items-center gap-1.5">
+                      <Award className="w-3.5 h-3.5" />
+                      <span>{cert.issuer}</span>
+                    </p>
+                  </div>
+
+                  {/* Metadata row */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-[var(--color-muted)] pt-2 border-t border-[var(--color-border)]">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[var(--color-muted)]" />
+                      <span>
+                        {cert.issueDate ? new Date(cert.issueDate).toLocaleDateString() : "Active"}
                       </span>
-                      <span className="text-[10px] font-mono text-[var(--color-muted)]">
-                        +250 XP
-                      </span>
                     </div>
-
-                    {/* Title & Provider */}
-                    <div>
-                      <h3 className="text-lg font-black uppercase tracking-tight text-white group-hover:text-amber-300 transition-colors line-clamp-2">
-                        {cert.title}
-                      </h3>
-                      <p className="text-xs font-mono text-cyan-400 mt-1 flex items-center gap-1.5 font-bold">
-                        <Building className="w-3.5 h-3.5" />
-                        {cert.issuer}
-                      </p>
-                    </div>
-
-                    {/* Metadata & Credential ID */}
-                    <div className="p-3 rounded-lg bg-black/40 border border-white/5 space-y-1.5 font-mono text-[11px]">
-                      <div className="flex items-center justify-between text-[var(--color-muted)]">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-gray-500" /> Issue Date:
-                        </span>
-                        <span className="text-white font-bold">{formattedDate}</span>
-                      </div>
-                      {cert.credentialId && (
-                        <div className="flex items-center justify-between text-[var(--color-muted)] pt-1 border-t border-white/5">
-                          <span>License ID:</span>
-                          <span className="text-amber-300 font-bold truncate max-w-[140px]" title={cert.credentialId}>
-                            {cert.credentialId}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Skill Tags */}
-                    {cert.skills && cert.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {cert.skills.map((sk, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-0.5 rounded text-[9px] font-mono bg-white/[0.04] text-gray-300 border border-white/10"
-                          >
-                            {sk}
-                          </span>
-                        ))}
+                    {cert.credentialId && (
+                      <div className="truncate text-right" title={cert.credentialId}>
+                        <span className="text-[var(--color-text)]">ID:</span> {cert.credentialId}
                       </div>
                     )}
                   </div>
 
-                  {/* Footer Actions */}
-                  <div className="px-6 py-3.5 bg-black/30 border-t border-[var(--color-border)] flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {cert.fileUrl && (
-                        <button
-                          onClick={() => setPreviewCert(cert)}
-                          className="text-[10px] font-mono font-bold uppercase text-[var(--color-muted)] hover:text-cyan-400 transition-colors flex items-center gap-1 cursor-pointer"
+                  {/* Skills tags */}
+                  {cert.skills && cert.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {cert.skills.map((sk, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-[var(--color-muted)]"
                         >
-                          <Eye className="w-3.5 h-3.5" /> View Proof
-                        </button>
-                      )}
-                      {cert.credentialUrl && (
-                        <a
-                          href={cert.credentialUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[10px] font-mono font-bold uppercase text-[var(--color-muted)] hover:text-amber-400 transition-colors flex items-center gap-1"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" /> Check URL
-                        </a>
-                      )}
+                          #{sk}
+                        </span>
+                      ))}
                     </div>
+                  )}
+                </div>
 
-                    <button
-                      onClick={() => handleDelete(cert._id)}
-                      className="text-[10px] font-mono text-red-400/60 hover:text-red-400 transition-colors p-1"
-                      title="Delete Certificate"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                {/* Card Actions */}
+                <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)] gap-2">
+                  <div className="flex items-center gap-2">
+                    {cert.fileUrl && (
+                      <button
+                        onClick={() => setPreviewCert(cert)}
+                        className="px-3 py-1.5 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] hover:border-[var(--color-accent)] text-[11px] font-mono text-[var(--color-text)] flex items-center gap-1.5 transition-colors"
+                        title="Preview Proof Document"
+                      >
+                        <Eye className="w-3 h-3 text-cyan-400" />
+                        <span>View Proof</span>
+                      </button>
+                    )}
+                    {cert.credentialUrl && (
+                      <a
+                        href={cert.credentialUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] hover:border-[var(--color-accent)] text-[11px] font-mono text-[var(--color-text)] flex items-center gap-1.5 transition-colors"
+                        title="External Credential Link"
+                      >
+                        <ExternalLink className="w-3 h-3 text-amber-400" />
+                        <span>Verify Link</span>
+                      </a>
+                    )}
                   </div>
-                </motion.div>
-              );
-            })}
+
+                  <button
+                    onClick={() => handleDelete(cert._id)}
+                    className="p-1.5 text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                    title="Remove Certificate"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
 
-        {/* ── Document Lightbox Modal ── */}
+        {/* ── Document Lightbox Preview Modal ── */}
         <AnimatePresence>
           {previewCert && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
               onClick={() => setPreviewCert(null)}
             >
               <motion.div
-                initial={{ scale: 0.95, y: 15 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 15 }}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-4xl max-h-[90vh] bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-[var(--radius-2xl)] overflow-hidden flex flex-col shadow-2xl"
+                className="bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
               >
-                {/* Modal Header */}
-                <div className="p-4 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between bg-black/30">
+                <div className="p-4 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <Award className="w-5 h-5 text-amber-400" />
                     <div>
-                      <h4 className="text-base font-bold text-white uppercase tracking-tight">
+                      <h3 className="text-base font-bold text-white uppercase tracking-tight">
                         {previewCert.title}
-                      </h4>
-                      <p className="text-xs font-mono text-[var(--color-muted)]">
-                        Issued by {previewCert.issuer}
+                      </h3>
+                      <p className="text-xs font-mono text-cyan-400">
+                        {previewCert.issuer} {previewCert.credentialId ? `• ID: ${previewCert.credentialId}` : ""}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {previewCert.fileUrl && (
-                      <a
-                        href={previewCert.fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="vp-btn vp-btn-secondary text-xs px-3 py-1.5 gap-1.5"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" /> Open Direct
-                      </a>
-                    )}
+                    <a
+                      href={resolveFileUrl(previewCert.fileUrl)}
+                      target="_blank"
+                      rel="noreferrer"
+                      download
+                      className="vp-btn vp-btn-secondary text-xs px-3 py-1.5 gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Download
+                    </a>
                     <button
                       onClick={() => setPreviewCert(null)}
-                      className="text-[var(--color-muted)] hover:text-white p-1 rounded"
+                      className="text-[var(--color-muted)] hover:text-white p-1.5 rounded hover:bg-white/5"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Modal Body */}
-                <div className="flex-1 overflow-auto p-4 bg-black/50 flex items-center justify-center min-h-[400px]">
-                  {previewCert.fileUrl?.endsWith(".pdf") ? (
+                <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center bg-black/40 min-h-[400px]">
+                  {previewCert.fileUrl?.toLowerCase().endsWith(".pdf") ? (
                     <iframe
-                      src={previewCert.fileUrl}
-                      title="Certificate PDF"
-                      className="w-full h-[600px] rounded-lg border border-white/10"
+                      src={resolveFileUrl(previewCert.fileUrl)}
+                      title={previewCert.title}
+                      className="w-full h-[600px] rounded-lg border border-[var(--color-border)]"
                     />
                   ) : (
                     <img
-                      src={previewCert.fileUrl}
+                      src={resolveFileUrl(previewCert.fileUrl)}
                       alt={previewCert.title}
-                      className="max-h-[600px] object-contain rounded-lg border border-white/10 shadow-2xl"
+                      className="max-h-[600px] w-auto object-contain rounded-lg border border-[var(--color-border)] shadow-lg"
                     />
                   )}
                 </div>
