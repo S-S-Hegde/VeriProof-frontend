@@ -57,6 +57,7 @@ const InvestigatorHub = lazy(() => import("./pages/InvestigatorHub"));
 const Exams = lazy(() => import("./pages/Exams"));
 const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
 const ResumeUploadPage = lazy(() => import("./pages/ResumeUploadPage"));
+const ProjectArchivePage = lazy(() => import("./pages/ProjectArchivePage"));
 
 const CandidateVerificationRequests = lazy(
   () => import("./pages/VerificationRequests"),
@@ -280,6 +281,18 @@ const AnimatedRoutes = () => {
               <PageTransition>
                 <SkillTreePage />
               </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/project-archive"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <RoleBasedRouter allowedRoles={["student"]}>
+                <PageTransition>
+                  <ProjectArchivePage />
+                </PageTransition>
+              </RoleBasedRouter>
             </Suspense>
           }
         />

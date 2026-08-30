@@ -21,6 +21,7 @@ import {
   Users,
   HelpCircle,
   GitBranch,
+  FolderGit2,
   MoreHorizontal,
   Home,
   User as UserIcon,
@@ -121,9 +122,10 @@ const Navbar = () => {
         { name: "Rankings",        path: "/verdicts",            icon: BarChart3 },
       ]
     : [
-        { name: "Dashboard", path: "/dashboard",  icon: LayoutDashboard },
-        { name: "Exams",     path: "/exams",      icon: FileText },
-        { name: "Skills",    path: "/skill-tree", icon: GitBranch },
+        { name: "Dashboard",       path: "/dashboard",       icon: LayoutDashboard },
+        { name: "Exams",           path: "/exams",           icon: FileText },
+        { name: "Skills",          path: "/skill-tree",      icon: GitBranch },
+        { name: "Project Archive", path: "/project-archive", icon: FolderGit2 },
       ];
 
 

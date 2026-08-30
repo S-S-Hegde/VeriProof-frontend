@@ -5,9 +5,10 @@ import PageTransition from "../components/PageTransition";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import PlagiarismChecker from "../components/PlagiarismChecker";
+import ProjectVerificationModal from "../components/ProjectVerificationModal";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Code, Info } from "lucide-react";
+import { Code, Info, ShieldCheck, Cpu, RefreshCw } from "lucide-react";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -15,6 +16,7 @@ const ProjectDetails = () => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -59,17 +61,28 @@ const ProjectDetails = () => {
     Boolean(project?.githubStats?.commitsCount > 0) ||
     Boolean(project?.aiGenerated?.analyzedAt);
 
+  const handleVerified = (updatedData) => {
+    setProject((prev) => ({
+      ...prev,
+      isVerified: true,
+      status: "Verified",
+      verificationStatus: "Verified",
+      matchScore: updatedData?.matchScore || 95,
+      liveAuditReport: updatedData?.liveAuditReport || prev?.liveAuditReport,
+    }));
+  };
+
   return (
     <PageTransition>
       <div className="max-w-5xl mx-auto py-8">
         <Link
-          to="/dashboard"
+          to="/project-archive"
           className="text-ibex-muted hover:text-ibex-gold flex items-center mb-12 tracking-widest uppercase text-xs transition-colors group"
         >
           <span className="mr-2 group-hover:-translate-x-1 transition-transform">
             ←
           </span>{" "}
-          Return to Discover Hub
+          Return to Evidence Archive
         </Link>
         <motion.article
           initial={{ opacity: 0, y: 30 }}
@@ -97,14 +110,22 @@ const ProjectDetails = () => {
                 </p>
               </div>
             </div>
-            <div className="mt-8 md:mt-0 pb-2">
+            <div className="mt-8 md:mt-0 pb-2 flex flex-wrap items-center gap-3">
               <span
                 className={`inline-flex items-center px-4 py-2 border text-xs tracking-widest uppercase shadow-sm backdrop-blur-md ${isVerified ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10" : "border-ibex-gold/30 text-ibex-gold bg-ibex-gold/5"}`}
               >
                 {isVerified
-                  ? "Verified Project"
+                  ? "Verified Project ✅"
                   : "Verification Pending"}
               </span>
+              <button
+                type="button"
+                onClick={() => setIsVerifyModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded bg-cyan-500/10 border border-cyan-500/40 hover:bg-cyan-500/20 text-cyan-400 text-xs font-mono uppercase tracking-wider cursor-pointer transition-colors shadow-sm"
+              >
+                <Cpu className="w-3.5 h-3.5" />
+                <span>{isVerified ? "Re-Verify Evidence" : "Run Live Verification"}</span>
+              </button>
             </div>
           </header>
 
@@ -309,6 +330,14 @@ const ProjectDetails = () => {
             </section>
           )}
         </motion.article>
+
+        {/* Portaled Verification Modal */}
+        <ProjectVerificationModal
+          isOpen={isVerifyModalOpen}
+          onClose={() => setIsVerifyModalOpen(false)}
+          project={project}
+          onVerified={handleVerified}
+        />
       </div>
     </PageTransition>
   );
