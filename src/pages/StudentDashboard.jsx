@@ -255,7 +255,8 @@ const StudentDashboard = () => {
         }
 
         // If GitHub analysis has completed or hasRepoAnalysis is true, refresh projects list and workflowState
-        if (data.hasRepoAnalysis || data.status === "complete") {
+        if (data.hasRepoAnalysis || data.status === "complete" || data.status === "error") {
+          if (intervalId) clearInterval(intervalId);
           const [projectsRes, profileRes] = await Promise.all([
             api.get("/api/projects/myprojects"),
             api.get("/api/users/profile"),

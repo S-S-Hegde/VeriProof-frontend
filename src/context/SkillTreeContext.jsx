@@ -42,8 +42,10 @@ export const SkillTreeProvider = ({ children }) => {
     return data;
   }, []);
 
+  const userId = user?._id || user?.id || null;
+
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setSkillTree(null);
       setProgress(null);
       setCatalog([]);
@@ -51,14 +53,7 @@ export const SkillTreeProvider = ({ children }) => {
     }
 
     refreshSkillTree();
-    intervalRef.current = window.setInterval(() => {
-      refreshSkillTree({ quiet: true });
-    }, 30000);
-
-    return () => {
-      if (intervalRef.current) window.clearInterval(intervalRef.current);
-    };
-  }, [user, refreshSkillTree]);
+  }, [userId, refreshSkillTree]);
 
   const value = useMemo(() => ({
     skillTree,

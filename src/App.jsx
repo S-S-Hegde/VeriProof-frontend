@@ -9,6 +9,7 @@ import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { getStoredUser } from "./utils/authStorage";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SkillTreeProvider } from "./context/SkillTreeContext";
 import Navbar from "./components/Navbar";
@@ -419,11 +420,19 @@ const AnimatedRoutes = () => {
 };
 
 const AppContent = () => {
-  const { isExiting, setIsExiting, logout } = useAuth();
+  const { user, isExiting, setIsExiting, logout } = useAuth();
 
-  const isFirstVisit = !localStorage.getItem("vp-intro-seen");
-  const [showIntro, setShowIntro] = useState(true);
-  const [isAppVisible, setIsAppVisible] = useState(!isFirstVisit);
+  // Show cinematic intro ONLY once per browser session, and NEVER if already authenticated
+  const [showIntro, setShowIntro] = useState(() => {
+    if (getStoredUser() || user) return false;
+    const hasSeenSessionIntro = sessionStorage.getItem("vp-session-intro-seen");
+    return !hasSeenSessionIntro;
+  });
+
+  const [isAppVisible, setIsAppVisible] = useState(() => {
+    if (getStoredUser() || user) return true;
+    return Boolean(sessionStorage.getItem("vp-session-intro-seen"));
+  });
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -433,9 +442,9 @@ const AppContent = () => {
   });
 
   const handleIntroComplete = () => {
-    localStorage.setItem("vp-intro-seen", "true");
+    sessionStorage.setItem("vp-session-intro-seen", "true");
     setShowIntro(false);
-    setTimeout(() => setIsAppVisible(true), 300);
+    setIsAppVisible(true);
   };
 
   const handleOutroComplete = useCallback(() => {
