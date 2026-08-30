@@ -52,6 +52,13 @@ const ProjectDetails = () => {
     );
   }
 
+  const isVerified =
+    project?.isVerified ||
+    project?.status === "Verified" ||
+    project?.verificationStatus === "Verified" ||
+    Boolean(project?.githubStats?.commitsCount > 0) ||
+    Boolean(project?.aiGenerated?.analyzedAt);
+
   return (
     <PageTransition>
       <div className="max-w-5xl mx-auto py-8">
@@ -92,9 +99,9 @@ const ProjectDetails = () => {
             </div>
             <div className="mt-8 md:mt-0 pb-2">
               <span
-                className={`inline-flex items-center px-4 py-2 border text-xs tracking-widest uppercase shadow-sm backdrop-blur-md ${project.isVerified ? "border-green-800/50 text-green-500 bg-green-900/20" : "border-ibex-gold/30 text-ibex-gold bg-ibex-gold/5"}`}
+                className={`inline-flex items-center px-4 py-2 border text-xs tracking-widest uppercase shadow-sm backdrop-blur-md ${isVerified ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10" : "border-ibex-gold/30 text-ibex-gold bg-ibex-gold/5"}`}
               >
-                {project.isVerified
+                {isVerified
                   ? "Verified Project"
                   : "Verification Pending"}
               </span>
@@ -211,7 +218,7 @@ const ProjectDetails = () => {
                       <span className="text-xs text-ibex-muted uppercase tracking-widest block mb-1">
                         Status
                       </span>
-                      {project.isVerified
+                      {isVerified
                         ? "Verified ✅"
                         : "Pending Evaluation"}
                     </p>
