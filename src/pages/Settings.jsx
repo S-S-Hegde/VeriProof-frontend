@@ -50,7 +50,6 @@ const labelCls =
 const TABS = [
   { id: "Identity", icon: User, label: "User Identity" },
   { id: "Records", icon: GraduationCap, label: "Academic Records" },
-  { id: "Evidence", icon: FileText, label: "Architectural Evidence" },
   { id: "Nodes", icon: Globe, label: "Network Nodes" },
   { id: "Privacy", icon: Eye, label: "Privacy Sync" },
   { id: "Shield", icon: Lock, label: "Security Shield" },
@@ -173,15 +172,19 @@ const Settings = () => {
         if (data.usn) { next.usn = data.usn; filledCount++; }
         if (data.batch) { next.batch = data.batch; filledCount++; }
         if (data.cgpa) { next.cgpa = data.cgpa; filledCount++; }
+        if (data.linkedin) { next.linkedin = data.linkedin; filledCount++; }
+        if (data.website) { next.website = data.website; filledCount++; }
+        if (data.twitter) { next.twitter = data.twitter; filledCount++; }
+        if (data.githubUsername) { next.githubUsername = data.githubUsername; filledCount++; }
         if (data.phone && !next.phone) next.phone = data.phone;
         if (data.location && !next.location) next.location = data.location;
         return next;
       });
 
       if (filledCount > 0) {
-        showToast("Success", "Academic ledger auto-populated from your analyzed resume!");
+        showToast("Success", "Academic & Network profiles auto-populated from your analyzed resume!");
       } else {
-        showToast("Notice", "No explicit academic fields found in resume text. You can enter them manually.");
+        showToast("Notice", "No explicit fields found in resume text. You can enter them manually.");
       }
     } catch {
       showToast("Error", "Failed to retrieve resume extraction data.");
@@ -655,101 +658,6 @@ const Settings = () => {
                   </motion.div>
                 )}
 
-                {/* ── EVIDENCE TAB ── */}
-                {activeTab === "Evidence" && (
-                  <motion.div
-                    key="evidence"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-12"
-                  >
-                    <div className="flex items-center gap-4">
-                      <FileText className="w-6 h-6 text-[var(--color-accent)]" />
-                      <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">
-                        Architectural Evidence
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                      <div className="space-y-8">
-                        <div className="p-8 border border-[var(--color-border)] bg-[var(--color-bg)]/40 relative group overflow-hidden">
-                          <h4 className={labelCls}>Resume_Protocol</h4>
-                          <input
-                            type="file"
-                            ref={resumeInputRef}
-                            onChange={handleResumeUpload}
-                            className="hidden"
-                            accept=".pdf,.docx,.txt"
-                          />
-                          <div
-                            onClick={() => resumeInputRef.current.click()}
-                            className="w-full h-48 border-2 border-[var(--color-accent)] border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-[var(--color-accent)]/5 transition-all relative group"
-                          >
-                            {resumeUploading ? (
-                              <Loader2 className="w-10 h-10 animate-spin text-[var(--color-accent)]" />
-                            ) : (
-                              <>
-                                <FileUp className="w-10 h-10 text-[var(--color-accent)] mb-4 opacity-40 group-hover:opacity-100 transition-opacity" />
-                                <p className="text-sm font-bold uppercase tracking-widest">
-                                  Inject_Binary_Evidence
-                                </p>
-                                <p className="text-xs opacity-40 uppercase mt-2 tracking-tighter">
-                                  PDF // DOCX // TXT (MAX 5MB)
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-8">
-                        <div className="p-8 border border-[var(--color-border)] bg-[var(--color-bg)]/40">
-                          <h4 className={labelCls}>Verification_Status</h4>
-                          <div className="space-y-6">
-                            <div className="flex justify-between items-end">
-                              <div>
-                                <p className="text-sm font-mono opacity-40 uppercase mb-1">
-                                  Current_State
-                                </p>
-                                <p className="text-2xl font-black italic tracking-tighter uppercase">
-                                  {form.resumeStatus}
-                                </p>
-                              </div>
-                              <div
-                                className={`text-sm font-mono border px-2 py-0.5 ${form.resumeStatus === "Verified" ? "border-green-500 text-green-500" : "border-[var(--color-accent)] text-[var(--color-accent)]"}`}
-                              >
-                                {form.resumeStatus === "Verified"
-                                  ? "ACTIVE"
-                                  : "AWAITING_AUDIT"}
-                              </div>
-                            </div>
-
-                            {form.resumeUrl && (
-                              <a
-                                href={resolveFileUrl(form.resumeUrl)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="block w-full text-center py-4 border border-[var(--color-border)] hover:border-[var(--color-accent)] text-sm font-bold uppercase tracking-widest transition-all"
-                              >
-                                View_Current_Evidence
-                              </a>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-6 border border-dashed border-[var(--color-border)] opacity-40 italic">
-                          <p className="text-sm leading-relaxed uppercase tracking-widest">
-                            * Uploading new evidence will overwrite existing
-                            metadata and reset the verification clock. Manual
-                            audit typically completes within 24 standard cycles.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
                 {/* ── RECORDS TAB ── */}
                 {activeTab === "Records" && (
                   <motion.div
@@ -843,11 +751,28 @@ const Settings = () => {
                     exit={{ opacity: 0, y: -10 }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10"
                   >
-                    <div className="md:col-span-2 flex items-center gap-4 mb-4">
-                      <Globe className="w-6 h-6 text-[var(--color-accent)]" />
-                      <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">
-                        External Links
-                      </h3>
+                    <div className="md:col-span-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-[var(--color-border)]">
+                      <div className="flex items-center gap-4">
+                        <Globe className="w-6 h-6 text-[var(--color-accent)]" />
+                        <div>
+                          <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">
+                            Network Nodes &amp; Links
+                          </h3>
+                          <p className="text-xs font-mono text-[var(--color-muted)]">
+                            Source control handles, professional registries, and social streams.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAutoFillFromResume}
+                        disabled={autoFillingEdu}
+                        className="vp-btn vp-btn-accent text-xs py-2 px-4 gap-2 self-start sm:self-auto shadow-md"
+                        title="Auto-fill network nodes and profiles from candidate parsed resume"
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 ${autoFillingEdu ? "animate-spin" : ""}`} />
+                        <span>{autoFillingEdu ? "Extracting..." : "Auto-Fill From Resume"}</span>
+                      </button>
                     </div>
 
                     {[
