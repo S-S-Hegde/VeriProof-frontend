@@ -414,6 +414,58 @@ const AnimatedRoutes = () => {
             </Suspense>
           }
         />
+
+        {/* Informational & Resource Pages */}
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <AboutPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <SupportPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <TermsPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <ContactPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/roadmap"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <RoadmapPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );
