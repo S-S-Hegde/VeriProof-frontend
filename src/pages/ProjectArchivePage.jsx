@@ -42,7 +42,7 @@ const ProjectArchivePage = () => {
   const fetchMyProjects = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/projects/myprojects");
+      const res = await api.cachedGet("/api/projects/myprojects");
       setProjects(res.data || []);
     } catch (err) {
       console.error("Failed to fetch archive projects:", err);

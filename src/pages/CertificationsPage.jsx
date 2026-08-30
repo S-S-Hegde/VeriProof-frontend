@@ -88,7 +88,7 @@ const CertificationsPage = () => {
   const fetchCertificates = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get("/api/certificates");
+      const { data } = await api.cachedGet("/api/certificates");
       setCertificates(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch certificates:", err);

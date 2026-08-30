@@ -142,8 +142,8 @@ const StudentDashboard = () => {
     const fetchData = async () => {
       try {
         const [profileRes, projectsRes] = await Promise.all([
-          api.get("/api/users/profile"),
-          api.get("/api/projects/myprojects"),
+          api.cachedGet("/api/users/profile"),
+          api.cachedGet("/api/projects/myprojects"),
         ]);
 
         if (!isMounted) return;
