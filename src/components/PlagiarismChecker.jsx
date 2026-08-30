@@ -97,16 +97,36 @@ export default function PlagiarismChecker({ projectId }) {
                 <riskCfg.Icon className={`w-6 h-6 ${riskCfg.color}`} />
                 <div>
                   <p className={`text-base font-black ${riskCfg.color}`}>{riskCfg.label}</p>
-                  <p className="text-gray-600 text-xs mt-0.5">
-                    Compared against <span className="text-gray-400 font-bold">{result.totalChecked}</span> projects on the platform ·{" "}
-                    <span className="text-gray-400 font-bold">{result.flagCount}</span> similar project{result.flagCount !== 1 ? "s" : ""} found
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    Compared against <span className="text-white font-bold">{result.totalChecked}</span> projects on the platform ·{" "}
+                    <span className="text-white font-bold">{result.flagCount}</span> similar project{result.flagCount !== 1 ? "s" : ""} found
                   </p>
                 </div>
-                <span className={`ml-auto text-2xl font-black ${riskCfg.color}`}>
-                  {result.flags.length > 0 ? `${result.flags[0].score}%` : "0%"}
-                </span>
+                <div className="ml-auto text-right">
+                  <span className={`text-2xl font-black ${riskCfg.color}`}>
+                    {result.originalityScore !== undefined ? `${result.originalityScore}%` : result.flags.length > 0 ? `${Math.max(0, 100 - result.flags[0].score)}%` : "100%"}
+                  </span>
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                    Originality Score
+                  </p>
+                </div>
               </div>
-              <p className="text-gray-600 text-sm uppercase tracking-widest">
+
+              {/* Commit Cadence & Provenance Insight */}
+              {result.commitAnalysis && (
+                <div className="mt-4 pt-3 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
+                    <span className="text-gray-300 font-bold">{result.commitAnalysis.status}:</span>
+                    <span className="text-gray-400 text-[11px]">{result.commitAnalysis.detail}</span>
+                  </div>
+                  <span className="text-cyan-400 text-[10px] uppercase font-bold shrink-0">
+                    {result.commitAnalysis.commitsCount} Commits Analyzed
+                  </span>
+                </div>
+              )}
+
+              <p className="text-gray-600 text-[10px] font-mono uppercase tracking-widest mt-3">
                 Checked at {new Date(result.checkedAt).toLocaleTimeString("en-IN")}
               </p>
             </div>
