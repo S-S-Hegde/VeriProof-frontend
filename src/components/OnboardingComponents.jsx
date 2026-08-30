@@ -39,7 +39,7 @@ const getStepStatus = (stepId, workflowState) => {
       return workflowState.hasExamPassed ? "complete" : "active";
     case "verified":
       if (!workflowState.hasExamPassed) return "locked";
-      return workflowState.hasVerificationRequest ? "complete" : "active";
+      return (workflowState.isVerificationComplete || workflowState.hasVerificationRequest || workflowState.hasExamPassed) ? "complete" : "active";
     default:
       return "locked";
   }
