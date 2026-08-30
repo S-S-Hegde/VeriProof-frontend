@@ -564,11 +564,20 @@ export default function Verdicts() {
     finally { setIsSavingShortlist(false); }
   };
 
+  const [digestNotice, setDigestNotice] = useState(null);
+
   const sendDigest = async () => {
     setDigestSending(true);
-    try { const {data}=await api.post("/api/verify/daily-digest"); alert(data.message); }
-    catch(err) { setError(err.response?.data?.message||"Failed to send digest."); }
-    finally { setDigestSending(false); }
+    setDigestNotice(null);
+    try {
+      const { data } = await api.post("/api/verify/daily-digest");
+      setDigestNotice({ type: "success", message: data.message });
+      setTimeout(() => setDigestNotice(null), 6000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to send digest.");
+    } finally {
+      setDigestSending(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -676,7 +685,16 @@ export default function Verdicts() {
         </div>
       </div>
 
-      <AnimatePresence>{error&&(<motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="flex items-center gap-3 p-4 rounded-[var(--radius-lg)] bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-mono"><AlertCircle className="w-4 h-4 shrink-0"/>{error}<button className="ml-auto" onClick={()=>setError("")}><X className="w-3.5 h-3.5"/></button></motion.div>)}</AnimatePresence>
+      <AnimatePresence>
+        {digestNotice && (
+          <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="flex items-center gap-3 p-4 rounded-[var(--radius-lg)] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-mono">
+            <CheckCircle className="w-4 h-4 shrink-0 text-emerald-400"/>
+            <span>{digestNotice.message}</span>
+            <button className="ml-auto" onClick={()=>setDigestNotice(null)}><X className="w-3.5 h-3.5"/></button>
+          </motion.div>
+        )}
+        {error&&(<motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="flex items-center gap-3 p-4 rounded-[var(--radius-lg)] bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-mono"><AlertCircle className="w-4 h-4 shrink-0"/>{error}<button className="ml-auto" onClick={()=>setError("")}><X className="w-3.5 h-3.5"/></button></motion.div>)}
+      </AnimatePresence>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

@@ -115,20 +115,18 @@ export default function RecruiterSettings() {
             : "";
         }
 
-        const fallbackHandle = (data.name || user?.name || "recruiter").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-        const activeLinkedin = savedLinkedin || `https://www.linkedin.com/in/${fallbackHandle}`;
-        const activeCompany = cleanCompany || user?.companyName || "VeriProof Talent Network";
+        const activeCompany = cleanCompany || user?.companyName || "";
 
         setForm({
           name: data.name || user?.name || "",
           email: data.email || user?.email || "",
-          bio: data.bio || "Technical Recruiter & Talent Acquisition Specialist.",
+          bio: data.bio || "",
           phone: data.phone || "",
           location: data.location || "",
           website: data.website || "",
           company: activeCompany,
-          title: data.branch || "Technical Recruiter",
-          linkedin: activeLinkedin,
+          title: data.branch || "",
+          linkedin: savedLinkedin || "",
           twitter: data.twitter || "",
           notifEmail: data.notifications?.email ?? true,
           notifPlatform: data.notifications?.platform ?? true,
@@ -402,7 +400,7 @@ export default function RecruiterSettings() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-1.5 font-mono text-xs text-[var(--color-text-secondary)]">
                 <p className="flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                  <span>{form.company || "VeriProof Talent Network"}</span>
+                  <span>{form.company || "Independent Recruiter"}</span>
                 </p>
 
                 {form.linkedin ? (
@@ -416,9 +414,9 @@ export default function RecruiterSettings() {
                     <span>{form.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
                   </a>
                 ) : (
-                  <p className="flex items-center gap-1.5 text-cyan-400/80">
+                  <p className="flex items-center gap-1.5 text-gray-500">
                     <Linkedin className="w-3.5 h-3.5" />
-                    <span>linkedin.com/in/recruiter</span>
+                    <span>LinkedIn Not Connected</span>
                   </p>
                 )}
               </div>
