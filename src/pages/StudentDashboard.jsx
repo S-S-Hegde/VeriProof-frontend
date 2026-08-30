@@ -384,7 +384,7 @@ const StudentDashboard = () => {
                   } else if (stepId === "assessment") {
                     navigate("/exams");
                   } else if (stepId === "verified") {
-                    navigate("/analytics");
+                    navigate("/verdicts");
                   }
                 }}
               />
