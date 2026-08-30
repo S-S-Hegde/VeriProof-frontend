@@ -36,6 +36,7 @@ import {
   FileText,
   FileUp,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { cldProfilePhoto } from "../utils/cloudinaryImage";
 import LocationAutoSuggest from "../components/LocationAutoSuggest";
@@ -154,6 +155,38 @@ const Settings = () => {
       setDeleteError(errorMsg);
       setDeletingAccount(false);
       setDeleteStepIndex(-1);
+    }
+  };
+
+  const [autoFillingEdu, setAutoFillingEdu] = useState(false);
+
+  const handleAutoFillFromResume = async () => {
+    setAutoFillingEdu(true);
+    try {
+      const { data } = await api.get("/api/users/profile");
+      let filledCount = 0;
+
+      setForm((prev) => {
+        const next = { ...prev };
+        if (data.college) { next.college = data.college; filledCount++; }
+        if (data.branch) { next.branch = data.branch; filledCount++; }
+        if (data.usn) { next.usn = data.usn; filledCount++; }
+        if (data.batch) { next.batch = data.batch; filledCount++; }
+        if (data.cgpa) { next.cgpa = data.cgpa; filledCount++; }
+        if (data.phone && !next.phone) next.phone = data.phone;
+        if (data.location && !next.location) next.location = data.location;
+        return next;
+      });
+
+      if (filledCount > 0) {
+        showToast("Success", "Academic ledger auto-populated from your analyzed resume!");
+      } else {
+        showToast("Notice", "No explicit academic fields found in resume text. You can enter them manually.");
+      }
+    } catch {
+      showToast("Error", "Failed to retrieve resume extraction data.");
+    } finally {
+      setAutoFillingEdu(false);
     }
   };
 
@@ -726,11 +759,28 @@ const Settings = () => {
                     exit={{ opacity: 0, y: -10 }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10"
                   >
-                    <div className="md:col-span-2 flex items-center gap-4 mb-4">
-                      <GraduationCap className="w-6 h-6 text-[var(--color-accent)]" />
-                      <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">
-                        Academic Ledger
-                      </h3>
+                    <div className="md:col-span-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-[var(--color-border)]">
+                      <div className="flex items-center gap-4">
+                        <GraduationCap className="w-6 h-6 text-[var(--color-accent)]" />
+                        <div>
+                          <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">
+                            Academic Ledger
+                          </h3>
+                          <p className="text-xs font-mono text-[var(--color-muted)]">
+                            Institutional credentials, field of specialization, and academic metrics.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAutoFillFromResume}
+                        disabled={autoFillingEdu}
+                        className="vp-btn vp-btn-accent text-xs py-2 px-4 gap-2 self-start sm:self-auto shadow-md"
+                        title="Auto-fill academic records from candidate parsed resume"
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 ${autoFillingEdu ? "animate-spin" : ""}`} />
+                        <span>{autoFillingEdu ? "Extracting..." : "Auto-Fill From Resume"}</span>
+                      </button>
                     </div>
 
                     <div className="md:col-span-2">
