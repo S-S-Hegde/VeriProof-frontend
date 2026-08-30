@@ -60,8 +60,8 @@ const SkeletonCard = () => (
  * GitHubAnalysisBanner — shown while GitHub repo analysis is running.
  * Appears between Resume Complete and Repos appearing.
  */
-const GitHubAnalysisBanner = ({ status }) => {
-  if (!status || status.status === "idle" || status.status === "complete") return null;
+const GitHubAnalysisBanner = ({ status, hasRepoAnalysis }) => {
+  if (!status || status.status === "idle" || status.status === "complete" || hasRepoAnalysis || status.hasRepoAnalysis) return null;
 
   const isFailed = status.status === "failed";
 
@@ -337,7 +337,7 @@ const StudentDashboard = () => {
               <span className="vp-status-dot" />
               <span className="vp-label">
                 System Status:{" "}
-                {githubAnalysisState?.status === "running"
+                {githubAnalysisState?.status === "running" && !workflowState?.hasRepoAnalysis
                   ? "Analyzing Repositories"
                   : workflowState?.hasResume
                   ? "Active"
@@ -351,7 +351,10 @@ const StudentDashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 lg:mb-16">
             <div className="lg:col-span-8 space-y-4">
               {/* GitHub Analysis Banner */}
-              <GitHubAnalysisBanner status={githubAnalysisState} />
+              <GitHubAnalysisBanner
+                status={githubAnalysisState}
+                hasRepoAnalysis={workflowState?.hasRepoAnalysis}
+              />
 
               <ResumeStatusCard
                 resumeUrl={resumeUrl}
@@ -362,11 +365,15 @@ const StudentDashboard = () => {
               />
               <VerificationPipeline
                 workflowState={workflowState}
-                githubAnalysisState={githubAnalysisState}
+                githubAnalysisState={workflowState?.hasRepoAnalysis ? null : githubAnalysisState}
                 onStepClick={(stepId) => {
                   if (stepId === "resume" || stepId === "analysis") {
                     setIsUploadModalOpen(true);
                   } else if (stepId === "repo") {
+                    if (workflowState?.hasRepoAnalysis) {
+                      navigate("/add-project");
+                      return;
+                    }
                     // Trigger GitHub analysis and update UI immediately
                     if (!githubAnalysisState || githubAnalysisState.status !== "running") {
                       setGithubAnalysisState({ status: "running", reposProcessed: 0, totalRepos: 3 });
