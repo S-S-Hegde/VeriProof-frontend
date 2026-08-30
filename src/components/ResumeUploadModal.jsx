@@ -8,8 +8,6 @@ import {
   FolderOpen, FileCheck, RefreshCw
 } from "lucide-react";
 
-import CandidateProcessingCenter from "./CandidateProcessingCenter";
-
 export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) {
   const { user, setUser } = useAuth();
   
@@ -20,7 +18,6 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef(null);
 
   const [profileData, setProfileData] = useState(null);
@@ -29,13 +26,13 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen && !uploading && !isProcessing) {
+      if (e.key === "Escape" && isOpen && !uploading) {
         onClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, uploading, isProcessing, onClose]);
+  }, [isOpen, uploading, onClose]);
 
   // Disable background scrolling & stop Lenis smooth scroll while modal is open
   useEffect(() => {
@@ -56,13 +53,11 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
   // Fetch profile when modal opens
   useEffect(() => {
     if (!isOpen) {
-      setIsProcessing(false);
       setUploadSuccess(false);
       setError(null);
       return;
     }
     let isMounted = true;
-    setIsProcessing(false);
     setUploadSuccess(false);
     setError(null);
 
@@ -126,13 +121,19 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
         setUploadProgress((prev) => (prev < 90 ? prev + 15 : prev));
       }, 150);
 
-      await api.post("/api/users/profile/resume-file", formData);
+      const { data } = await api.post("/api/users/profile/resume-file", formData);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
+      setUploadSuccess(true);
       
-      // Transition immediately to Candidate Processing Center
-      setIsProcessing(true);
+      // Notify parent component and close modal cleanly
+      if (onUploadSuccess) {
+        onUploadSuccess(data);
+      }
+      setTimeout(() => {
+        onClose();
+      }, 350);
       
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed. Please try again.");
@@ -140,7 +141,7 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
     } finally {
       setUploading(false);
     }
-  }, []);
+  }, [onUploadSuccess, onClose]);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -207,31 +208,6 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="w-7 h-7 animate-spin text-[var(--color-accent)]" />
-            </div>
-          ) : isProcessing ? (
-            <div className="w-full">
-              <CandidateProcessingCenter
-                initialFileName={selectedFileName || profileData?.originalFileName || "resume.pdf"}
-                onComplete={(freshData) => {
-                  setIsProcessing(false);
-                  setUploadSuccess(true);
-                  if (onUploadSuccess) {
-                    onUploadSuccess(freshData);
-                  }
-                  onClose();
-                }}
-              />
-              <div className="mt-2.5 text-center">
-                <button
-                  onClick={() => {
-                    setIsProcessing(false);
-                    setProfileData((prev) => ({ ...prev, resumeStatus: "Not Uploaded" }));
-                  }}
-                  className="text-xs text-[var(--color-muted)] hover:text-[var(--color-text)] underline cursor-pointer"
-                >
-                  Upload a different resume instead
-                </button>
-              </div>
             </div>
           ) : (
             <>
