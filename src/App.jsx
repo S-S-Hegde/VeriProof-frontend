@@ -4,7 +4,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { useState, Suspense, lazy, useEffect } from "react";
+import { useState, Suspense, lazy, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
@@ -412,11 +412,11 @@ const AppContent = () => {
     setTimeout(() => setIsAppVisible(true), 300);
   };
 
-  const handleOutroComplete = () => {
+  const handleOutroComplete = useCallback(() => {
     logout();
     setIsExiting(false);
     window.location.href = "/login";
-  };
+  }, [logout, setIsExiting]);
 
   useEffect(() => {
     window.history.scrollRestoration = "manual";

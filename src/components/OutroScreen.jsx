@@ -1,22 +1,29 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Power, ShieldOff } from "lucide-react";
 
 export default function OutroScreen({ onComplete }) {
   const [stage, setStage] = useState(0);
+  const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
-    // We removed animejs because it was crashing the component
-    // We will handle the glitch natively with framer motion
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
     const timers = [
-      setTimeout(() => setStage(1), 400),    // Terminal Status
-      setTimeout(() => setStage(2), 1200),   // De-initialization
-      setTimeout(() => setStage(3), 2200),   // Final Shutter
-      setTimeout(() => onComplete?.(), 3200) // Call onComplete securely after shutters close
+      setTimeout(() => setStage(1), 300),    // Terminal Status
+      setTimeout(() => setStage(2), 800),    // De-initialization
+      setTimeout(() => setStage(3), 1500),   // Final Shutter
+      setTimeout(() => {
+        if (onCompleteRef.current) {
+          onCompleteRef.current();
+        }
+      }, 2000)                               // Complete logout and redirect
     ];
 
     return () => timers.forEach(clearTimeout);
-  }, [onComplete]);
+  }, []); // Run strictly ONCE on mount to prevent timer-reset loops
 
   return (
     <motion.div 
