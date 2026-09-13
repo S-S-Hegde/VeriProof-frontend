@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase, Plus, UploadCloud, FileText, X,
   Loader2, Trash2, CheckCircle, ChevronDown, Tag,
-  AlertCircle, RefreshCw,
+  AlertCircle, RefreshCw, Trophy
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -42,6 +43,7 @@ export default function Blueprint() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg]   = useState("");
   const [expandedJob, setExpandedJob] = useState(null);
+  const navigate = useNavigate();
 
   // Upload mode
   const [uploadFile, setUploadFile]   = useState(null);
@@ -341,6 +343,13 @@ export default function Blueprint() {
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => navigate(`/leaderboard/${job._id}`)}
+                      className="p-2 rounded-[var(--radius-sm)] text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 transition-all"
+                      title="View Rankings & Leaderboard"
+                    >
+                      <Trophy className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={() => setExpandedJob(expandedJob === job._id ? null : job._id)}
                       className="p-2 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-sunken)] transition-all"

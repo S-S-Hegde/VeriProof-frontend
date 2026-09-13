@@ -46,6 +46,7 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const BulkScreening = lazy(() => import("./pages/BulkScreening"));
 const JobRolesManager = lazy(() => import("./pages/JobRolesManager"));
+const JobLeaderboard = lazy(() => import("./pages/JobLeaderboard"));
 
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
@@ -381,6 +382,16 @@ const AnimatedRoutes = () => {
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
                 <JobRolesManager />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/leaderboard/:jobId"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <JobLeaderboard />
               </PageTransition>
             </Suspense>
           }

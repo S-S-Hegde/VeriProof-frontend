@@ -8,6 +8,7 @@ import ExamPaletteWidget from "./ExamPaletteWidget";
 import ExamWebcamWidget from "./ExamWebcamWidget";
 import ExamViolationModal from "./ExamViolationModal";
 import ExamResultsView from "./ExamResultsView";
+import ExamPurgatoryView from "./ExamPurgatoryView";
 import { AlertTriangle, Eye, ShieldAlert, AlertOctagon, Flame, Activity } from "lucide-react";
 
 // Maximum allowable strikes before immediate automatic exam termination
@@ -25,10 +26,20 @@ export default function ExamFlowManager() {
   const [examError, setExamError] = useState(null);
   const [chosenQuestionCount, setChosenQuestionCount] = useState(35);
   const [chosenDuration, setChosenDuration] = useState(40);
+  
+  // Adaptive Engine State
+  const [isAdaptive, setIsAdaptive] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState("core");
+  const [candidateDNA, setCandidateDNA] = useState([]);
+  const [isStartingPart2, setIsStartingPart2] = useState(false);
 
   // Exam State (with sessionStorage hydration)
   const [answers, setAnswers] = useState(() => {
     const saved = sessionStorage.getItem("exam_answers");
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [confidenceLevels, setConfidenceLevels] = useState(() => {
+    const saved = sessionStorage.getItem("exam_confidenceLevels");
     return saved ? JSON.parse(saved) : {};
   });
   const [visited, setVisited] = useState(() => {
@@ -231,25 +242,87 @@ export default function ExamFlowManager() {
   }, [stage, triggerViolation]);
 
   // Strict Validation: Candidate cannot submit unless all questions are attempted
-  const handleManualSubmit = useCallback(() => {
-    const answeredCount = Object.keys(answers).filter(
-      (k) => answers[k] !== undefined && answers[k] !== null
+  const handleManualSubmit = useCallback(async () => {
+    // Only check completion for the current phase's questions
+    const currentPhaseQuestions = isAdaptive ? questions.filter(q => q.phase === currentPhase) : questions;
+    const answeredCount = currentPhaseQuestions.filter(
+      (q) => answers[q._id] !== undefined && answers[q._id] !== null
     ).length;
-    const unanswered = questions.length - answeredCount;
+    const unanswered = currentPhaseQuestions.length - answeredCount;
 
     if (unanswered > 0) {
       setShowIncompleteModal(true);
       return;
     }
 
-    handleSubmitExam(false);
-  }, [answers, questions.length, handleSubmitExam]);
+    if (isAdaptive && currentPhase === "calibration") {
+      await handleCalibrationSubmit();
+    } else {
+      handleSubmitExam(false);
+    }
+  }, [answers, questions, currentPhase, isAdaptive, handleSubmitExam]);
 
-  // Navigation & Option Selection Handlers
+  // Submit Part 1 and enter Purgatory
+  const handleCalibrationSubmit = async () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    
+    try {
+      const payload = questions.filter(q => q.phase === "calibration").map((q) => ({
+        questionId: q._id,
+        answerIndex: answers[q._id] !== undefined ? answers[q._id] : null,
+      }));
+      
+      const { data } = await api.post("/api/exams/submit-calibration", {
+        answers: payload,
+        proctoringLogs: violationsLog
+      });
+      
+      if (data.success && data.phase === "purgatory") {
+        setCandidateDNA(data.candidateDNA || []);
+        setCurrentPhase("purgatory");
+        setStage("purgatory");
+      }
+    } catch (err) {
+      console.error("[CalibrationSubmit] Error:", err);
+      setExamError(err.response?.data?.message || "Failed to submit calibration.");
+    } finally {
+      isSubmittingRef.current = false;
+    }
+  };
+
+  // Start Part 2
+  const handleStartPart2 = async () => {
+    setIsStartingPart2(true);
+    try {
+      const { data } = await api.post("/api/exams/start-part2");
+      if (data.success && data.phase === "adaptive") {
+        // Append Part 2 questions to existing
+        setQuestions(prev => [...prev, ...data.questions]);
+        setCurrentPhase("adaptive");
+        setStage("assessment");
+        // Jump to first question of Part 2
+        const firstPart2Idx = questions.length;
+        setCurrentIndex(firstPart2Idx);
+      }
+    } catch (err) {
+      console.error("[StartPart2] Error:", err);
+      setExamError(err.response?.data?.message || "Failed to start Part 2.");
+    } finally {
+      setIsStartingPart2(false);
+    }
+  };
+
   const handleSelectOption = useCallback((optionIndex) => {
     if (!questions[currentIndex]) return;
     const qId = questions[currentIndex]._id;
     setAnswers((prev) => ({ ...prev, [qId]: optionIndex }));
+  }, [questions, currentIndex]);
+
+  const handleSelectConfidence = useCallback((level) => {
+    if (!questions[currentIndex]) return;
+    const qId = questions[currentIndex]._id;
+    setConfidenceLevels((prev) => ({ ...prev, [qId]: level }));
   }, [questions, currentIndex]);
 
   const handleNext = useCallback(() => {
@@ -295,11 +368,20 @@ export default function ExamFlowManager() {
       if (urlJobId) queryParams.set("jobId", urlJobId);
 
       const { data } = await api.get(`/api/exams/start?${queryParams.toString()}`);
-      setQuestions(data);
+      
+      let parsedQuestions = data;
+      if (data.questions) {
+        // Adaptive format returned
+        parsedQuestions = data.questions;
+        setIsAdaptive(data.isAdaptive);
+        setCurrentPhase(data.currentPhase);
+      }
+      
+      setQuestions(parsedQuestions);
       setTimeLeft(duration * 60);
       sessionStorage.setItem("exam_timeLeft", String(duration * 60));
-      if (data.length > 0) {
-        setVisited({ [data[0]._id]: true });
+      if (parsedQuestions.length > 0) {
+        setVisited({ [parsedQuestions[0]._id]: true });
       }
       setStage("instructions");
     } catch (err) {
@@ -527,7 +609,9 @@ export default function ExamFlowManager() {
                     currentIndex={currentIndex}
                     totalQuestions={questions.length}
                     selectedOption={answers[questions[currentIndex]._id]}
+                    selectedConfidence={confidenceLevels[questions[currentIndex]._id]}
                     onSelectOption={handleSelectOption}
+                    onSelectConfidence={handleSelectConfidence}
                     onNext={handleNext}
                     onPrev={handlePrev}
                     onSubmit={handleManualSubmit}
@@ -552,6 +636,14 @@ export default function ExamFlowManager() {
             </div>
           </div>
         </div>
+      )}
+
+      {stage === "purgatory" && (
+        <ExamPurgatoryView
+          candidateDNA={candidateDNA}
+          onStartPart2={handleStartPart2}
+          isStartingPart2={isStartingPart2}
+        />
       )}
 
       {stage === "results" && (

@@ -11,6 +11,8 @@ const ExamQuestionView = ({
   onPrev,
   onSubmit,
   user,
+  selectedConfidence,
+  onSelectConfidence,
 }) => {
   if (!question) return null;
 
@@ -36,6 +38,8 @@ const ExamQuestionView = ({
               className={`px-2.5 py-1 rounded-md text-xs font-bold font-mono border uppercase tracking-wider ${
                 question.difficulty === "Hard"
                   ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+                  : question.difficulty === "Expert"
+                  ? "bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/30"
                   : question.difficulty === "Medium"
                   ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
                   : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
@@ -43,15 +47,34 @@ const ExamQuestionView = ({
             >
               {question.difficulty || "Medium"}
             </span>
+            {question.phase === "adaptive" && (
+              <span className="px-2.5 py-1 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold uppercase tracking-wider font-mono">
+                Adaptive Phase
+              </span>
+            )}
           </div>
           <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700 font-mono">
             {question.category || question.skill || "Technical"}
           </span>
         </div>
 
-        <h3 className="text-lg sm:text-xl font-semibold text-slate-100 mb-6 leading-relaxed select-none">
+        <h3 className="text-lg sm:text-xl font-semibold text-slate-100 mb-4 leading-relaxed select-none">
           {question.text || question.questionText}
         </h3>
+
+        {question.codeSnippet && (
+          <div className="mb-6 rounded-lg overflow-hidden border border-slate-700 bg-[#0d1117]">
+            <div className="bg-slate-800/80 px-4 py-2 border-b border-slate-700 text-xs text-slate-400 font-mono flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span className="ml-2">Code Snippet</span>
+            </div>
+            <pre className="p-4 overflow-x-auto text-sm text-slate-300 font-mono leading-relaxed">
+              <code>{question.codeSnippet}</code>
+            </pre>
+          </div>
+        )}
 
         <div className="space-y-3">
           {question.options &&
@@ -87,6 +110,31 @@ const ExamQuestionView = ({
               );
             })}
         </div>
+        
+        {/* Confidence Calibration (Hard/Expert Adaptive only) */}
+        {question.phase === "adaptive" && ["Hard", "Expert"].includes(question.difficulty) && (
+          <div className="mt-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5">
+            <h4 className="text-sm font-semibold text-indigo-300 mb-3 flex items-center justify-between">
+              <span>Confidence Calibration required</span>
+              <span className="text-[10px] uppercase font-mono tracking-wider opacity-70">Forensic Engine</span>
+            </h4>
+            <div className="grid grid-cols-3 gap-3">
+              {['Low', 'Medium', 'High'].map(level => (
+                <button
+                  key={level}
+                  onClick={() => onSelectConfidence(level)}
+                  className={`py-2 rounded-lg text-xs font-bold tracking-wide uppercase transition-colors border ${
+                    selectedConfidence === level
+                      ? "bg-indigo-600 text-white border-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.3)]"
+                      : "bg-slate-800/50 text-slate-400 border-slate-700 hover:bg-slate-800"
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-800">
