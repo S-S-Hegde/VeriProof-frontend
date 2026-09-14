@@ -4,7 +4,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { useState, Suspense, lazy, useEffect, useCallback } from "react";
+import React, { useState, Suspense, lazy, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
