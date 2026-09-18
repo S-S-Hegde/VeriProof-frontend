@@ -13,13 +13,18 @@ import {
   User,
   Github,
   KeyRound,
+  Sparkles,
+  HelpCircle,
+  ShieldAlert,
 } from "lucide-react";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
+import PopupPermissionGuideModal from "./PopupPermissionGuideModal";
 
 const IdentityGatewayCard = ({
   role = "student",
   setRole,
   onGoogleAuth,
+  onGoogleRedirect,
   googleLoading,
   onPasswordAuth,
   passwordLoading,
@@ -40,6 +45,7 @@ const IdentityGatewayCard = ({
 }) => {
   const isRecruiter = role === "recruiter";
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -122,14 +128,71 @@ const IdentityGatewayCard = ({
         </p>
 
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2.5"
-          >
-            <span className="text-red-500 font-bold shrink-0">⚠</span>
-            <span className="leading-relaxed">{error}</span>
-          </motion.div>
+          (() => {
+            const isPopupBlocked =
+              typeof error === "string" &&
+              (error.toLowerCase().includes("popup was blocked") ||
+                error.toLowerCase().includes("popup-blocked") ||
+                error.toLowerCase().includes("allow popups"));
+
+            if (isPopupBlocked) {
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex flex-col gap-3 shadow-lg"
+                >
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 text-sm font-bold">
+                      <ShieldAlert className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-mono text-[10px] tracking-wider text-amber-400 font-bold block uppercase">
+                        POPUP_WINDOW_BLOCKED
+                      </span>
+                      <p className="text-slate-300 dark:text-gray-300 text-xs mt-0.5 leading-relaxed">
+                        Your browser prevented Google's authentication popup window from opening.
+                        You can continue immediately with direct page redirect:
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Quick Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    {onGoogleRedirect && (
+                      <button
+                        type="button"
+                        onClick={onGoogleRedirect}
+                        className="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-slate-950 hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Sign In via Redirect (No Popups)</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowGuideModal(true)}
+                      className="py-2.5 px-3 rounded-xl font-semibold text-xs text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>How to Allow Popups</span>
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            }
+
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2.5"
+              >
+                <span className="text-red-500 font-bold shrink-0">⚠</span>
+                <span className="leading-relaxed">{error}</span>
+              </motion.div>
+            );
+          })()
         )}
 
         {/* PRIMARY MANDATORY OAUTH BUTTON */}
@@ -405,6 +468,13 @@ const IdentityGatewayCard = ({
           )}
         </div>
       </div>
+
+      {/* Guide Modal for Allowing Popups */}
+      <PopupPermissionGuideModal
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
+        onContinueRedirect={onGoogleRedirect}
+      />
     </div>
   );
 };

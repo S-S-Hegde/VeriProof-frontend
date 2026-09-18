@@ -7,6 +7,7 @@ import { persistUserSession } from "../utils/authStorage";
 import RecruiterCompanyOnboardingModal from "../components/RecruiterCompanyOnboardingModal";
 import AuthShell from "../components/auth/AuthShell";
 import IdentityGatewayCard from "../components/auth/IdentityGatewayCard";
+import BrowserPermissionPrompt from "../components/auth/BrowserPermissionPrompt";
 import { CheckCircle, KeyRound, Loader2, ArrowRight } from "lucide-react";
 
 const Login = () => {
@@ -19,6 +20,7 @@ const Login = () => {
   const [error, setError]           = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeName, setWelcomeName] = useState("");
+  const [forceShowPrompt, setForceShowPrompt] = useState(false);
 
   const [showCompanyModal, setShowCompanyModal] = useState(false);
 
@@ -28,7 +30,14 @@ const Login = () => {
   const [otp, setOtp]               = useState(["", "", "", "", "", ""]);
   const otpRefs                     = useRef([]);
 
-  const { user, setUser, loginWithGoogle, authLoading, oauthError } = useAuth();
+  const {
+    user,
+    setUser,
+    loginWithGoogle,
+    loginWithGoogleRedirect,
+    authLoading,
+    oauthError,
+  } = useAuth();
   const navigate           = useNavigate();
   const location           = useLocation();
   const timeoutRef         = useRef(null);
@@ -48,8 +57,30 @@ const Login = () => {
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
+  const handleGoogleRedirect = async () => {
+    setError("");
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogleRedirect(role);
+    } catch (err) {
+      console.error("[Google Redirect Error]:", err);
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Google redirect failed to initiate. Please try again.";
+      setError(msg);
+      setGoogleLoading(false);
+    }
+  };
+
   const handleGoogleAuth = async () => {
     setError("");
+
+    // If user previously selected redirect preference, honor it directly
+    if (localStorage.getItem("veriproof_popup_pref") === "redirect") {
+      return handleGoogleRedirect();
+    }
+
     setGoogleLoading(true);
     try {
       const data = await loginWithGoogle(role);
@@ -60,6 +91,16 @@ const Login = () => {
       finishLogin(data);
     } catch (err) {
       console.error("[Google Auth Error]:", err);
+      const isPopupBlocked =
+        err.isPopupBlocked ||
+        (typeof err.message === "string" &&
+          (err.message.toLowerCase().includes("popup was blocked") ||
+            err.message.toLowerCase().includes("popup-blocked")));
+
+      if (isPopupBlocked) {
+        setForceShowPrompt(true);
+      }
+
       const msg =
         err.response?.data?.message ||
         err.message ||
@@ -174,7 +215,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[90vh]">
+    <div className="min-h-[90vh] relative">
+      {/* Browser Permission Prompt for Google OAuth Popups */}
+      <BrowserPermissionPrompt
+        forceShow={forceShowPrompt}
+        onClose={() => setForceShowPrompt(false)}
+        onUseRedirect={handleGoogleRedirect}
+        onPermissionGranted={() => setError("")}
+      />
+
       <RecruiterCompanyOnboardingModal
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}
@@ -287,6 +336,7 @@ const Login = () => {
             role={role}
             setRole={setRole}
             onGoogleAuth={handleGoogleAuth}
+            onGoogleRedirect={handleGoogleRedirect}
             googleLoading={googleLoading || authLoading}
             onPasswordAuth={submitHandler}
             passwordLoading={loading}

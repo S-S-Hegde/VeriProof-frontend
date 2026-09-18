@@ -9,6 +9,7 @@ import RecruiterCompanyOnboardingModal from "../components/RecruiterCompanyOnboa
 import RoleSelectionDeck from "../components/auth/RoleSelectionDeck";
 import AuthShell from "../components/auth/AuthShell";
 import IdentityGatewayCard from "../components/auth/IdentityGatewayCard";
+import BrowserPermissionPrompt from "../components/auth/BrowserPermissionPrompt";
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -23,13 +24,20 @@ const Register = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [forceShowPrompt, setForceShowPrompt] = useState(false);
 
   // Post-OAuth GitHub username collection state
   const [pendingOAuthData, setPendingOAuthData] = useState(null); // holds user data after Google OAuth
   const [githubStep, setGithubStep] = useState(false);            // shows GitHub username prompt
   const [githubSaving, setGithubSaving] = useState(false);
 
-  const { setUser, loginWithGoogle, authLoading, oauthError } = useAuth();
+  const {
+    setUser,
+    loginWithGoogle,
+    loginWithGoogleRedirect,
+    authLoading,
+    oauthError,
+  } = useAuth();
   useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,8 +69,30 @@ const Register = () => {
     setStep(1);
   };
 
+  const handleGoogleRedirect = async () => {
+    setError("");
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogleRedirect(role);
+    } catch (err) {
+      console.error("[Google Registration Redirect Error]:", err);
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Google registration redirect failed to initiate.";
+      setError(msg);
+      setGoogleLoading(false);
+    }
+  };
+
   const handleGoogleRegister = async () => {
     setError("");
+
+    // If user previously selected redirect preference, honor it directly
+    if (localStorage.getItem("veriproof_popup_pref") === "redirect") {
+      return handleGoogleRedirect();
+    }
+
     setGoogleLoading(true);
     try {
       const data = await loginWithGoogle(role);
@@ -94,6 +124,16 @@ const Register = () => {
       navigate(data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard");
     } catch (err) {
       console.error("[Google Registration Error]:", err);
+      const isPopupBlocked =
+        err.isPopupBlocked ||
+        (typeof err.message === "string" &&
+          (err.message.toLowerCase().includes("popup was blocked") ||
+            err.message.toLowerCase().includes("popup-blocked")));
+
+      if (isPopupBlocked) {
+        setForceShowPrompt(true);
+      }
+
       setError(
         err.response?.data?.message ||
           err.message ||
@@ -209,7 +249,15 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-[90vh]">
+    <div className="min-h-[90vh] relative">
+      {/* Browser Permission Prompt for Google OAuth Popups */}
+      <BrowserPermissionPrompt
+        forceShow={forceShowPrompt}
+        onClose={() => setForceShowPrompt(false)}
+        onUseRedirect={handleGoogleRedirect}
+        onPermissionGranted={() => setError("")}
+      />
+
       <RecruiterCompanyOnboardingModal
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}
@@ -306,6 +354,7 @@ const Register = () => {
               role={role}
               setRole={setRole}
               onGoogleAuth={handleGoogleRegister}
+              onGoogleRedirect={handleGoogleRedirect}
               googleLoading={googleLoading || authLoading}
               onPasswordAuth={submitHandler}
               passwordLoading={loading}

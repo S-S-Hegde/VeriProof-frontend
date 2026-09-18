@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import { signInWithGoogle, handleRedirectResult } from "../config/firebase";
+import {
+  signInWithGoogle,
+  signInWithGoogleRedirect,
+  handleRedirectResult,
+} from "../config/firebase";
 import {
   clearUserSession,
   getStoredUser,
@@ -179,6 +183,18 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const loginWithGoogleRedirect = async (role = "student", inviteCode = "") => {
+    setAuthLoading(true);
+    setOauthError("");
+    try {
+      await signInWithGoogleRedirect(role, inviteCode);
+    } catch (err) {
+      setAuthLoading(false);
+      setOauthError(err.message || "Failed to initiate Google Redirect.");
+      throw err;
+    }
+  };
+
   const logout = () => {
     try {
       api.post("/api/keep-alive/release").catch(() => {});
@@ -192,6 +208,7 @@ export const AuthProvider = ({ children }) => {
         user,
         login,
         loginWithGoogle,
+        loginWithGoogleRedirect,
         logout,
         loading: authLoading,
         authLoading,

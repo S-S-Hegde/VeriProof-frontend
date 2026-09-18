@@ -42,6 +42,29 @@ googleProvider.setCustomParameters({
 });
 
 /**
+ * Safely test if popups are permitted by the user's browser.
+ * Must be invoked inside a direct user event (e.g. click).
+ * Returns { allowed: boolean, reason?: string }.
+ */
+export const testPopupPermission = () => {
+  if (typeof window === "undefined") return { allowed: false, reason: "No window object" };
+  try {
+    const testWin = window.open(
+      "about:blank",
+      "_blank",
+      "width=100,height=100,left=-9999,top=-9999"
+    );
+    if (!testWin || testWin.closed || typeof testWin.closed === "undefined") {
+      return { allowed: false, reason: "Popup blocked by browser" };
+    }
+    testWin.close();
+    return { allowed: true };
+  } catch (err) {
+    return { allowed: false, reason: err.message || "Popup access denied" };
+  }
+};
+
+/**
  * Perform mandatory Google OAuth login via Firebase popup.
  * Keeps React single-page app alive in memory to immediately dispatch token to backend.
  */
@@ -69,6 +92,7 @@ export const signInWithGoogle = async () => {
         "Popup was blocked by your browser. Please allow popups for this site to sign in with Google."
       );
       customErr.code = error.code;
+      customErr.isPopupBlocked = true;
       throw customErr;
     }
 
@@ -97,6 +121,27 @@ export const signInWithGoogle = async () => {
     console.error("[Firebase OAuth] Google Sign-In error:", error);
     throw error;
   }
+};
+
+/**
+ * Perform Google OAuth login via full-page redirect.
+ * 100% immune to popup blockers since it uses browser page navigation.
+ */
+export const signInWithGoogleRedirect = async (role = "student", inviteCode = "") => {
+  if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+    throw new Error(
+      "Firebase environment variables are missing. Please configure VITE_FIREBASE_* in your Vercel Project Settings."
+    );
+  }
+
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem(
+      "veriproof_auth_pending",
+      JSON.stringify({ role, inviteCode, timestamp: Date.now() })
+    );
+  }
+
+  await signInWithRedirect(auth, googleProvider);
 };
 
 /**
