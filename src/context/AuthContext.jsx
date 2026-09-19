@@ -79,16 +79,21 @@ export const AuthProvider = ({ children }) => {
 
           let role = "student";
           let inviteCode = "";
-          const pendingStr = sessionStorage.getItem("veriproof_auth_pending");
+          // Use localStorage — sessionStorage is wiped during signInWithRedirect navigation
+          const pendingStr = localStorage.getItem("veriproof_auth_pending");
           if (pendingStr) {
             try {
               const pending = JSON.parse(pendingStr);
-              role = pending.role || "student";
-              inviteCode = pending.inviteCode || "";
+              // Only honour pending data if it's less than 10 minutes old
+              const age = Date.now() - (pending.timestamp || 0);
+              if (age < 10 * 60 * 1000) {
+                role = pending.role || "student";
+                inviteCode = pending.inviteCode || "";
+              }
             } catch (e) {
               // ignore json parse error
             }
-            sessionStorage.removeItem("veriproof_auth_pending");
+            localStorage.removeItem("veriproof_auth_pending");
           }
 
           const config = {
@@ -106,6 +111,17 @@ export const AuthProvider = ({ children }) => {
 
           updateCurrentUser(data);
           scheduleLogout(ONE_HOUR);
+
+          // Navigate to the appropriate dashboard after redirect login.
+          // Without this, the user is left on the login page in a loop.
+          if (data && data.role) {
+            const dashPath =
+              data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
+            // Small timeout so React can flush the state update first
+            setTimeout(() => {
+              window.location.replace(dashPath);
+            }, 50);
+          }
         }
       } catch (err) {
         console.error("[Firebase OAuth Redirect Process Error]:", err);

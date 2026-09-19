@@ -135,7 +135,9 @@ export const signInWithGoogleRedirect = async (role = "student", inviteCode = ""
   }
 
   if (typeof window !== "undefined") {
-    sessionStorage.setItem(
+    // Use localStorage (not sessionStorage) because signInWithRedirect
+    // navigates away from the page, which wipes sessionStorage in some browsers.
+    localStorage.setItem(
       "veriproof_auth_pending",
       JSON.stringify({ role, inviteCode, timestamp: Date.now() })
     );
