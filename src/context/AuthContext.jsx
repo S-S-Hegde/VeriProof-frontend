@@ -42,6 +42,11 @@ export const AuthProvider = ({ children }) => {
   });
   const [authLoading, setAuthLoading] = useState(false);
   const [oauthError, setOauthError] = useState("");
+  // True while getRedirectResult + backend call is in flight after a Google redirect.
+  // UI should show a loading overlay instead of the login form during this time.
+  const [redirectProcessing, setRedirectProcessing] = useState(
+    () => Boolean(localStorage.getItem("veriproof_auth_pending"))
+  );
   const [isExiting, setIsExiting] = useState(false);
   const logoutTimerRef = useRef(null);
 
@@ -72,15 +77,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const processRedirect = async () => {
       try {
+        // If there's no pending auth, skip getRedirectResult entirely (fast path)
+        const pendingStr = localStorage.getItem("veriproof_auth_pending");
         const result = await handleRedirectResult();
+
         if (result && result.idToken) {
+          setRedirectProcessing(true);
           setAuthLoading(true);
           setOauthError("");
 
           let role = "student";
           let inviteCode = "";
-          // Use localStorage — sessionStorage is wiped during signInWithRedirect navigation
-          const pendingStr = localStorage.getItem("veriproof_auth_pending");
+
           if (pendingStr) {
             try {
               const pending = JSON.parse(pendingStr);
@@ -96,42 +104,76 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem("veriproof_auth_pending");
           }
 
-          const config = {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${result.idToken}`,
-            },
-          };
-
-          const { data } = await api.post(
-            "/api/users/firebase-auth",
-            { role, inviteCode, idToken: result.idToken },
-            config
-          );
+          // Render backend can take 25-50s to wake from cold start.
+          // Use a dedicated long-timeout request with up to 3 retries.
+          let data = null;
+          let lastErr = null;
+          const REDIRECT_TIMEOUT = 55000; // 55s — longer than Render cold start
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              const res = await api.post(
+                "/api/users/firebase-auth",
+                { role, inviteCode, idToken: result.idToken },
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${result.idToken}`,
+                  },
+                  timeout: REDIRECT_TIMEOUT,
+                }
+              );
+              data = res.data;
+              break; // success
+            } catch (err) {
+              lastErr = err;
+              const isRetryable =
+                !err.response || // network error / timeout
+                [502, 503, 504].includes(err.response?.status);
+              if (!isRetryable || attempt === 2) throw err;
+              // Wait before retry: 3s, 6s
+              await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
+            }
+          }
 
           updateCurrentUser(data);
           scheduleLogout(ONE_HOUR);
 
           // Navigate to the appropriate dashboard after redirect login.
-          // Without this, the user is left on the login page in a loop.
+          // Without this the user is left on the login page in a loop.
           if (data && data.role) {
             const dashPath =
               data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-            // Small timeout so React can flush the state update first
             setTimeout(() => {
               window.location.replace(dashPath);
             }, 50);
           }
+        } else {
+          // No redirect result — clear pending flag if stale
+          if (pendingStr) {
+            try {
+              const pending = JSON.parse(pendingStr);
+              const age = Date.now() - (pending.timestamp || 0);
+              if (age > 15 * 60 * 1000) {
+                localStorage.removeItem("veriproof_auth_pending");
+              }
+            } catch (e) {
+              localStorage.removeItem("veriproof_auth_pending");
+            }
+          }
+          setRedirectProcessing(false);
         }
       } catch (err) {
         console.error("[Firebase OAuth Redirect Process Error]:", err);
+        localStorage.removeItem("veriproof_auth_pending");
         const msg =
           err.response?.data?.message ||
           err.message ||
-          "Failed to verify Google account with backend. Please check backend server.";
+          "Google Sign-In failed. The backend server may be waking up — please wait 30 seconds and try again.";
         setOauthError(msg);
+        setRedirectProcessing(false);
       } finally {
         setAuthLoading(false);
+        setRedirectProcessing(false);
       }
     };
 
@@ -228,6 +270,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         loading: authLoading,
         authLoading,
+        redirectProcessing,
         oauthError,
         setOauthError,
         setUser: updateCurrentUser,
