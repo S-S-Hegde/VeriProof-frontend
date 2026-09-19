@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/__/auth/:path*",
+      "destination": "https://veriproof-76123.firebaseapp.com/__/auth/:path*"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://veriproof-backend.onrender.com/api/:path*"
     },

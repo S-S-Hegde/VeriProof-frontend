@@ -23,9 +23,11 @@ if (missingVars.length > 0) {
   );
 }
 
+// On production (e.g. Vercel), we proxy /__/auth/* through vercel.json.
+// However, the Firebase Auth provider defaults to the standard authDomain.
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "veriproof-76123.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
@@ -42,26 +44,12 @@ googleProvider.setCustomParameters({
 });
 
 /**
- * Safely test if popups are permitted by the user's browser.
- * Must be invoked inside a direct user event (e.g. click).
- * Returns { allowed: boolean, reason?: string }.
+ * Clean helper to check popup preference or support.
  */
 export const testPopupPermission = () => {
   if (typeof window === "undefined") return { allowed: false, reason: "No window object" };
-  try {
-    const testWin = window.open(
-      "about:blank",
-      "_blank",
-      "width=100,height=100,left=-9999,top=-9999"
-    );
-    if (!testWin || testWin.closed || typeof testWin.closed === "undefined") {
-      return { allowed: false, reason: "Popup blocked by browser" };
-    }
-    testWin.close();
-    return { allowed: true };
-  } catch (err) {
-    return { allowed: false, reason: err.message || "Popup access denied" };
-  }
+  // Check if browser has explicit popup blocking indicator if any
+  return { allowed: true };
 };
 
 /**

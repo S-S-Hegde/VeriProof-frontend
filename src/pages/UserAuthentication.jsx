@@ -76,12 +76,6 @@ const Login = () => {
 
   const handleGoogleAuth = async () => {
     setError("");
-
-    // If user previously selected redirect preference, honor it directly
-    if (localStorage.getItem("veriproof_popup_pref") === "redirect") {
-      return handleGoogleRedirect();
-    }
-
     setGoogleLoading(true);
     try {
       const data = await loginWithGoogle(role);

@@ -73,11 +73,17 @@ export const AuthProvider = ({ children }) => {
     }, timeRemaining);
   };
 
-  // Check for completed OAuth redirect on initial page load
+  // Check for completed OAuth redirect on initial page load & purge any poisoned popup pref
   useEffect(() => {
+    // Purge any poisoned "redirect" preference so users default to standard working popups
+    try {
+      if (localStorage.getItem("veriproof_popup_pref") === "redirect") {
+        localStorage.removeItem("veriproof_popup_pref");
+      }
+    } catch (e) {}
+
     const processRedirect = async () => {
       try {
-        // If there's no pending auth, skip getRedirectResult entirely (fast path)
         const pendingStr = localStorage.getItem("veriproof_auth_pending");
         const result = await handleRedirectResult();
 
@@ -92,9 +98,8 @@ export const AuthProvider = ({ children }) => {
           if (pendingStr) {
             try {
               const pending = JSON.parse(pendingStr);
-              // Only honour pending data if it's less than 10 minutes old
               const age = Date.now() - (pending.timestamp || 0);
-              if (age < 10 * 60 * 1000) {
+              if (age < 15 * 60 * 1000) {
                 role = pending.role || "student";
                 inviteCode = pending.inviteCode || "";
               }
@@ -105,10 +110,8 @@ export const AuthProvider = ({ children }) => {
           }
 
           // Render backend can take 25-50s to wake from cold start.
-          // Use a dedicated long-timeout request with up to 3 retries.
           let data = null;
-          let lastErr = null;
-          const REDIRECT_TIMEOUT = 55000; // 55s — longer than Render cold start
+          const REDIRECT_TIMEOUT = 55000;
           for (let attempt = 0; attempt < 3; attempt++) {
             try {
               const res = await api.post(
@@ -123,14 +126,11 @@ export const AuthProvider = ({ children }) => {
                 }
               );
               data = res.data;
-              break; // success
+              break;
             } catch (err) {
-              lastErr = err;
               const isRetryable =
-                !err.response || // network error / timeout
-                [502, 503, 504].includes(err.response?.status);
+                !err.response || [502, 503, 504].includes(err.response?.status);
               if (!isRetryable || attempt === 2) throw err;
-              // Wait before retry: 3s, 6s
               await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
             }
           }
@@ -138,8 +138,6 @@ export const AuthProvider = ({ children }) => {
           updateCurrentUser(data);
           scheduleLogout(ONE_HOUR);
 
-          // Navigate to the appropriate dashboard after redirect login.
-          // Without this the user is left on the login page in a loop.
           if (data && data.role) {
             const dashPath =
               data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
@@ -148,17 +146,12 @@ export const AuthProvider = ({ children }) => {
             }, 50);
           }
         } else {
-          // No redirect result — clear pending flag if stale
+          // If a redirect was initiated but returned null, storage was partitioned or user cancelled
           if (pendingStr) {
-            try {
-              const pending = JSON.parse(pendingStr);
-              const age = Date.now() - (pending.timestamp || 0);
-              if (age > 15 * 60 * 1000) {
-                localStorage.removeItem("veriproof_auth_pending");
-              }
-            } catch (e) {
-              localStorage.removeItem("veriproof_auth_pending");
-            }
+            localStorage.removeItem("veriproof_auth_pending");
+            setOauthError(
+              "Google Sign-In redirect could not complete because cross-origin cookies were blocked. Please click 'Continue with Google OAuth' and allow popups in your browser address bar."
+            );
           }
           setRedirectProcessing(false);
         }

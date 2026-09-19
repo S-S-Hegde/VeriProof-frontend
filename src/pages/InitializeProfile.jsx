@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { ChevronLeft, Github, ArrowRight, Loader2, SkipForward } from "lucide-react";
+import { ChevronLeft, Github, ArrowRight, Loader2, SkipForward, ShieldAlert } from "lucide-react";
 import api from "../utils/api";
 import { persistUserSession } from "../utils/authStorage";
 import RecruiterCompanyOnboardingModal from "../components/RecruiterCompanyOnboardingModal";
@@ -44,6 +44,16 @@ const Register = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // If returning from an auth redirect or pending state, resume on Step 2
+    const pendingStr = localStorage.getItem("veriproof_auth_pending");
+    if (pendingStr) {
+      try {
+        const parsed = JSON.parse(pendingStr);
+        if (parsed.role) setRole(parsed.role);
+        setStep(2);
+      } catch (e) {}
+    }
+
     const params = new URLSearchParams(location.search);
     const qEmail = params.get("email");
     const qRole = params.get("role");
@@ -88,12 +98,6 @@ const Register = () => {
 
   const handleGoogleRegister = async () => {
     setError("");
-
-    // If user previously selected redirect preference, honor it directly
-    if (localStorage.getItem("veriproof_popup_pref") === "redirect") {
-      return handleGoogleRedirect();
-    }
-
     setGoogleLoading(true);
     try {
       const data = await loginWithGoogle(role);
@@ -366,6 +370,19 @@ const Register = () => {
         </div>
       ) : step === 1 ? (
         <div className="py-8 px-4">
+          {(oauthError || error) && (
+            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-3 shadow-lg">
+              <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-bold text-amber-300 mb-1 uppercase font-mono tracking-wider">
+                  Authentication Notice
+                </p>
+                <p className="text-slate-300 dark:text-gray-300 leading-relaxed">
+                  {oauthError || error}
+                </p>
+              </div>
+            </div>
+          )}
           <RoleSelectionDeck onSelectRole={handleRoleSelection} />
         </div>
       ) : (

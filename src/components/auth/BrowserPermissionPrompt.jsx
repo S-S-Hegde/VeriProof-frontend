@@ -30,14 +30,10 @@ const BrowserPermissionPrompt = ({
   useEffect(() => {
     if (typeof window !== "undefined") {
       setOrigin(window.location.host);
-      const pref = localStorage.getItem("veriproof_popup_pref");
-      // Show automatically if never answered or if forced
+      // Only show when specifically requested (e.g. when popup is blocked)
       if (forceShow) {
         setVisible(true);
-      } else if (!pref) {
-        // Small entrance delay to feel natural like browser permission request
-        const t = setTimeout(() => setVisible(true), 800);
-        return () => clearTimeout(t);
+        setStatus("blocked");
       }
     }
   }, [forceShow]);
