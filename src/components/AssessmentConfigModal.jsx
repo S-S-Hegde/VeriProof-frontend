@@ -33,6 +33,8 @@ export default function AssessmentConfigModal({
     });
   };
 
+  if (!isOpen) return null;
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">

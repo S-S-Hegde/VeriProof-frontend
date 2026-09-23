@@ -117,6 +117,9 @@ export default function CoupleRepositoriesModal({
     }
   };
 
+  if (!isOpen) return null;
+  if (typeof document === "undefined" || !document.body) return null;
+
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}

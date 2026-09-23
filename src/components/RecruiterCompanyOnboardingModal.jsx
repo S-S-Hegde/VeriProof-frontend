@@ -117,6 +117,8 @@ const RecruiterCompanyOnboardingModal = ({ isOpen, onClose, onVerified }) => {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
       <motion.div
