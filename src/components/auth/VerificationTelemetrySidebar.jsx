@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { ShieldCheck, Cpu, Database, CheckCircle2, Lock, GitBranch, Layers, Award, Terminal } from "lucide-react";
+import CryptographicCore3D from "../3d/CryptographicCore3D";
 
 const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step = 1 }) => {
   const isRecruiter = role === "recruiter";
 
   return (
-    <div className="h-full w-full flex flex-col justify-between p-8 lg:p-12 relative overflow-hidden bg-gradient-to-br from-slate-100 via-slate-200/80 to-slate-100 dark:from-[#070a14] dark:via-[#0b1021] dark:to-[#060912] text-slate-900 dark:text-white border-r border-slate-200 dark:border-white/5 transition-colors duration-300">
+    <div className="h-full w-full flex flex-col justify-between p-8 lg:p-12 relative overflow-hidden bg-slate-100/60 dark:bg-[#070a14]/50 backdrop-blur-2xl text-slate-900 dark:text-white border-r border-slate-200/80 dark:border-white/5 transition-colors duration-300">
       {/* Dynamic Background Glows */}
       <div
         className={`absolute -top-24 -left-24 w-96 h-96 rounded-full blur-[120px] pointer-events-none transition-all duration-700 ${
@@ -81,8 +82,13 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
         </motion.div>
       </div>
 
+      {/* Interactive 3D Cryptographic Lattice */}
+      <div className="relative z-10 my-4">
+        <CryptographicCore3D role={role} />
+      </div>
+
       {/* Mid Section: Feature Nodes / Journey Cues */}
-      <div className="relative z-10 my-8 space-y-4 max-w-md">
+      <div className="relative z-10 my-4 space-y-3 max-w-md">
         <div className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 mb-2 font-semibold">
           [ {isRecruiter ? "RECRUITER_VERIFICATION_NODES" : "CANDIDATE_EVIDENCE_PIPELINE"} ]
         </div>

@@ -13,12 +13,8 @@ import {
   User,
   Github,
   KeyRound,
-  Sparkles,
-  HelpCircle,
-  ShieldAlert,
 } from "lucide-react";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
-import PopupPermissionGuideModal from "./PopupPermissionGuideModal";
 
 const IdentityGatewayCard = ({
   role = "student",
@@ -45,7 +41,6 @@ const IdentityGatewayCard = ({
 }) => {
   const isRecruiter = role === "recruiter";
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showGuideModal, setShowGuideModal] = useState(false);
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -100,7 +95,7 @@ const IdentityGatewayCard = ({
       )}
 
       {/* Main Glass Terminal Card */}
-      <div className="relative p-7 sm:p-8 rounded-3xl bg-white dark:bg-[#0c1222]/90 border border-slate-300 dark:border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden transition-colors duration-300">
+      <div className="relative p-7 sm:p-8 rounded-3xl bg-white/80 dark:bg-[#0c1222]/70 border border-slate-200 dark:border-cyan-500/20 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.37)] overflow-hidden transition-colors duration-300">
         {/* Glow halo */}
         <div
           className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-[100px] pointer-events-none transition-all duration-700 ${
@@ -412,12 +407,7 @@ const IdentityGatewayCard = ({
         </div>
       </div>
 
-      {/* Guide Modal for Allowing Popups */}
-      <PopupPermissionGuideModal
-        isOpen={showGuideModal}
-        onClose={() => setShowGuideModal(false)}
-        onContinueRedirect={onGoogleRedirect}
-      />
+
     </div>
   );
 };
