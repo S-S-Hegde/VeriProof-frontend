@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { auth, googleProvider } from "../config/firebase";
-import { signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
+import { signInWithRedirect, getRedirectResult, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import api from "../utils/api";
 import { persistUserSession } from "../utils/authStorage";
 import { CheckCircle2, Loader2, ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
@@ -67,15 +67,27 @@ const AuthCallback = () => {
           }
         }
 
-        // 3. If we STILL don't have a token, this is the initial launch of the window -> Trigger Google Redirect
+        // 3. If we STILL don't have a token, check whether redirect was already attempted
         if (!idToken) {
-          localStorage.setItem(
-            "veriproof_auth_pending",
-            JSON.stringify({ role, inviteCode, timestamp: Date.now() })
-          );
-          await signInWithRedirect(auth, googleProvider);
+          const redirectAttempted = sessionStorage.getItem("vp_auth_redirect_attempted");
+          if (!redirectAttempted) {
+            sessionStorage.setItem("vp_auth_redirect_attempted", "true");
+            localStorage.setItem(
+              "veriproof_auth_pending",
+              JSON.stringify({ role, inviteCode, timestamp: Date.now() })
+            );
+            await signInWithRedirect(auth, googleProvider);
+            return;
+          }
+
+          // Redirect was already attempted once and yielded no user session -> break the loop cleanly
+          sessionStorage.removeItem("vp_auth_redirect_attempted");
+          setStatus("error");
+          setErrorMessage("Google Sign-In was unable to restore session automatically. Please click the button below to authorize directly.");
           return;
         }
+
+        sessionStorage.removeItem("vp_auth_redirect_attempted");
 
         // 4. We have an authenticated Google User! Verify with backend
         processedRef.current = true;
@@ -226,16 +238,62 @@ const AuthCallback = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto font-bold text-lg">
-              ✕
+            <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto font-bold text-lg">
+              !
             </div>
-            <h2 className="text-lg font-black italic uppercase tracking-wider text-red-400">
-              Authentication Error
+            <h2 className="text-lg font-black italic uppercase tracking-wider text-white">
+              Action Required
             </h2>
-            <p className="text-xs text-red-300/90 font-mono leading-relaxed">
+            <p className="text-xs text-slate-300 font-mono leading-relaxed">
               {errorMessage}
             </p>
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  setStatus("authenticating");
+                  try {
+                    const res = await signInWithPopup(auth, googleProvider);
+                    if (res && res.user) {
+                      const idToken = await res.user.getIdToken(true);
+                      const apiRes = await api.post(
+                        "/api/users/firebase-auth",
+                        { role, inviteCode, idToken },
+                        {
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${idToken}`,
+                          },
+                          timeout: 55000,
+                        }
+                      );
+                      persistUserSession(apiRes.data);
+                      setStatus("success");
+                      if (window.opener && !window.opener.closed) {
+                        window.opener.postMessage(
+                          { type: "VERIPROOF_AUTH_SUCCESS", data: apiRes.data },
+                          window.location.origin
+                        );
+                      }
+                      localStorage.setItem(
+                        "veriproof_auth_bridge_event",
+                        JSON.stringify({ timestamp: Date.now(), data: apiRes.data })
+                      );
+                      setTimeout(() => {
+                        try { window.close(); } catch (e) {}
+                        navigate(apiRes.data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", { replace: true });
+                      }, 1000);
+                    }
+                  } catch (err) {
+                    setStatus("error");
+                    setErrorMessage(err.message || "Authentication failed.");
+                  }
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg hover:brightness-110 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Authorize with Google</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -244,9 +302,9 @@ const AuthCallback = () => {
                   } catch (e) {}
                   navigate("/login", { replace: true });
                 }}
-                className="inline-flex items-center gap-2 py-2 px-5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold uppercase tracking-wider transition-all border border-white/10"
+                className="w-full py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-medium uppercase tracking-wider transition-all border border-white/5"
               >
-                <span>Return to Login</span>
+                <span>Cancel / Return to Login</span>
               </button>
             </div>
           </div>

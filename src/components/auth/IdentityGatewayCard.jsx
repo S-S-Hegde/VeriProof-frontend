@@ -123,53 +123,16 @@ const IdentityGatewayCard = ({
           Access protected {isRecruiter ? "recruiter" : "candidate"} forensic verification tools via secure OAuth.
         </p>
 
-        {error && (() => {
-          const isBlocked = typeof error === "string" && (
-            error.toLowerCase().includes("popup") ||
-            error.toLowerCase().includes("blocked")
-          );
-
-          if (isBlocked && onOpenAuthWindow) {
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs shadow-md space-y-2"
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-amber-400 font-bold shrink-0 text-sm">⚠</span>
-                  <div>
-                    <span className="font-mono text-[9px] tracking-wider text-amber-400 font-bold block uppercase">
-                      POPUP WINDOW PREVENTED BY BROWSER
-                    </span>
-                    <p className="text-slate-300 dark:text-gray-300 text-[11px] mt-0.5 leading-tight">
-                      Click below to authenticate in a dedicated sign-in window that auto-closes once complete:
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={onOpenAuthWindow}
-                  className="w-full py-2 px-3 rounded-lg font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:brightness-110 text-slate-950 flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all"
-                >
-                  <span>Open Sign-In Window (Auto-Closes)</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </motion.div>
-            );
-          }
-
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2 shadow-sm"
-            >
-              <span className="text-red-500 font-bold shrink-0">⚠</span>
-              <span className="leading-relaxed">{error}</span>
-            </motion.div>
-          );
-        })()}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2 shadow-sm"
+          >
+            <span className="text-red-500 font-bold shrink-0">⚠</span>
+            <span className="leading-relaxed">{error}</span>
+          </motion.div>
+        )}
 
         {/* PRIMARY MANDATORY OAUTH BUTTON */}
         <div>
