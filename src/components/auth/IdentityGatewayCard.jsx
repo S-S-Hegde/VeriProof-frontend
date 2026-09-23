@@ -128,70 +128,14 @@ const IdentityGatewayCard = ({
         </p>
 
         {error && (
-          (() => {
-            const isPopupBlocked =
-              typeof error === "string" &&
-              (error.toLowerCase().includes("popup was blocked") ||
-                error.toLowerCase().includes("popup-blocked") ||
-                error.toLowerCase().includes("please allow popups"));
-
-            if (isPopupBlocked) {
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex flex-col gap-3 shadow-lg"
-                >
-                  <div className="flex items-start gap-2.5">
-                    <div className="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 text-sm font-bold">
-                      <ShieldAlert className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] tracking-wider text-amber-400 font-bold block uppercase">
-                        POPUP_WINDOW_BLOCKED
-                      </span>
-                      <p className="text-slate-300 dark:text-gray-300 text-xs mt-0.5 leading-relaxed">
-                        Your browser prevented Google's authentication popup window from opening.
-                        If you have enabled popups in your browser settings, click below to sign in:
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Quick Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={onGoogleAuth}
-                      disabled={googleLoading}
-                      className="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{googleLoading ? "Signing in..." : "Continue with Google Sign-In"}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowGuideModal(true)}
-                      className="py-2.5 px-3 rounded-xl font-semibold text-xs text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <HelpCircle className="w-3.5 h-3.5" />
-                      <span>How to Allow Popups</span>
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            }
-
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2.5"
-              >
-                <span className="text-red-500 font-bold shrink-0">⚠</span>
-                <span className="leading-relaxed">{error}</span>
-              </motion.div>
-            );
-          })()
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2.5 shadow-sm"
+          >
+            <span className="text-red-500 font-bold shrink-0">⚠</span>
+            <span className="leading-relaxed">{error}</span>
+          </motion.div>
         )}
 
         {/* PRIMARY MANDATORY OAUTH BUTTON */}

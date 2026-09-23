@@ -9,7 +9,6 @@ import RecruiterCompanyOnboardingModal from "../components/RecruiterCompanyOnboa
 import RoleSelectionDeck from "../components/auth/RoleSelectionDeck";
 import AuthShell from "../components/auth/AuthShell";
 import IdentityGatewayCard from "../components/auth/IdentityGatewayCard";
-import BrowserPermissionPrompt from "../components/auth/BrowserPermissionPrompt";
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -24,7 +23,6 @@ const Register = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
-  const [forceShowPrompt, setForceShowPrompt] = useState(false);
 
   // Post-OAuth GitHub username collection state
   const [pendingOAuthData, setPendingOAuthData] = useState(null); // holds user data after Google OAuth
@@ -152,14 +150,12 @@ const Register = () => {
           (err.message.toLowerCase().includes("popup was blocked") ||
             err.message.toLowerCase().includes("popup-blocked")));
 
-      if (isPopupBlocked) {
-        setForceShowPrompt(true);
-      }
-
       setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Google registration failed. Please check your credentials or try email sign up."
+        isPopupBlocked
+          ? "Popup window was blocked by your browser. Please allow popups or retry."
+          : err.response?.data?.message ||
+              err.message ||
+              "Google registration failed. Please check your credentials or try email sign up."
       );
     } finally {
       setGoogleLoading(false);
@@ -300,13 +296,7 @@ const Register = () => {
         </div>
       )}
 
-      {/* Browser Permission Prompt for Google OAuth Popups */}
-      <BrowserPermissionPrompt
-        forceShow={forceShowPrompt}
-        onClose={() => setForceShowPrompt(false)}
-        onUseRedirect={handleGoogleRedirect}
-        onPermissionGranted={() => setError("")}
-      />
+
 
       <RecruiterCompanyOnboardingModal
         isOpen={showCompanyModal}

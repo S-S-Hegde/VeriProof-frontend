@@ -7,7 +7,6 @@ import { persistUserSession } from "../utils/authStorage";
 import RecruiterCompanyOnboardingModal from "../components/RecruiterCompanyOnboardingModal";
 import AuthShell from "../components/auth/AuthShell";
 import IdentityGatewayCard from "../components/auth/IdentityGatewayCard";
-import BrowserPermissionPrompt from "../components/auth/BrowserPermissionPrompt";
 import { CheckCircle, KeyRound, Loader2, ArrowRight } from "lucide-react";
 
 const Login = () => {
@@ -20,7 +19,6 @@ const Login = () => {
   const [error, setError]           = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeName, setWelcomeName] = useState("");
-  const [forceShowPrompt, setForceShowPrompt] = useState(false);
 
   const [showCompanyModal, setShowCompanyModal] = useState(false);
 
@@ -92,14 +90,11 @@ const Login = () => {
           (err.message.toLowerCase().includes("popup was blocked") ||
             err.message.toLowerCase().includes("popup-blocked")));
 
-      if (isPopupBlocked) {
-        setForceShowPrompt(true);
-      }
-
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Google authentication failed. Please try again.";
+      const msg = isPopupBlocked
+        ? "Popup was blocked by your browser. Please allow popups for this site or click below to retry."
+        : err.response?.data?.message ||
+          err.message ||
+          "Google authentication failed. Please try again.";
       setError(msg);
     } finally {
       setGoogleLoading(false);
@@ -240,13 +235,7 @@ const Login = () => {
         </div>
       )}
 
-      {/* Browser Permission Prompt for Google OAuth Popups */}
-      <BrowserPermissionPrompt
-        forceShow={forceShowPrompt}
-        onClose={() => setForceShowPrompt(false)}
-        onUseRedirect={handleGoogleRedirect}
-        onPermissionGranted={() => setError("")}
-      />
+
 
       <RecruiterCompanyOnboardingModal
         isOpen={showCompanyModal}

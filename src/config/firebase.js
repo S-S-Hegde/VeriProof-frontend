@@ -24,23 +24,9 @@ if (missingVars.length > 0) {
   );
 }
 
-// Compute authDomain dynamically:
-// On deployed production (Vercel / custom domain), /__/auth/* is reverse-proxied to firebaseapp.com.
-// Setting authDomain to the current host makes the redirect handler and iframe same-origin,
-// which prevents modern browsers from blocking credentials via third-party cookie/storage partitioning.
-const getAuthDomain = () => {
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    if (host && host !== "localhost" && host !== "127.0.0.1") {
-      return host;
-    }
-  }
-  return import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "veriproof-76123.firebaseapp.com";
-};
-
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: getAuthDomain(),
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "veriproof-76123.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
