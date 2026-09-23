@@ -153,17 +153,21 @@ const BrowserPermissionPrompt = ({
               <div>
                 <strong className="block font-bold">Pop-up blocked by browser</strong>
                 <span className="text-[11px] leading-tight text-slate-700 dark:text-amber-200/80">
-                  Look at the <strong>top-right of your address bar</strong> for the 🗔 icon and select <em>"Always allow pop-ups"</em>, or continue below with Instant Redirect:
+                  Look at the <strong>top-right of your address bar</strong> for the 🗔 icon and select <em>"Always allow pop-ups"</em>, then click below to complete authentication:
                 </span>
               </div>
             </div>
             <button
               type="button"
-              onClick={handleUseRedirectClick}
+              onClick={() => {
+                setVisible(false);
+                if (onClose) onClose();
+                if (onPermissionGranted) onPermissionGranted();
+              }}
               className="mt-1 w-full py-2 px-3 rounded-lg bg-cyan-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md hover:brightness-110 transition-all cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Continue via Page Redirect (No Popups Needed)</span>
+              <span>I've Allowed Popups — Try Sign-In</span>
             </button>
           </motion.div>
         )}
@@ -173,10 +177,10 @@ const BrowserPermissionPrompt = ({
           <div className="flex items-center justify-end gap-2 pt-1">
             <button
               type="button"
-              onClick={handleUseRedirectClick}
+              onClick={handleDismiss}
               className="py-2 px-3 text-xs font-bold text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
             >
-              Use Redirect Instead
+              Cancel
             </button>
             <button
               type="button"

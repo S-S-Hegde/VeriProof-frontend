@@ -152,23 +152,22 @@ const IdentityGatewayCard = ({
                       </span>
                       <p className="text-slate-300 dark:text-gray-300 text-xs mt-0.5 leading-relaxed">
                         Your browser prevented Google's authentication popup window from opening.
-                        You can continue immediately with direct page redirect:
+                        If you have enabled popups in your browser settings, click below to sign in:
                       </p>
                     </div>
                   </div>
 
                   {/* Quick Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                    {onGoogleRedirect && (
-                      <button
-                        type="button"
-                        onClick={onGoogleRedirect}
-                        className="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-slate-950 hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Sign In via Redirect (No Popups)</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={onGoogleAuth}
+                      disabled={googleLoading}
+                      className="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{googleLoading ? "Signing in..." : "Continue with Google Sign-In"}</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => setShowGuideModal(true)}
