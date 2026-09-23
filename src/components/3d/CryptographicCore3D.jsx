@@ -200,7 +200,7 @@ const CryptographicCore3D = ({ role = "student" }) => {
   }, [theme, role, isDark, isRecruiter]);
 
   return (
-    <div className="relative w-full h-44 sm:h-52 my-3 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-cyan-500/20 bg-slate-100/40 dark:bg-black/20 backdrop-blur-md flex items-center justify-center">
+    <div className="relative w-full h-28 sm:h-32 my-1.5 rounded-xl overflow-hidden border border-slate-200/50 dark:border-cyan-500/20 bg-slate-100/40 dark:bg-black/20 backdrop-blur-md flex items-center justify-center">
       <div ref={mountRef} className="absolute inset-0 cursor-grab active:cursor-grabbing" />
       <div className="absolute top-2.5 left-3 pointer-events-none flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-slate-500 dark:text-cyan-400 font-bold">
         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />

@@ -615,7 +615,7 @@ const AppContent = () => {
           }`}
         >
           <Navbar />
-          <main className="flex-grow w-full mx-auto pt-24 pb-8 px-4 sm:px-6 lg:px-8 relative z-10">
+          <main className="flex-grow w-full mx-auto pt-16 sm:pt-20 pb-4 px-2 sm:px-4 lg:px-6 relative z-10 flex flex-col justify-center">
             {isAppVisible && <AnimatedRoutes />}
           </main>
           <Footer />

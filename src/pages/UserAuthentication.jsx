@@ -243,7 +243,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[90vh] relative">
+    <div className="w-full relative">
       {/* Fullscreen loading overlay while redirect OAuth is being processed.
           This prevents the login form from flashing during Render backend cold start. */}
       {redirectProcessing && (

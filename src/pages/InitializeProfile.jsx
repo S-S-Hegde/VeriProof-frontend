@@ -342,7 +342,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-[90vh] relative">
+    <div className="w-full relative">
       {/* Fullscreen loading overlay while redirect OAuth is being processed. */}
       {redirectProcessing && (
         <div className="fixed inset-0 z-[200] bg-[#070a14] flex flex-col items-center justify-center text-white">
