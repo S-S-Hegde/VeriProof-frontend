@@ -27,6 +27,7 @@ gsap.registerPlugin(ScrollTrigger);
 // Lazy load heavy page components with mapped refactored names
 const UserAuthentication = lazy(() => import("./pages/UserAuthentication"));
 const InitializeProfile = lazy(() => import("./pages/InitializeProfile"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const PasswordRecovery = lazy(() => import("./pages/PasswordRecovery"));
 const PassphraseReset = lazy(() => import("./pages/ResetPassword"));
 const RoleBasedRouter = lazy(() => import("./pages/RoleBasedRouter"));
@@ -199,6 +200,14 @@ const AnimatedRoutes = () => {
               <PageTransition>
                 <InitializeProfile />
               </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/auth-callback"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AuthCallback />
             </Suspense>
           }
         />

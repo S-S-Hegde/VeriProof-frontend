@@ -21,6 +21,7 @@ const IdentityGatewayCard = ({
   setRole,
   onGoogleAuth,
   onGoogleRedirect,
+  onOpenAuthWindow,
   googleLoading,
   onPasswordAuth,
   passwordLoading,
