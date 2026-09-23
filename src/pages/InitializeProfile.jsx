@@ -95,6 +95,81 @@ const Register = () => {
     setStep(1);
   };
 
+  // Listen for authentication completion from dedicated auth window (via postMessage or localStorage)
+  useEffect(() => {
+    const handleAuthMessage = (event) => {
+      if (event.data?.type === "VERIPROOF_AUTH_SUCCESS" && event.data?.data) {
+        const userData = event.data.data;
+        setUser(userData);
+        persistUserSession(userData);
+        if (
+          userData.role === "recruiter" &&
+          userData.recruiterVerificationStatus &&
+          userData.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
+        ) {
+          setShowCompanyModal(true);
+          return;
+        }
+        if (userData.role === "student" && !userData.githubUsername) {
+          setPendingOAuthData(userData);
+          setGithubStep(true);
+          return;
+        }
+        navigate(userData.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", {
+          replace: true,
+        });
+      }
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === "veriproof_auth_bridge_event" && e.newValue) {
+        try {
+          const { data: userData } = JSON.parse(e.newValue);
+          if (userData) {
+            setUser(userData);
+            persistUserSession(userData);
+            if (
+              userData.role === "recruiter" &&
+              userData.recruiterVerificationStatus &&
+              userData.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
+            ) {
+              setShowCompanyModal(true);
+              return;
+            }
+            if (userData.role === "student" && !userData.githubUsername) {
+              setPendingOAuthData(userData);
+              setGithubStep(true);
+              return;
+            }
+            navigate(userData.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", {
+              replace: true,
+            });
+          }
+        } catch (err) {}
+      }
+    };
+
+    window.addEventListener("message", handleAuthMessage);
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("message", handleAuthMessage);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [navigate, setUser]);
+
+  const handleOpenAuthWindow = () => {
+    setError("");
+    const width = 520;
+    const height = 680;
+    const left = Math.max(0, (window.screen.width - width) / 2);
+    const top = Math.max(0, (window.screen.height - height) / 2);
+    window.open(
+      `/auth-callback?role=${encodeURIComponent(role)}`,
+      "VeriProofAuth",
+      `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
+    );
+  };
+
   const handleGoogleRedirect = async () => {
     setError("");
     setGoogleLoading(true);
@@ -408,6 +483,7 @@ const Register = () => {
               setRole={setRole}
               onGoogleAuth={handleGoogleRegister}
               onGoogleRedirect={handleGoogleRedirect}
+              onOpenAuthWindow={handleOpenAuthWindow}
               googleLoading={googleLoading || authLoading}
               onPasswordAuth={submitHandler}
               passwordLoading={loading}

@@ -56,6 +56,44 @@ const Login = () => {
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
+  // Listen for authentication completion from dedicated auth window (via postMessage or localStorage)
+  useEffect(() => {
+    const handleAuthMessage = (event) => {
+      if (event.data?.type === "VERIPROOF_AUTH_SUCCESS" && event.data?.data) {
+        finishLogin(event.data.data);
+      }
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === "veriproof_auth_bridge_event" && e.newValue) {
+        try {
+          const { data } = JSON.parse(e.newValue);
+          if (data) finishLogin(data);
+        } catch (err) {}
+      }
+    };
+
+    window.addEventListener("message", handleAuthMessage);
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("message", handleAuthMessage);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const handleOpenAuthWindow = () => {
+    setError("");
+    const width = 520;
+    const height = 680;
+    const left = Math.max(0, (window.screen.width - width) / 2);
+    const top = Math.max(0, (window.screen.height - height) / 2);
+    window.open(
+      `/auth-callback?role=${encodeURIComponent(role)}`,
+      "VeriProofAuth",
+      `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
+    );
+  };
+
   const handleGoogleRedirect = async () => {
     setError("");
     setGoogleLoading(true);
@@ -350,6 +388,7 @@ const Login = () => {
             setRole={setRole}
             onGoogleAuth={handleGoogleAuth}
             onGoogleRedirect={handleGoogleRedirect}
+            onOpenAuthWindow={handleOpenAuthWindow}
             googleLoading={googleLoading || authLoading}
             onPasswordAuth={submitHandler}
             passwordLoading={loading}
