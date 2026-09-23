@@ -32,6 +32,7 @@ const Register = () => {
   const [githubSaving, setGithubSaving] = useState(false);
 
   const {
+    user,
     setUser,
     loginWithGoogle,
     loginWithGoogleRedirect,
@@ -42,6 +43,22 @@ const Register = () => {
   useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (user) {
+      if (
+        user.role === "recruiter" &&
+        user.recruiterVerificationStatus &&
+        user.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
+      ) {
+        setShowCompanyModal(true);
+        return;
+      }
+      navigate(user.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", {
+        replace: true,
+      });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     // If returning from an auth redirect or pending state, resume on Step 2

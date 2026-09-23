@@ -33,6 +33,10 @@ export default defineConfig({
           });
         },
       },
+      "/__/auth": {
+        target: "https://veriproof-76123.firebaseapp.com",
+        changeOrigin: true,
+      },
     },
   },
   build: {

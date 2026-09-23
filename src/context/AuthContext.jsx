@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }) => {
           if (pendingStr) {
             localStorage.removeItem("veriproof_auth_pending");
             setOauthError(
-              "Google Sign-In redirect could not complete because cross-origin cookies were blocked. Please click 'Continue with Google OAuth' and allow popups in your browser address bar."
+              "Google Sign-In could not complete. Please click 'Continue with Google OAuth' to sign in directly."
             );
           }
           setRedirectProcessing(false);
@@ -209,29 +209,48 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
-    const result = await signInWithGoogle(role, inviteCode);
-    if (!result || !result.idToken) {
-      // Redirect initiated or pending
-      return null;
+    setAuthLoading(true);
+    setOauthError("");
+    try {
+      const result = await signInWithGoogle();
+      if (!result || !result.idToken) {
+        return null;
+      }
+      
+      const { idToken } = result;
+      const AUTH_TIMEOUT = 55000;
+      let data = null;
+
+      // Handle Render backend cold start (can take 25-50s)
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await api.post(
+            "/api/users/firebase-auth",
+            { role, inviteCode, idToken },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`,
+              },
+              timeout: AUTH_TIMEOUT,
+            }
+          );
+          data = res.data;
+          break;
+        } catch (err) {
+          const isRetryable =
+            !err.response || [502, 503, 504].includes(err.response?.status);
+          if (!isRetryable || attempt === 2) throw err;
+          await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
+        }
+      }
+      
+      updateCurrentUser(data);
+      scheduleLogout(ONE_HOUR);
+      return data;
+    } finally {
+      setAuthLoading(false);
     }
-    
-    const { idToken } = result;
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-    };
-    
-    const { data } = await api.post(
-      "/api/users/firebase-auth",
-      { role, inviteCode, idToken },
-      config
-    );
-    
-    updateCurrentUser(data);
-    scheduleLogout(ONE_HOUR);
-    return data;
   };
 
   const loginWithGoogleRedirect = async (role = "student", inviteCode = "") => {

@@ -133,7 +133,7 @@ const IdentityGatewayCard = ({
               typeof error === "string" &&
               (error.toLowerCase().includes("popup was blocked") ||
                 error.toLowerCase().includes("popup-blocked") ||
-                error.toLowerCase().includes("allow popups"));
+                error.toLowerCase().includes("please allow popups"));
 
             if (isPopupBlocked) {
               return (

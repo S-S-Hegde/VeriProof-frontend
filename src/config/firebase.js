@@ -5,6 +5,7 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  onAuthStateChanged,
 } from "firebase/auth";
 
 const requiredVars = [
@@ -23,11 +24,23 @@ if (missingVars.length > 0) {
   );
 }
 
-// On production (e.g. Vercel), we proxy /__/auth/* through vercel.json.
-// However, the Firebase Auth provider defaults to the standard authDomain.
+// Compute authDomain dynamically:
+// On deployed production (Vercel / custom domain), /__/auth/* is reverse-proxied to firebaseapp.com.
+// Setting authDomain to the current host makes the redirect handler and iframe same-origin,
+// which prevents modern browsers from blocking credentials via third-party cookie/storage partitioning.
+const getAuthDomain = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host && host !== "localhost" && host !== "127.0.0.1") {
+      return host;
+    }
+  }
+  return import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "veriproof-76123.firebaseapp.com";
+};
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "veriproof-76123.firebaseapp.com",
+  authDomain: getAuthDomain(),
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
@@ -48,7 +61,6 @@ googleProvider.setCustomParameters({
  */
 export const testPopupPermission = () => {
   if (typeof window === "undefined") return { allowed: false, reason: "No window object" };
-  // Check if browser has explicit popup blocking indicator if any
   return { allowed: true };
 };
 
@@ -113,7 +125,6 @@ export const signInWithGoogle = async () => {
 
 /**
  * Perform Google OAuth login via full-page redirect.
- * 100% immune to popup blockers since it uses browser page navigation.
  */
 export const signInWithGoogleRedirect = async (role = "student", inviteCode = "") => {
   if (!import.meta.env.VITE_FIREBASE_API_KEY) {
@@ -123,8 +134,6 @@ export const signInWithGoogleRedirect = async (role = "student", inviteCode = ""
   }
 
   if (typeof window !== "undefined") {
-    // Use localStorage (not sessionStorage) because signInWithRedirect
-    // navigates away from the page, which wipes sessionStorage in some browsers.
     localStorage.setItem(
       "veriproof_auth_pending",
       JSON.stringify({ role, inviteCode, timestamp: Date.now() })
@@ -136,17 +145,59 @@ export const signInWithGoogleRedirect = async (role = "student", inviteCode = ""
 
 /**
  * Handle redirect result when user returns from Google OAuth redirect.
+ * Uses a 3-tier resolution strategy:
+ * 1. Native getRedirectResult
+ * 2. auth.currentUser (if already restored in memory)
+ * 3. onAuthStateChanged listener with timeout (if persistence restoration takes a moment)
  */
 export const handleRedirectResult = async () => {
   try {
+    // 1. Check getRedirectResult
     const result = await getRedirectResult(auth);
     if (result && result.user) {
-      const idToken = await result.user.getIdToken();
+      const idToken = await result.user.getIdToken(true);
       return {
         user: result.user,
         idToken,
       };
     }
+
+    // 2. Check if auth.currentUser is already present
+    if (auth.currentUser) {
+      const idToken = await auth.currentUser.getIdToken(true);
+      return {
+        user: auth.currentUser,
+        idToken,
+      };
+    }
+
+    // 3. Fallback: wait for onAuthStateChanged in case persistence takes a moment
+    const userFromStateChange = await new Promise((resolve) => {
+      let resolved = false;
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user && !resolved) {
+          resolved = true;
+          unsubscribe();
+          resolve(user);
+        }
+      });
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          unsubscribe();
+          resolve(null);
+        }
+      }, 3500);
+    });
+
+    if (userFromStateChange) {
+      const idToken = await userFromStateChange.getIdToken(true);
+      return {
+        user: userFromStateChange,
+        idToken,
+      };
+    }
+
     return null;
   } catch (error) {
     if (error.code === "auth/unauthorized-domain") {
