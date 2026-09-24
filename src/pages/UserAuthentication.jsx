@@ -124,15 +124,44 @@ const Login = () => {
       console.error("[Google Auth Error]:", err);
       const isPopupBlocked =
         err.isPopupBlocked ||
+        err.code === "auth/popup-blocked" ||
         (typeof err.message === "string" &&
           (err.message.toLowerCase().includes("popup was blocked") ||
             err.message.toLowerCase().includes("popup-blocked")));
 
-      const msg = isPopupBlocked
-        ? "Popup was blocked by your browser. Please allow popups for this site or click below to retry."
-        : err.response?.data?.message ||
-          err.message ||
-          "Google authentication failed. Please try again.";
+      if (isPopupBlocked) {
+        console.log("[Google Auth] Popups are blocked. Using dedicated new window to complete Google OAuth...");
+        const width = 520;
+        const height = 680;
+        const left = Math.max(0, (window.screen.width - width) / 2);
+        const top = Math.max(0, (window.screen.height - height) / 2);
+        const authUrl = `/auth-callback?role=${encodeURIComponent(role)}`;
+        let authWin = null;
+        try {
+          authWin = window.open(
+            authUrl,
+            "VeriProofAuth",
+            `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
+          );
+        } catch (e) {
+          authWin = null;
+        }
+
+        if (authWin && !authWin.closed) {
+          try { authWin.focus(); } catch (e) {}
+          return;
+        }
+
+        // If window.open was also restricted by aggressive browser settings, navigate directly to auth-callback
+        console.log("[Google Auth] Browser policy restricted window.open. Navigating directly to complete Google OAuth...");
+        window.location.href = authUrl;
+        return;
+      }
+
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Google authentication failed. Please try again.";
       setError(msg);
     } finally {
       setGoogleLoading(false);

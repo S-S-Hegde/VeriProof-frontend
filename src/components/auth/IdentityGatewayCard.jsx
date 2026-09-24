@@ -13,6 +13,7 @@ import {
   User,
   Github,
   KeyRound,
+  ExternalLink,
 } from "lucide-react";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 
@@ -176,6 +177,18 @@ const IdentityGatewayCard = ({
               </>
             )}
           </button>
+          {onOpenAuthWindow && (
+            <div className="mt-1.5 text-center">
+              <button
+                type="button"
+                onClick={onOpenAuthWindow}
+                className="text-[10px] font-mono text-cyan-600 hover:text-cyan-700 dark:text-cyan-400/90 dark:hover:text-cyan-300 underline underline-offset-2 transition-colors cursor-pointer inline-flex items-center gap-1"
+              >
+                <span>Popups blocked? Complete OAuth in new window</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Divider */}

@@ -221,16 +221,43 @@ const Register = () => {
       console.error("[Google Registration Error]:", err);
       const isPopupBlocked =
         err.isPopupBlocked ||
+        err.code === "auth/popup-blocked" ||
         (typeof err.message === "string" &&
           (err.message.toLowerCase().includes("popup was blocked") ||
             err.message.toLowerCase().includes("popup-blocked")));
 
+      if (isPopupBlocked) {
+        console.log("[Google Register] Popups are blocked. Using dedicated new window to complete Google OAuth...");
+        const width = 520;
+        const height = 680;
+        const left = Math.max(0, (window.screen.width - width) / 2);
+        const top = Math.max(0, (window.screen.height - height) / 2);
+        const authUrl = `/auth-callback?role=${encodeURIComponent(role)}`;
+        let authWin = null;
+        try {
+          authWin = window.open(
+            authUrl,
+            "VeriProofAuth",
+            `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
+          );
+        } catch (e) {
+          authWin = null;
+        }
+
+        if (authWin && !authWin.closed) {
+          try { authWin.focus(); } catch (e) {}
+          return;
+        }
+
+        console.log("[Google Register] Browser policy restricted window.open. Navigating directly to complete Google OAuth...");
+        window.location.href = authUrl;
+        return;
+      }
+
       setError(
-        isPopupBlocked
-          ? "Popup window was blocked by your browser. Please allow popups or retry."
-          : err.response?.data?.message ||
-              err.message ||
-              "Google registration failed. Please check your credentials or try email sign up."
+        err.response?.data?.message ||
+          err.message ||
+          "Google registration failed. Please check your credentials or try email sign up."
       );
     } finally {
       setGoogleLoading(false);
