@@ -4,22 +4,22 @@ import { auth, googleProvider } from "../config/firebase";
 import { signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import api from "../utils/api";
 import { persistUserSession } from "../utils/authStorage";
-import { CheckCircle2, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
+import { CheckCircle2, Loader2, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("initializing"); // "initializing" | "authenticating" | "success" | "error"
+  const [statusText, setStatusText] = useState("Connecting to Google OAuth...");
   const [errorMessage, setErrorMessage] = useState("");
-  const processedRef = useRef(false);
+  const executedRef = useRef(false);
 
   const role = searchParams.get("role") || "student";
   const inviteCode = searchParams.get("inviteCode") || "";
 
   const exchangeTokenAndFinish = async (idToken) => {
-    if (processedRef.current) return;
-    processedRef.current = true;
     setStatus("authenticating");
+    setStatusText("Verifying cryptographic credentials with backend...");
 
     let pendingRole = role;
     try {
@@ -60,12 +60,14 @@ const AuthCallback = () => {
 
     if (!data) throw new Error("Failed to obtain user session from backend.");
 
+    // Clean in-flight flags
+    localStorage.removeItem("vp_auth_redirect_in_flight");
+    localStorage.removeItem("veriproof_auth_pending");
+
     // Persist session to local storage
     persistUserSession(data);
     setStatus("success");
-
-    // Clean up redirect flags
-    sessionStorage.removeItem("vp_auth_redirect_executed");
+    setStatusText("Identity verified! Entering system...");
 
     // Broadcast to opener window via postMessage
     if (window.opener && !window.opener.closed) {
@@ -101,11 +103,12 @@ const AuthCallback = () => {
     }, 800);
   };
 
-  const triggerRedirect = async () => {
+  const startRedirect = async () => {
     setStatus("authenticating");
+    setStatusText("Redirecting to Google Account Selection...");
     setErrorMessage("");
     try {
-      sessionStorage.setItem("vp_auth_redirect_executed", "true");
+      localStorage.setItem("vp_auth_redirect_in_flight", String(Date.now()));
       localStorage.setItem(
         "veriproof_auth_pending",
         JSON.stringify({ role, inviteCode, timestamp: Date.now() })
@@ -113,87 +116,93 @@ const AuthCallback = () => {
       await signInWithRedirect(auth, googleProvider);
     } catch (err) {
       console.error("[AuthCallback] Redirect Error:", err);
+      localStorage.removeItem("vp_auth_redirect_in_flight");
       setStatus("error");
       setErrorMessage(err.message || "Failed to initiate Google OAuth redirect.");
     }
   };
 
   useEffect(() => {
-    if (processedRef.current) return;
+    if (executedRef.current) return;
+    executedRef.current = true;
 
-    const handleAuth = async () => {
+    const runAuthFlow = async () => {
       try {
         setStatus("authenticating");
 
-        // 1. Check if returning from Google OAuth Redirect
-        let idToken = null;
+        // Check if returning from redirect
+        const inFlightTime = localStorage.getItem("vp_auth_redirect_in_flight");
+        const hasRedirectInFlight =
+          inFlightTime && Date.now() - Number(inFlightTime) < 180000;
+
+        // 1. Try to resolve redirect result from Firebase
+        setStatusText("Authenticating identity with Google...");
+        let user = null;
+
         try {
           const redirectResult = await getRedirectResult(auth);
           if (redirectResult && redirectResult.user) {
-            idToken = await redirectResult.user.getIdToken(true);
+            user = redirectResult.user;
           }
         } catch (e) {
           console.warn("[AuthCallback] getRedirectResult:", e);
         }
 
-        // 2. Check current authenticated user or wait for onAuthStateChanged
-        if (!idToken) {
-          if (auth.currentUser) {
-            idToken = await auth.currentUser.getIdToken(true);
-          } else {
-            const userFromState = await new Promise((resolve) => {
-              let done = false;
-              const unsub = onAuthStateChanged(auth, (u) => {
-                if (u && !done) {
-                  done = true;
-                  unsub();
-                  resolve(u);
-                }
-              });
-              setTimeout(() => {
-                if (!done) {
-                  done = true;
-                  unsub();
-                  resolve(null);
-                }
-              }, 2000);
-            });
-
-            if (userFromState) {
-              idToken = await userFromState.getIdToken(true);
-            }
-          }
+        // 2. Check auth.currentUser
+        if (!user && auth.currentUser) {
+          user = auth.currentUser;
         }
 
-        // 3. If token acquired, complete authentication immediately!
-        if (idToken) {
+        // 3. If returning from redirect, give onAuthStateChanged up to 6 seconds to hydrate from storage
+        if (!user && hasRedirectInFlight) {
+          setStatusText("Securing identity session from Google...");
+          user = await new Promise((resolve) => {
+            let settled = false;
+            const unsub = onAuthStateChanged(auth, (u) => {
+              if (u && !settled) {
+                settled = true;
+                unsub();
+                resolve(u);
+              }
+            });
+            setTimeout(() => {
+              if (!settled) {
+                settled = true;
+                unsub();
+                resolve(null);
+              }
+            }, 6000);
+          });
+        }
+
+        // 4. If we have an authenticated user, complete login immediately!
+        if (user) {
+          const idToken = await user.getIdToken(true);
           await exchangeTokenAndFinish(idToken);
           return;
         }
 
-        // 4. No token yet: Automatically initiate redirect if not already attempted
-        const alreadyAttempted = sessionStorage.getItem("vp_auth_redirect_executed");
-        if (!alreadyAttempted) {
-          await triggerRedirect();
+        // 5. If we were expecting a redirect return but got nothing after waiting:
+        if (hasRedirectInFlight) {
+          localStorage.removeItem("vp_auth_redirect_in_flight");
+          setStatus("error");
+          setErrorMessage(
+            "Google authentication was initiated. Please click below to complete your authorization."
+          );
           return;
         }
 
-        // Redirect returned but session was cleared: Allow user to trigger with 1 click
-        sessionStorage.removeItem("vp_auth_redirect_executed");
-        setStatus("error");
-        setErrorMessage("Please click below to complete your Google Authentication.");
+        // 6. Fresh entry: Initiate redirect ONCE (never loops because hasRedirectInFlight flag is set)
+        await startRedirect();
       } catch (err) {
-        console.error("[AuthCallback] General Error:", err);
+        console.error("[AuthCallback] Error:", err);
+        localStorage.removeItem("vp_auth_redirect_in_flight");
         setStatus("error");
-        setErrorMessage(
-          err.response?.data?.message ||
-            err.message ||
-            "Authentication failed. Please click below to authorize."
-        );
+        setErrorMessage(err.message || "Authentication error occurred.");
       }
     };
 
-    handleAuth();
+    runAuthFlow();
   }, [role, inviteCode, navigate]);
 
   return (
@@ -217,7 +226,7 @@ const AuthCallback = () => {
               Authenticating Identity
             </h2>
             <p className="text-xs text-gray-400 font-mono leading-relaxed">
-              Connecting with Google OAuth...
+              {statusText}
             </p>
             <p className="text-[10px] text-gray-500 font-mono">
               This window will close automatically upon completion.
@@ -264,7 +273,7 @@ const AuthCallback = () => {
             <div className="pt-2 flex flex-col gap-2.5">
               <button
                 type="button"
-                onClick={triggerRedirect}
+                onClick={startRedirect}
                 className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg hover:brightness-110 cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Authorize with Google OAuth</span>
