@@ -157,42 +157,13 @@ const Register = () => {
     };
   }, [navigate, setUser]);
 
-  const handleOpenAuthWindow = () => {
-    setError("");
-    const width = 520;
-    const height = 680;
-    const left = Math.max(0, (window.screen.width - width) / 2);
-    const top = Math.max(0, (window.screen.height - height) / 2);
-    window.open(
-      `/auth-callback?role=${encodeURIComponent(role)}`,
-      "VeriProofAuth",
-      `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
-    );
-  };
-
-  const handleGoogleRedirect = async () => {
-    setError("");
-    setGoogleLoading(true);
-    try {
-      await loginWithGoogleRedirect(role);
-    } catch (err) {
-      console.error("[Google Registration Redirect Error]:", err);
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Google registration redirect failed to initiate.";
-      setError(msg);
-      setGoogleLoading(false);
-    }
-  };
-
   const handleGoogleRegister = async () => {
     setError("");
     setGoogleLoading(true);
     try {
       const data = await loginWithGoogle(role);
       if (!data) {
-        // OAuth redirect was initiated or waiting
+        // Redirect initiated — page will navigate to Google and back
         return;
       }
 
@@ -207,7 +178,7 @@ const Register = () => {
         return;
       }
 
-      // ── For candidates: collect GitHub username if missing ──
+      // For candidates: collect GitHub username if missing
       if (data.role === "student" && !data.githubUsername) {
         setPendingOAuthData(data);
         setGithubStep(true);
@@ -219,45 +190,10 @@ const Register = () => {
       navigate(data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard");
     } catch (err) {
       console.error("[Google Registration Error]:", err);
-      const isPopupBlocked =
-        err.isPopupBlocked ||
-        err.code === "auth/popup-blocked" ||
-        (typeof err.message === "string" &&
-          (err.message.toLowerCase().includes("popup was blocked") ||
-            err.message.toLowerCase().includes("popup-blocked")));
-
-      if (isPopupBlocked) {
-        console.log("[Google Register] Popups are blocked. Using dedicated new window to complete Google OAuth...");
-        const width = 520;
-        const height = 680;
-        const left = Math.max(0, (window.screen.width - width) / 2);
-        const top = Math.max(0, (window.screen.height - height) / 2);
-        const authUrl = `/auth-callback?role=${encodeURIComponent(role)}`;
-        let authWin = null;
-        try {
-          authWin = window.open(
-            authUrl,
-            "VeriProofAuth",
-            `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
-          );
-        } catch (e) {
-          authWin = null;
-        }
-
-        if (authWin && !authWin.closed) {
-          try { authWin.focus(); } catch (e) {}
-          return;
-        }
-
-        console.log("[Google Register] Browser policy restricted window.open. Navigating directly to complete Google OAuth...");
-        window.location.href = authUrl;
-        return;
-      }
-
       setError(
         err.response?.data?.message ||
           err.message ||
-          "Google registration failed. Please check your credentials or try email sign up."
+          "Google registration failed. Please try again."
       );
     } finally {
       setGoogleLoading(false);

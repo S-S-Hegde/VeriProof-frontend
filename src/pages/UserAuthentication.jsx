@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
@@ -7,48 +7,50 @@ import { persistUserSession } from "../utils/authStorage";
 import RecruiterCompanyOnboardingModal from "../components/RecruiterCompanyOnboardingModal";
 import AuthShell from "../components/auth/AuthShell";
 import IdentityGatewayCard from "../components/auth/IdentityGatewayCard";
-import { CheckCircle, KeyRound, Loader2, ArrowRight } from "lucide-react";
+import { CheckCircle, KeyRound, Loader2 } from "lucide-react";
 
 const Login = () => {
-  const [email, setEmail]           = useState("");
-  const [password, setPassword]     = useState("");
+  const [email, setEmail]             = useState("");
+  const [password, setPassword]       = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole]             = useState("student");
-  const [loading, setLoading]       = useState(false);
+  const [role, setRole]               = useState("student");
+  const [loading, setLoading]         = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError]           = useState("");
+  const [error, setError]             = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeName, setWelcomeName] = useState("");
-
   const [showCompanyModal, setShowCompanyModal] = useState(false);
 
   // OTP state
   const [requiresOTP, setRequiresOTP] = useState(false);
-  const [otpEmail, setOtpEmail]     = useState("");
-  const [otp, setOtp]               = useState(["", "", "", "", "", ""]);
-  const otpRefs                     = useRef([]);
+  const [otpEmail, setOtpEmail]       = useState("");
+  const [otp, setOtp]                 = useState(["", "", "", "", "", ""]);
+  const otpRefs                       = useRef([]);
 
   const {
     user,
     setUser,
     loginWithGoogle,
-    loginWithGoogleRedirect,
     authLoading,
     redirectProcessing,
     oauthError,
   } = useAuth();
-  const navigate           = useNavigate();
-  const location           = useLocation();
-  const timeoutRef         = useRef(null);
+
+  const navigate   = useNavigate();
+  const location   = useLocation();
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     if (user) {
-      if (user.role === "recruiter" && user.recruiterVerificationStatus && user.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED") {
+      if (
+        user.role === "recruiter" &&
+        user.recruiterVerificationStatus &&
+        user.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
+      ) {
         setShowCompanyModal(true);
         return;
       }
-      const redirectPath = user.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-      navigate(redirectPath, { replace: true });
+      navigate(user.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
@@ -56,58 +58,24 @@ const Login = () => {
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
-  // Listen for authentication completion from dedicated auth window (via postMessage or localStorage)
-  useEffect(() => {
-    const handleAuthMessage = (event) => {
-      if (event.data?.type === "VERIPROOF_AUTH_SUCCESS" && event.data?.data) {
-        finishLogin(event.data.data);
+  const finishLogin = (data) => {
+    setWelcomeName(data.name);
+    setShowWelcome(true);
+    timeoutRef.current = setTimeout(() => {
+      setUser(data);
+      persistUserSession(data);
+      if (
+        data.role === "recruiter" &&
+        data.recruiterVerificationStatus &&
+        data.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
+      ) {
+        setShowCompanyModal(true);
+        setShowWelcome(false);
+        return;
       }
-    };
-
-    const handleStorageChange = (e) => {
-      if (e.key === "veriproof_auth_bridge_event" && e.newValue) {
-        try {
-          const { data } = JSON.parse(e.newValue);
-          if (data) finishLogin(data);
-        } catch (err) {}
-      }
-    };
-
-    window.addEventListener("message", handleAuthMessage);
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("message", handleAuthMessage);
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
-  const handleOpenAuthWindow = () => {
-    setError("");
-    const width = 520;
-    const height = 680;
-    const left = Math.max(0, (window.screen.width - width) / 2);
-    const top = Math.max(0, (window.screen.height - height) / 2);
-    window.open(
-      `/auth-callback?role=${encodeURIComponent(role)}`,
-      "VeriProofAuth",
-      `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
-    );
-  };
-
-  const handleGoogleRedirect = async () => {
-    setError("");
-    setGoogleLoading(true);
-    try {
-      await loginWithGoogleRedirect(role);
-    } catch (err) {
-      console.error("[Google Redirect Error]:", err);
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Google redirect failed to initiate. Please try again.";
-      setError(msg);
-      setGoogleLoading(false);
-    }
+      const fromPath = location.state?.from?.pathname || location.state?.from;
+      navigate(fromPath || (data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard"), { replace: true });
+    }, 1800);
   };
 
   const handleGoogleAuth = async () => {
@@ -116,53 +84,13 @@ const Login = () => {
     try {
       const data = await loginWithGoogle(role);
       if (!data) {
-        // OAuth redirect was initiated or waiting
+        // Redirect initiated — page will navigate away, nothing to do
         return;
       }
       finishLogin(data);
     } catch (err) {
       console.error("[Google Auth Error]:", err);
-      const isPopupBlocked =
-        err.isPopupBlocked ||
-        err.code === "auth/popup-blocked" ||
-        (typeof err.message === "string" &&
-          (err.message.toLowerCase().includes("popup was blocked") ||
-            err.message.toLowerCase().includes("popup-blocked")));
-
-      if (isPopupBlocked) {
-        console.log("[Google Auth] Popups are blocked. Using dedicated new window to complete Google OAuth...");
-        const width = 520;
-        const height = 680;
-        const left = Math.max(0, (window.screen.width - width) / 2);
-        const top = Math.max(0, (window.screen.height - height) / 2);
-        const authUrl = `/auth-callback?role=${encodeURIComponent(role)}`;
-        let authWin = null;
-        try {
-          authWin = window.open(
-            authUrl,
-            "VeriProofAuth",
-            `width=${width},height=${height},top=${top},left=${left},status=no,menubar=no,toolbar=no`
-          );
-        } catch (e) {
-          authWin = null;
-        }
-
-        if (authWin && !authWin.closed) {
-          try { authWin.focus(); } catch (e) {}
-          return;
-        }
-
-        // If window.open was also restricted by aggressive browser settings, navigate directly to auth-callback
-        console.log("[Google Auth] Browser policy restricted window.open. Navigating directly to complete Google OAuth...");
-        window.location.href = authUrl;
-        return;
-      }
-
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Google authentication failed. Please try again.";
-      setError(msg);
+      setError(err.response?.data?.message || err.message || "Google authentication failed. Please try again.");
     } finally {
       setGoogleLoading(false);
     }
@@ -174,7 +102,7 @@ const Login = () => {
     let submittedEmail = email;
     let submittedPassword = password;
 
-    if (e?.target && e.target instanceof HTMLFormElement) {
+    if (e?.target instanceof HTMLFormElement) {
       const fd = new FormData(e.target);
       submittedEmail = fd.get("email") ?? email;
       submittedPassword = fd.get("password") ?? password;
@@ -207,21 +135,15 @@ const Login = () => {
       finishLogin(data);
     } catch (err) {
       const status = err.response?.status;
-      const data   = err.response?.data;
-      const msg    = data?.message || "Authentication failed. Please check your credentials.";
-      if ((status === 404 || status === 403) && data?.redirectTo) {
-        setError(msg);
-        setLoading(false);
+      const resData = err.response?.data;
+      const msg = resData?.message || "Authentication failed. Please check your credentials.";
+      setError(msg);
+      setLoading(false);
+      if ((status === 404 || status === 403) && resData?.redirectTo) {
         timeoutRef.current = setTimeout(
-          () =>
-            navigate(
-              `/register?email=${encodeURIComponent(submittedEmail)}&role=${role}`
-            ),
+          () => navigate(`/register?email=${encodeURIComponent(submittedEmail)}&role=${role}`),
           1500
         );
-      } else {
-        setError(msg);
-        setLoading(false);
       }
     }
   };
@@ -230,7 +152,8 @@ const Login = () => {
     e.preventDefault();
     const code = otp.join("");
     if (code.length !== 6) { setError("Please enter all 6 digits."); return; }
-    setError(""); setLoading(true);
+    setError("");
+    setLoading(true);
     try {
       const { data } = await api.post("/api/users/verify-otp", { email: otpEmail, otp: code });
       finishLogin(data);
@@ -240,27 +163,8 @@ const Login = () => {
     }
   };
 
-  const finishLogin = (data) => {
-    setWelcomeName(data.name);
-    setShowWelcome(true);
-    timeoutRef.current = setTimeout(() => {
-      setUser(data);
-      persistUserSession(data);
-      if (data.role === "recruiter" && data.recruiterVerificationStatus && data.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED") {
-        setShowCompanyModal(true);
-        setShowWelcome(false);
-        return;
-      }
-      let fromPath = location.state?.from?.pathname || location.state?.from;
-      if (!fromPath) fromPath = data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-      navigate(fromPath, { replace: true });
-    }, 1800);
-  };
-
   const handleOtpKey = (idx, e) => {
-    if (e.key === "Backspace" && !otp[idx] && idx > 0) {
-      otpRefs.current[idx - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !otp[idx] && idx > 0) otpRefs.current[idx - 1]?.focus();
   };
 
   const handleOtpChange = (idx, val) => {
@@ -273,8 +177,7 @@ const Login = () => {
 
   return (
     <div className="w-full relative">
-      {/* Fullscreen loading overlay while redirect OAuth is being processed.
-          This prevents the login form from flashing during Render backend cold start. */}
+      {/* Fullscreen overlay while redirect OAuth processes */}
       {redirectProcessing && (
         <div className="fixed inset-0 z-[200] bg-[#070a14] flex flex-col items-center justify-center text-white">
           <div className="flex flex-col items-center gap-6">
@@ -295,22 +198,17 @@ const Login = () => {
                 Completing Google Sign-In...
               </p>
               <p className="text-[11px] font-mono text-gray-500">
-                Waking backend server — this may take up to 30 seconds
+                Verifying with backend — this may take up to 30 seconds
               </p>
             </div>
           </div>
         </div>
       )}
 
-
-
       <RecruiterCompanyOnboardingModal
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}
-        onVerified={() => {
-          const redirectPath = user?.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-          navigate(redirectPath, { replace: true });
-        }}
+        onVerified={() => navigate(user?.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", { replace: true })}
       />
 
       <AnimatePresence>
@@ -399,11 +297,7 @@ const Login = () => {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setRequiresOTP(false);
-                    setOtp(["", "", "", "", "", ""]);
-                    setError("");
-                  }}
+                  onClick={() => { setRequiresOTP(false); setOtp(["", "", "", "", "", ""]); setError(""); }}
                   className="w-full text-center text-[11px] font-mono text-gray-500 hover:text-gray-300 uppercase tracking-wider"
                 >
                   ← Return to Identity Access Terminal
@@ -416,8 +310,6 @@ const Login = () => {
             role={role}
             setRole={setRole}
             onGoogleAuth={handleGoogleAuth}
-            onGoogleRedirect={handleGoogleRedirect}
-            onOpenAuthWindow={handleOpenAuthWindow}
             googleLoading={googleLoading || authLoading}
             onPasswordAuth={submitHandler}
             passwordLoading={loading}

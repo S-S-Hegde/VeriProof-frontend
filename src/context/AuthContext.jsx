@@ -1,15 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import {
-  signInWithGoogle,
-  signInWithGoogleRedirect,
-  handleRedirectResult,
-} from "../config/firebase";
-import {
-  clearUserSession,
-  getStoredUser,
-  persistUserSession,
-} from "../utils/authStorage";
+import { signInWithGoogle, signInWithGoogleRedirect, handleRedirectResult } from "../config/firebase";
+import { clearUserSession, getStoredUser, persistUserSession } from "../utils/authStorage";
 import useServerKeepAlive from "../hooks/useServerKeepAlive";
 
 const AuthContext = createContext();
@@ -21,73 +13,51 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const userInfo = getStoredUser();
     const loginTimestamp = localStorage.getItem("loginTimestamp");
-
-    if (!userInfo) {
-      return null;
-    }
-
-    if (!loginTimestamp) {
+    if (!userInfo || !loginTimestamp) {
       clearUserSession();
       return null;
     }
-
-    const timeElapsed = Date.now() - parseInt(loginTimestamp, 10);
-
-    if (timeElapsed >= ONE_HOUR) {
+    const elapsed = Date.now() - parseInt(loginTimestamp, 10);
+    if (elapsed >= ONE_HOUR) {
       clearUserSession();
       return null;
     }
-
     return userInfo;
   });
+
   const [authLoading, setAuthLoading] = useState(false);
   const [oauthError, setOauthError] = useState("");
-  // True while getRedirectResult + backend call is in flight after a Google redirect.
-  // UI should show a loading overlay instead of the login form during this time.
   const [redirectProcessing, setRedirectProcessing] = useState(
     () => Boolean(localStorage.getItem("veriproof_auth_pending"))
   );
   const [isExiting, setIsExiting] = useState(false);
   const logoutTimerRef = useRef(null);
 
-  // Keep both Node.js Backend & Python AI Engine warm while user is logged in
   useServerKeepAlive(Boolean(user));
 
   const updateCurrentUser = (val) => {
     setUser((prev) => {
-      const nextUser = typeof val === "function" ? val(prev) : val;
-      if (nextUser) {
-        persistUserSession(nextUser);
-      } else {
-        clearUserSession();
-      }
-      return nextUser;
+      const next = typeof val === "function" ? val(prev) : val;
+      if (next) persistUserSession(next);
+      else clearUserSession();
+      return next;
     });
   };
 
-  const scheduleLogout = (timeRemaining) => {
+  const scheduleLogout = (ms) => {
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-    logoutTimerRef.current = setTimeout(() => {
-      console.log("[VeriProof] Session expired (1 Hour limit reached). Auto-logging out.");
-      updateCurrentUser(null);
-    }, timeRemaining);
+    logoutTimerRef.current = setTimeout(() => updateCurrentUser(null), ms);
   };
 
-  // Check for completed OAuth redirect on initial page load & purge any poisoned popup pref
+  // On every page load: check if Google OAuth redirect just returned
   useEffect(() => {
-    // Purge any poisoned "redirect" preference so users default to standard working popups
-    try {
-      if (localStorage.getItem("veriproof_popup_pref") === "redirect") {
-        localStorage.removeItem("veriproof_popup_pref");
-      }
-    } catch (e) {}
-
     const processRedirect = async () => {
+      const pendingStr = localStorage.getItem("veriproof_auth_pending");
+
       try {
-        const pendingStr = localStorage.getItem("veriproof_auth_pending");
         const result = await handleRedirectResult();
 
-        if (result && result.idToken) {
+        if (result?.idToken) {
           setRedirectProcessing(true);
           setAuthLoading(true);
           setOauthError("");
@@ -103,15 +73,11 @@ export const AuthProvider = ({ children }) => {
                 role = pending.role || "student";
                 inviteCode = pending.inviteCode || "";
               }
-            } catch (e) {
-              // ignore json parse error
-            }
+            } catch (e) {}
             localStorage.removeItem("veriproof_auth_pending");
           }
 
-          // Render backend can take 25-50s to wake from cold start.
           let data = null;
-          const REDIRECT_TIMEOUT = 55000;
           for (let attempt = 0; attempt < 3; attempt++) {
             try {
               const res = await api.post(
@@ -122,15 +88,14 @@ export const AuthProvider = ({ children }) => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${result.idToken}`,
                   },
-                  timeout: REDIRECT_TIMEOUT,
+                  timeout: 55000,
                 }
               );
               data = res.data;
               break;
             } catch (err) {
-              const isRetryable =
-                !err.response || [502, 503, 504].includes(err.response?.status);
-              if (!isRetryable || attempt === 2) throw err;
+              const retryable = !err.response || [502, 503, 504].includes(err.response?.status);
+              if (!retryable || attempt === 2) throw err;
               await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
             }
           }
@@ -138,28 +103,23 @@ export const AuthProvider = ({ children }) => {
           updateCurrentUser(data);
           scheduleLogout(ONE_HOUR);
 
-          if (data && data.role) {
-            const dashPath =
-              data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-            setTimeout(() => {
-              window.location.replace(dashPath);
-            }, 50);
+          if (data?.role) {
+            const dest = data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
+            setTimeout(() => window.location.replace(dest), 50);
           }
         } else {
-          // If no redirect credentials returned (e.g. fresh page load or redirect completed via new window), clear flag silently
-          if (pendingStr) {
-            localStorage.removeItem("veriproof_auth_pending");
-          }
+          // No redirect result — clear stale pending flag silently
+          if (pendingStr) localStorage.removeItem("veriproof_auth_pending");
           setRedirectProcessing(false);
         }
       } catch (err) {
-        console.error("[Firebase OAuth Redirect Process Error]:", err);
+        console.error("[AuthContext] Redirect processing error:", err);
         localStorage.removeItem("veriproof_auth_pending");
-        const msg =
+        setOauthError(
           err.response?.data?.message ||
-          err.message ||
-          "Google Sign-In failed. The backend server may be waking up — please wait 30 seconds and try again.";
-        setOauthError(msg);
+            err.message ||
+            "Google Sign-In failed. Please try again."
+        );
         setRedirectProcessing(false);
       } finally {
         setAuthLoading(false);
@@ -175,76 +135,54 @@ export const AuthProvider = ({ children }) => {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
       return;
     }
-
     const loginTimestamp = localStorage.getItem("loginTimestamp");
-
     if (!loginTimestamp) {
       clearUserSession();
       return;
     }
-
-    const timeElapsed = Date.now() - parseInt(loginTimestamp, 10);
-    const timeRemaining = Math.max(ONE_HOUR - timeElapsed, 0);
-
-    scheduleLogout(timeRemaining);
-
-    return () => {
-      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-    };
+    const elapsed = Date.now() - parseInt(loginTimestamp, 10);
+    scheduleLogout(Math.max(ONE_HOUR - elapsed, 0));
+    return () => { if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current); };
   }, [user]);
 
   const login = async (email, password) => {
-    const config = { headers: { "Content-Type": "application/json" } };
     const { data } = await api.post(
       "/api/users/login",
       { email, password },
-      config,
+      { headers: { "Content-Type": "application/json" } }
     );
     updateCurrentUser(data);
     scheduleLogout(ONE_HOUR);
     return data;
   };
 
+  /**
+   * Sign in with Google. Tries popup first; falls back to full-page redirect automatically.
+   * Returns user data on popup success, or null if redirect was initiated.
+   */
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
     setAuthLoading(true);
     setOauthError("");
     try {
-      const result = await signInWithGoogle();
-      if (!result || !result.idToken) {
+      const result = await signInWithGoogle(role, inviteCode);
+      if (!result) {
+        // Redirect was initiated — page will navigate away, return null
         return null;
       }
-      
-      const { idToken } = result;
-      const AUTH_TIMEOUT = 55000;
-      let data = null;
-
-      // Handle Render backend cold start (can take 25-50s)
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          const res = await api.post(
-            "/api/users/firebase-auth",
-            { role, inviteCode, idToken },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`,
-              },
-              timeout: AUTH_TIMEOUT,
-            }
-          );
-          data = res.data;
-          break;
-        } catch (err) {
-          const isRetryable =
-            !err.response || [502, 503, 504].includes(err.response?.status);
-          if (!isRetryable || attempt === 2) throw err;
-          await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
+      const res = await api.post(
+        "/api/users/firebase-auth",
+        { role, inviteCode, idToken: result.idToken },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${result.idToken}`,
+          },
+          timeout: 55000,
         }
-      }
-      
-      updateCurrentUser(data);
+      );
+      updateCurrentUser(res.data);
       scheduleLogout(ONE_HOUR);
-      return data;
+      return res.data;
     } finally {
       setAuthLoading(false);
     }
@@ -257,15 +195,13 @@ export const AuthProvider = ({ children }) => {
       await signInWithGoogleRedirect(role, inviteCode);
     } catch (err) {
       setAuthLoading(false);
-      setOauthError(err.message || "Failed to initiate Google Redirect.");
+      setOauthError(err.message || "Failed to initiate Google Sign-In.");
       throw err;
     }
   };
 
   const logout = () => {
-    try {
-      api.post("/api/keep-alive/release").catch(() => {});
-    } catch (e) {}
+    try { api.post("/api/keep-alive/release").catch(() => {}); } catch (e) {}
     updateCurrentUser(null);
   };
 
