@@ -146,12 +146,9 @@ export const AuthProvider = ({ children }) => {
             }, 50);
           }
         } else {
-          // If a redirect was initiated but returned null, storage was partitioned or user cancelled
+          // If no redirect credentials returned (e.g. fresh page load or redirect completed via new window), clear flag silently
           if (pendingStr) {
             localStorage.removeItem("veriproof_auth_pending");
-            setOauthError(
-              "Google Sign-In could not complete. Please click 'Continue with Google OAuth' to sign in directly."
-            );
           }
           setRedirectProcessing(false);
         }
