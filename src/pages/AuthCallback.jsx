@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { auth, googleProvider } from "../config/firebase";
-import { signInWithRedirect, getRedirectResult, onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import api from "../utils/api";
 import { persistUserSession } from "../utils/authStorage";
-import { CheckCircle2, Loader2, ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
+import { CheckCircle2, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +16,108 @@ const AuthCallback = () => {
   const role = searchParams.get("role") || "student";
   const inviteCode = searchParams.get("inviteCode") || "";
 
+  const exchangeTokenAndFinish = async (idToken) => {
+    if (processedRef.current) return;
+    processedRef.current = true;
+    setStatus("authenticating");
+
+    let pendingRole = role;
+    try {
+      const saved = localStorage.getItem("veriproof_auth_pending");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.role) pendingRole = parsed.role;
+        localStorage.removeItem("veriproof_auth_pending");
+      }
+    } catch (e) {}
+
+    const AUTH_TIMEOUT = 55000;
+    let data = null;
+
+    // Retry loop handling Render backend cold start
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await api.post(
+          "/api/users/firebase-auth",
+          { role: pendingRole, inviteCode, idToken },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${idToken}`,
+            },
+            timeout: AUTH_TIMEOUT,
+          }
+        );
+        data = res.data;
+        break;
+      } catch (err) {
+        const isRetryable =
+          !err.response || [502, 503, 504].includes(err.response?.status);
+        if (!isRetryable || attempt === 2) throw err;
+        await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
+      }
+    }
+
+    if (!data) throw new Error("Failed to obtain user session from backend.");
+
+    // Persist session to local storage
+    persistUserSession(data);
+    setStatus("success");
+
+    // Clean up redirect flags
+    sessionStorage.removeItem("vp_auth_redirect_executed");
+
+    // Broadcast to opener window via postMessage
+    if (window.opener && !window.opener.closed) {
+      try {
+        window.opener.postMessage(
+          { type: "VERIPROOF_AUTH_SUCCESS", data },
+          window.location.origin
+        );
+      } catch (e) {
+        console.warn("[AuthCallback] postMessage failed:", e);
+      }
+    }
+
+    // Also broadcast via localStorage storage event (foolproof across tabs/windows on same origin)
+    try {
+      localStorage.setItem(
+        "veriproof_auth_bridge_event",
+        JSON.stringify({ timestamp: Date.now(), data })
+      );
+    } catch (e) {}
+
+    // Autoclose the window smoothly
+    setTimeout(() => {
+      try {
+        window.close();
+      } catch (e) {}
+      // If window.close was ignored by the browser, navigate directly
+      setTimeout(() => {
+        const targetPath =
+          data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
+        navigate(targetPath, { replace: true });
+      }, 600);
+    }, 800);
+  };
+
+  const triggerRedirect = async () => {
+    setStatus("authenticating");
+    setErrorMessage("");
+    try {
+      sessionStorage.setItem("vp_auth_redirect_executed", "true");
+      localStorage.setItem(
+        "veriproof_auth_pending",
+        JSON.stringify({ role, inviteCode, timestamp: Date.now() })
+      );
+      await signInWithRedirect(auth, googleProvider);
+    } catch (err) {
+      console.error("[AuthCallback] Redirect Error:", err);
+      setStatus("error");
+      setErrorMessage(err.message || "Failed to initiate Google OAuth redirect.");
+    }
+  };
+
   useEffect(() => {
     if (processedRef.current) return;
 
@@ -24,25 +126,21 @@ const AuthCallback = () => {
         setStatus("authenticating");
 
         // 1. Check if returning from Google OAuth Redirect
-        let redirectUser = null;
         let idToken = null;
-
         try {
           const redirectResult = await getRedirectResult(auth);
           if (redirectResult && redirectResult.user) {
-            redirectUser = redirectResult.user;
-            idToken = await redirectUser.getIdToken(true);
+            idToken = await redirectResult.user.getIdToken(true);
           }
         } catch (e) {
           console.warn("[AuthCallback] getRedirectResult:", e);
         }
 
-        // 2. Check current user or auth state change if redirectResult was null
+        // 2. Check current authenticated user or wait for onAuthStateChanged
         if (!idToken) {
           if (auth.currentUser) {
             idToken = await auth.currentUser.getIdToken(true);
           } else {
-            // Wait up to 3s for onAuthStateChanged
             const userFromState = await new Promise((resolve) => {
               let done = false;
               const unsub = onAuthStateChanged(auth, (u) => {
@@ -58,7 +156,7 @@ const AuthCallback = () => {
                   unsub();
                   resolve(null);
                 }
-              }, 2500);
+              }, 2000);
             });
 
             if (userFromState) {
@@ -67,114 +165,30 @@ const AuthCallback = () => {
           }
         }
 
-        // 3. If we STILL don't have a token, check whether redirect was already attempted
-        if (!idToken) {
-          const redirectAttempted = sessionStorage.getItem("vp_auth_redirect_attempted");
-          if (!redirectAttempted) {
-            sessionStorage.setItem("vp_auth_redirect_attempted", "true");
-            localStorage.setItem(
-              "veriproof_auth_pending",
-              JSON.stringify({ role, inviteCode, timestamp: Date.now() })
-            );
-            await signInWithRedirect(auth, googleProvider);
-            return;
-          }
-
-          // Redirect was already attempted once and yielded no user session -> break the loop cleanly
-          sessionStorage.removeItem("vp_auth_redirect_attempted");
-          setStatus("error");
-          setErrorMessage("Google Sign-In was unable to restore session automatically. Please click the button below to authorize directly.");
+        // 3. If token acquired, complete authentication immediately!
+        if (idToken) {
+          await exchangeTokenAndFinish(idToken);
           return;
         }
 
-        sessionStorage.removeItem("vp_auth_redirect_attempted");
-
-        // 4. We have an authenticated Google User! Verify with backend
-        processedRef.current = true;
-        setStatus("authenticating");
-
-        let pendingRole = role;
-        try {
-          const saved = localStorage.getItem("veriproof_auth_pending");
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed.role) pendingRole = parsed.role;
-            localStorage.removeItem("veriproof_auth_pending");
-          }
-        } catch (e) {}
-
-        const AUTH_TIMEOUT = 55000;
-        let data = null;
-
-        for (let attempt = 0; attempt < 3; attempt++) {
-          try {
-            const res = await api.post(
-              "/api/users/firebase-auth",
-              { role: pendingRole, inviteCode, idToken },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${idToken}`,
-                },
-                timeout: AUTH_TIMEOUT,
-              }
-            );
-            data = res.data;
-            break;
-          } catch (err) {
-            const isRetryable =
-              !err.response || [502, 503, 504].includes(err.response?.status);
-            if (!isRetryable || attempt === 2) throw err;
-            await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
-          }
+        // 4. No token yet: Automatically initiate redirect if not already attempted
+        const alreadyAttempted = sessionStorage.getItem("vp_auth_redirect_executed");
+        if (!alreadyAttempted) {
+          await triggerRedirect();
+          return;
         }
 
-        if (!data) throw new Error("Failed to obtain user session from backend.");
-
-        // Persist session
-        persistUserSession(data);
-        setStatus("success");
-
-        // Broadcast to opener tab via postMessage
-        if (window.opener && !window.opener.closed) {
-          try {
-            window.opener.postMessage(
-              { type: "VERIPROOF_AUTH_SUCCESS", data },
-              window.location.origin
-            );
-          } catch (e) {
-            console.warn("[AuthCallback] postMessage failed:", e);
-          }
-        }
-
-        // Also broadcast via localStorage storage event (foolproof across tabs on same origin)
-        try {
-          localStorage.setItem(
-            "veriproof_auth_bridge_event",
-            JSON.stringify({ timestamp: Date.now(), data })
-          );
-        } catch (e) {}
-
-        // Attempt autoclose after a brief moment
-        setTimeout(() => {
-          try {
-            window.close();
-          } catch (e) {}
-          // If window.close was ignored by the browser, navigate directly
-          setTimeout(() => {
-            const targetPath =
-              data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-            navigate(targetPath, { replace: true });
-          }, 800);
-        }, 1000);
-
+        // Redirect returned but session was cleared: Allow user to trigger with 1 click
+        sessionStorage.removeItem("vp_auth_redirect_executed");
+        setStatus("error");
+        setErrorMessage("Please click below to complete your Google Authentication.");
       } catch (err) {
-        console.error("[AuthCallback] Error:", err);
+        console.error("[AuthCallback] General Error:", err);
         setStatus("error");
         setErrorMessage(
           err.response?.data?.message ||
             err.message ||
-            "Authentication failed. Please close this window and try again."
+            "Authentication failed. Please click below to authorize."
         );
       }
     };
@@ -203,7 +217,7 @@ const AuthCallback = () => {
               Authenticating Identity
             </h2>
             <p className="text-xs text-gray-400 font-mono leading-relaxed">
-              Exchanging cryptographic credentials with Google OAuth...
+              Connecting with Google OAuth...
             </p>
             <p className="text-[10px] text-gray-500 font-mono">
               This window will close automatically upon completion.
@@ -229,7 +243,7 @@ const AuthCallback = () => {
                   } catch (e) {}
                   navigate("/dashboard", { replace: true });
                 }}
-                className="inline-flex items-center gap-2 py-2 px-5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all"
+                className="inline-flex items-center gap-2 py-2 px-5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
               >
                 <span>Continue to Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -238,60 +252,22 @@ const AuthCallback = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto font-bold text-lg">
-              !
+            <div className="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center mx-auto font-bold text-lg">
+              <ShieldCheck className="w-6 h-6 text-cyan-400" />
             </div>
             <h2 className="text-lg font-black italic uppercase tracking-wider text-white">
-              Action Required
+              Authorize Identity
             </h2>
             <p className="text-xs text-slate-300 font-mono leading-relaxed">
               {errorMessage}
             </p>
-            <div className="pt-2 flex flex-col gap-2">
+            <div className="pt-2 flex flex-col gap-2.5">
               <button
                 type="button"
-                onClick={async () => {
-                  setStatus("authenticating");
-                  try {
-                    const res = await signInWithPopup(auth, googleProvider);
-                    if (res && res.user) {
-                      const idToken = await res.user.getIdToken(true);
-                      const apiRes = await api.post(
-                        "/api/users/firebase-auth",
-                        { role, inviteCode, idToken },
-                        {
-                          headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${idToken}`,
-                          },
-                          timeout: 55000,
-                        }
-                      );
-                      persistUserSession(apiRes.data);
-                      setStatus("success");
-                      if (window.opener && !window.opener.closed) {
-                        window.opener.postMessage(
-                          { type: "VERIPROOF_AUTH_SUCCESS", data: apiRes.data },
-                          window.location.origin
-                        );
-                      }
-                      localStorage.setItem(
-                        "veriproof_auth_bridge_event",
-                        JSON.stringify({ timestamp: Date.now(), data: apiRes.data })
-                      );
-                      setTimeout(() => {
-                        try { window.close(); } catch (e) {}
-                        navigate(apiRes.data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", { replace: true });
-                      }, 1000);
-                    }
-                  } catch (err) {
-                    setStatus("error");
-                    setErrorMessage(err.message || "Authentication failed.");
-                  }
-                }}
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg hover:brightness-110 cursor-pointer flex items-center justify-center gap-2"
+                onClick={triggerRedirect}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-lg hover:brightness-110 cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>Authorize with Google</span>
+                <span>Authorize with Google OAuth</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
               <button
@@ -302,7 +278,7 @@ const AuthCallback = () => {
                   } catch (e) {}
                   navigate("/login", { replace: true });
                 }}
-                className="w-full py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-medium uppercase tracking-wider transition-all border border-white/5"
+                className="w-full py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-medium uppercase tracking-wider transition-all border border-white/5 cursor-pointer"
               >
                 <span>Cancel / Return to Login</span>
               </button>
