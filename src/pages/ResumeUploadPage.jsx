@@ -62,7 +62,7 @@ const ResumeUploadPage = () => {
 
   const fetchAnalysisState = async () => {
     try {
-      const { data } = await api.get("/api/verify/resume/status");
+      const { data } = await api.get("/api/users/profile/resume-analysis");
       setAnalysisState(data);
     } catch (err) {
       console.error("Failed to fetch analysis state:", err);

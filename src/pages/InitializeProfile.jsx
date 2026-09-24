@@ -33,7 +33,6 @@ const Register = () => {
     user,
     setUser,
     loginWithGoogle,
-    loginWithGoogleRedirect,
     authLoading,
     redirectProcessing,
     oauthError,
@@ -207,7 +206,7 @@ const Register = () => {
     setError("");
     try {
       if (githubUsername.trim()) {
-        await api.post(
+        await api.put(
           "/api/users/profile",
           { githubUsername: githubUsername.trim() },
           { headers: { Authorization: `Bearer ${pendingOAuthData.token}` } }
@@ -445,8 +444,6 @@ const Register = () => {
               role={role}
               setRole={setRole}
               onGoogleAuth={handleGoogleRegister}
-              onGoogleRedirect={handleGoogleRedirect}
-              onOpenAuthWindow={handleOpenAuthWindow}
               googleLoading={googleLoading || authLoading}
               onPasswordAuth={submitHandler}
               passwordLoading={loading}
