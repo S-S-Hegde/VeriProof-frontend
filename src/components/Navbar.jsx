@@ -165,9 +165,7 @@ const Navbar = () => {
 
   const logoDestination = !user
     ? "/"
-    : user.role === "recruiter"
-      ? "/bulk-screening"
-      : "/student-dashboard";
+    : "/dashboard";
 
   return (
     <>

@@ -12,8 +12,17 @@ import {
   ExternalLink,
   Sliders,
   Sparkles,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 import api from "../../utils/api";
+
+// Detect mobile/tablet device
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (typeof window !== 'undefined' && window.innerWidth < 768);
+};
+
 
 const QUESTION_CONFIGS = [
   { count: 10, duration: 15, label: "10 MCQs", desc: "Quick Diagnostic (15 Mins)" },
@@ -120,6 +129,37 @@ const ExamLobby = ({
     );
   }
 
+  // Mobile device gate — exam cannot be taken on mobile
+  if (isMobileDevice()) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 py-12 text-center">
+        <div className="glass-card rounded-2xl p-8 max-w-md border border-amber-500/30 bg-amber-500/5 shadow-2xl">
+          <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-5">
+            <Smartphone className="w-8 h-8 text-amber-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-3 tracking-tight">
+            Desktop Required for Examination
+          </h2>
+          <p className="text-sm text-slate-300 mb-5 leading-relaxed">
+            This examination requires a <strong className="text-amber-300">desktop or laptop browser</strong>. Mobile devices cannot support fullscreen lockdown, webcam proctoring, and tab-switch detection required for exam integrity.
+          </p>
+          <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-700 flex items-center gap-3 text-left mb-5">
+            <Monitor className="w-6 h-6 text-blue-400 flex-shrink-0" />
+            <p className="text-xs text-slate-400">
+              Open <span className="text-white font-semibold">veriproof.vercel.app/exams</span> on a desktop or laptop to continue.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 text-sm font-semibold border border-slate-700 hover:bg-slate-700 transition"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto py-6 px-4">
       <div className="text-center mb-8">
@@ -159,7 +199,7 @@ const ExamLobby = ({
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
-              onClick={() => navigate("/student-dashboard")}
+              onClick={() => navigate("/dashboard")}
               className="px-5 py-3 rounded-xl bg-[var(--color-bg-sunken)] hover:bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] font-semibold text-xs transition border border-[var(--color-border)] inline-flex items-center gap-1.5 cursor-pointer"
             >
               <span>Back to Dashboard</span>
@@ -292,7 +332,7 @@ const ExamLobby = ({
 
             <button
               type="button"
-              onClick={() => navigate("/student-dashboard")}
+              onClick={() => navigate("/dashboard")}
               className="px-5 py-4 rounded-xl bg-[var(--color-bg-sunken)] hover:bg-[var(--color-surface-card)] text-[var(--color-text-secondary)] font-semibold text-xs transition border border-[var(--color-border)] flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Manage Resume in Dashboard</span>

@@ -114,7 +114,7 @@ export const VerificationPipeline = ({ workflowState, githubAnalysisState, onSte
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               title={status === "locked" ? `Locked: ${prerequisiteHint}` : `Navigate to ${step.label}`}
-              className={`flex items-center gap-4 p-3.5 sm:p-4 rounded-[var(--radius-md)] cursor-pointer transition-all duration-300 relative group ${
+              className={`flex items-start sm:items-center gap-3 p-3 sm:p-4 rounded-[var(--radius-md)] cursor-pointer transition-all duration-300 relative group ${
                 status === "complete"
                   ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
                   : status === "active"
@@ -125,7 +125,7 @@ export const VerificationPipeline = ({ workflowState, githubAnalysisState, onSte
               }`}
             >
               {/* Status icon */}
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 ${
                 status === "complete"
                   ? "bg-emerald-500/20 text-emerald-400"
                   : status === "active"
@@ -135,7 +135,7 @@ export const VerificationPipeline = ({ workflowState, githubAnalysisState, onSte
                   : "bg-[var(--color-border)] text-[var(--color-muted)]"
               }`}>
                 {status === "complete" ? (
-                  <CheckCircle className="w-4.5 h-4.5" />
+                  <CheckCircle className="w-4 h-4" />
                 ) : status === "active" ? (
                   isRepoStepRunning ? (
                     <motion.div
@@ -155,22 +155,22 @@ export const VerificationPipeline = ({ workflowState, githubAnalysisState, onSte
                 )}
               </div>
 
-              {/* Step info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className={`text-xs font-bold uppercase tracking-[0.12em] truncate ${
-                    status === "complete" ? "text-emerald-400" : status === "active" ? "text-[var(--color-text)] font-extrabold" : "text-[var(--color-muted)]"
+              {/* Step info — flex-1 so it can grow, no truncate on label */}
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <p className={`text-[11px] font-black uppercase tracking-[0.1em] leading-tight ${
+                    status === "complete" ? "text-emerald-400" : status === "active" ? "text-[var(--color-text)]" : "text-[var(--color-muted)]"
                   }`}>
                     {step.label}
                   </p>
                   {status === "active" && !isRepoStepRunning && (
-                    <span className="flex h-2 w-2 relative">
+                    <span className="flex h-2 w-2 relative shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent)] opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent)]"></span>
                     </span>
                   )}
                 </div>
-                <p className={`text-[10px] font-mono tracking-wider mt-0.5 ${
+                <p className={`text-[9px] sm:text-[10px] font-mono mt-0.5 leading-snug ${
                   status === "complete"
                     ? "text-emerald-500/80"
                     : status === "active"
@@ -180,33 +180,35 @@ export const VerificationPipeline = ({ workflowState, githubAnalysisState, onSte
                     : "text-[var(--color-muted)] opacity-70"
                 }`}>
                   {status === "complete"
-                    ? "Completed Stage"
+                    ? `Completed • +${step.xp} XP`
                     : status === "active"
                     ? isRepoStepRunning
-                      ? `Analyzing repo ${reposProcessed}/${totalRepos} — AI processing...`
-                      : "Current Active Step • Click to Action"
-                    : `Locked: ${prerequisiteHint}`}
+                      ? `Analyzing repo ${reposProcessed}/${totalRepos}…`
+                      : "Current Active Step"
+                    : status === "locked"
+                    ? "Locked — complete prior steps"
+                    : prerequisiteHint}
                 </p>
               </div>
 
-              {/* Status Badge */}
-              <div className="flex items-center gap-2">
+              {/* Status Badge — right-aligned, shrink-0 so it never wraps */}
+              <div className="shrink-0">
                 {status === "complete" ? (
-                  <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-sm font-bold">
-                    Completed • +{step.xp} XP
+                  <span className="hidden sm:inline text-[9px] font-mono tracking-wider px-2 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-sm font-bold whitespace-nowrap">
+                    +{step.xp} XP
                   </span>
                 ) : status === "active" ? (
                   isRepoStepRunning ? (
-                    <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-sm font-bold">
-                      {reposProcessed}/{totalRepos} Repos
+                    <span className="text-[9px] font-mono tracking-wider px-2 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-sm font-bold whitespace-nowrap">
+                      {reposProcessed}/{totalRepos}
                     </span>
                   ) : (
-                    <span className="text-[9px] font-mono tracking-wider px-2.5 py-1 bg-[var(--color-accent)] text-white rounded-sm font-bold animate-pulse">
-                      Active Step
+                    <span className="text-[9px] font-mono tracking-wider px-2 py-1 bg-[var(--color-accent)] text-white rounded-sm font-bold animate-pulse whitespace-nowrap">
+                      Active
                     </span>
                   )
                 ) : (
-                  <span className="text-[9px] font-mono tracking-wider px-2 py-0.5 bg-[var(--color-border)] text-[var(--color-muted)] rounded-sm">
+                  <span className="text-[9px] font-mono tracking-wider px-2 py-0.5 bg-[var(--color-border)] text-[var(--color-muted)] rounded-sm whitespace-nowrap">
                     Locked
                   </span>
                 )}

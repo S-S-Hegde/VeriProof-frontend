@@ -30,9 +30,9 @@ const RoleBasedRouter = ({ children, allowedRoles }) => {
   }
 
   return (
-    <div className="py-6">
+    <>
       {user.role === "recruiter" ? <InvestigatorHub /> : <StudentDashboard />}
-    </div>
+    </>
   );
 };
 

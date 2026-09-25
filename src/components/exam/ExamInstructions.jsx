@@ -9,8 +9,16 @@ import {
   ArrowRight,
   CameraOff,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  Monitor,
+  Smartphone,
 } from "lucide-react";
+
+// Detect mobile/tablet device
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (typeof window !== 'undefined' && window.innerWidth < 768);
+};
 
 const ACE_STREAM_URL = "http://localhost:8000/api/stream";
 const ACE_STATUS_URL = "http://localhost:8000/api/proctor/status";
@@ -83,6 +91,41 @@ const ExamInstructions = ({
   }, [webcamStream, aceActive]);
 
   const isReadyToStart = agreed && (aceActive || Boolean(webcamStream));
+
+  // ── Mobile device gate — exam requires desktop fullscreen + webcam ──
+  if (isMobileDevice()) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 py-12 text-center">
+        <div className="glass-card rounded-2xl p-8 max-w-md border border-amber-500/30 bg-amber-500/5 shadow-2xl">
+          <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-5">
+            <Smartphone className="w-8 h-8 text-amber-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-3 tracking-tight">
+            Desktop Required
+          </h2>
+          <p className="text-sm text-slate-300 mb-5 leading-relaxed">
+            This examination requires a <strong className="text-amber-300">desktop or laptop browser</strong>. Mobile devices cannot support the mandatory fullscreen lockdown, webcam proctoring, and tab-switch detection that ensure exam integrity.
+          </p>
+          <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-700 flex items-center gap-3 text-left mb-5">
+            <Monitor className="w-6 h-6 text-blue-400 flex-shrink-0" />
+            <p className="text-xs text-slate-400">
+              Please open <span className="text-white font-semibold">veriproof.vercel.app/exams</span> on a desktop or laptop to continue.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400">
+            <div className="p-2 rounded-lg bg-slate-900/40 border border-slate-800">
+              <Camera className="w-4 h-4 text-rose-400 mx-auto mb-1" />
+              Webcam Required
+            </div>
+            <div className="p-2 rounded-lg bg-slate-900/40 border border-slate-800">
+              <Maximize className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+              Fullscreen Required
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-6 px-4">

@@ -325,7 +325,7 @@ const StudentDashboard = () => {
 
   return (
     <PageTransition>
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 lg:py-12 pb-28 lg:pb-12">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-12 pb-28 lg:pb-12">
         <Reveal>
           <div className="mb-12 lg:mb-16">
             <div className="flex items-center gap-3 mb-4">
@@ -361,7 +361,7 @@ const StudentDashboard = () => {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 lg:mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-8 lg:mb-16">
             <div className="lg:col-span-8 space-y-4">
               {/* GitHub Analysis Banner */}
               <GitHubAnalysisBanner
@@ -533,10 +533,10 @@ const StudentDashboard = () => {
           </div>
         ) : projects.length === 0 ? (
           <Reveal delay={0.55}>
-            <div className="text-center py-20 vp-surface-1 relative overflow-hidden">
+            <div className="text-center py-10 sm:py-16 vp-surface-1 relative overflow-hidden">
               <div className="relative z-10">
-                <Database className="w-12 h-12 mx-auto text-[var(--color-muted)] opacity-20 mb-6" />
-                <h3 className="text-2xl font-black italic uppercase tracking-tighter opacity-30 mb-3">
+                <Database className="w-10 h-10 mx-auto text-[var(--color-muted)] opacity-20 mb-5" />
+                <h3 className="text-xl font-black italic uppercase tracking-tighter opacity-30 mb-2">
                   {githubAnalysisState?.status === "running"
                     ? "Scanning_Repositories"
                     : "Empty_Archive"}
