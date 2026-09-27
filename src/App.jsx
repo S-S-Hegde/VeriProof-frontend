@@ -67,6 +67,7 @@ const CandidateVerificationRequests = lazy(
   () => import("./pages/VerificationRequests"),
 );
 const VerdictsPage = lazy(() => import("./pages/VerdictsPage"));
+const VerificationPanelPage = lazy(() => import("./pages/VerificationPanel"));
 
 // Smart router for /settings based on role
 const SettingsRouter = () => {
@@ -409,6 +410,16 @@ const AnimatedRoutes = () => {
             <Suspense fallback={<LoadingScreen />}>
               <PageTransition>
                 <VerdictsPage />
+              </PageTransition>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/verification-panel/:candidateId"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <PageTransition>
+                <VerificationPanelPage />
               </PageTransition>
             </Suspense>
           }
