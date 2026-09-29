@@ -155,8 +155,11 @@ export default function ResumeUploadModal({ isOpen, onClose, onUploadSuccess }) 
 
   if (!isOpen) return null;
 
-  const hasResume = Boolean(profileData?.resumeUrl);
-  const isInvited = profileData?.origin === "recruiter_invited";
+  const hasResume = Boolean(profileData?.resumeUrl || user?.resumeUrl);
+  const isInvited =
+    user?.origin === "recruiter_invited" ||
+    profileData?.origin === "recruiter_invited" ||
+    Boolean(user?.invitedByRecruiter);
 
   if (!document.body) return null;
 

@@ -12,6 +12,7 @@ import {
 } from "../components/OnboardingComponents";
 import ResumeUploadModal from "../components/ResumeUploadModal";
 import ProjectVerificationModal from "../components/ProjectVerificationModal";
+import { resolveFileUrl } from "../utils/fileUrl";
 import { useSkillTree } from "../context/SkillTreeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -171,6 +172,10 @@ const StudentDashboard = () => {
   }, [setUser]);
 
   const workflowState = profileData?.workflowState || user?.workflowState;
+  const isInvited =
+    user?.origin === "recruiter_invited" ||
+    profileData?.origin === "recruiter_invited" ||
+    Boolean(user?.invitedByRecruiter);
   const resumeUrl =
     profileData?.resumeUrl ||
     user?.resumeUrl ||
@@ -373,15 +378,20 @@ const StudentDashboard = () => {
                 resumeUrl={resumeUrl}
                 resumeStatus={resumeStatus}
                 analysisState={analysisState}
-                user={user}
-                onOpenUploadModal={() => setIsUploadModalOpen(true)}
+                user={{ ...user, origin: isInvited ? "recruiter_invited" : user?.origin }}
+                onOpenUploadModal={isInvited ? null : () => setIsUploadModalOpen(true)}
               />
               <VerificationPipeline
                 workflowState={workflowState}
                 githubAnalysisState={workflowState?.hasRepoAnalysis ? null : githubAnalysisState}
                 onStepClick={(stepId) => {
                   if (stepId === "resume" || stepId === "analysis") {
-                    setIsUploadModalOpen(true);
+                    if (isInvited) {
+                      const effectiveUrl = resolveFileUrl(resumeUrl || "/uploads/candidate-resumes/verified_resume.pdf");
+                      window.open(effectiveUrl, "_blank");
+                    } else {
+                      setIsUploadModalOpen(true);
+                    }
                   } else if (stepId === "repo") {
                     if (workflowState?.hasRepoAnalysis) {
                       navigate("/add-project");

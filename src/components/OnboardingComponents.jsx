@@ -632,7 +632,7 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
                 <Eye className="w-3 h-3 text-cyan-400" /> View_Resume
               </a>
 
-              {onOpenUploadModal && (
+              {!isInvited && onOpenUploadModal && (
                 <button
                   type="button"
                   onClick={onOpenUploadModal}
