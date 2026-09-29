@@ -3,7 +3,7 @@ import { AlertTriangle, Clock, PlayCircle, ShieldCheck } from "lucide-react";
 
 export default function ExamPurgatoryView({ candidateDNA, onStartPart2, isStartingPart2 }) {
   // Purgatory Timer: 10 minutes maximum break
-  const [timeLeft, setTimeLeft] = useState(600); 
+  const [timeLeft, setTimeLeft] = useState(180); 
 
   useEffect(() => {
     const timer = setInterval(() => {
