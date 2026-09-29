@@ -114,23 +114,20 @@ const Login = () => {
   };
 
   // ── Google OAuth handler ──────────────────────────────────────────────────
+  // loginWithGoogle now uses redirect-only flow (no popup).
+  // The page will navigate away to Google and return via /auth-callback.
   const handleGoogleAuth = async () => {
     setError("");
     setGoogleLoading(true);
     try {
-      const data = await loginWithGoogle(role);
-      if (!data) {
-        // null returned because popup was blocked and app is automatically redirecting to Google
-        return;
-      }
-      finishLogin(data);
+      await loginWithGoogle(role);
+      // Page is navigating to Google — execution stops here naturally.
     } catch (err) {
       setError(
         err.response?.data?.message ||
         err.message ||
         "Google authentication failed. Please try again."
       );
-    } finally {
       setGoogleLoading(false);
     }
   };

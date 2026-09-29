@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
 import {
-  signInWithGooglePopup,
   signInWithGoogleRedirect,
   resolveRedirectResult,
   firebaseSignOut,
@@ -181,59 +180,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Google Sign-In with Automatic Seamless Fallback:
-   * 1. Attempts popup first (instant for desktop users).
-   * 2. If popup is blocked by Chrome/browser settings:
-   *    Automatically and seamlessly switches to redirect flow (no technical config required from user).
+   * Google Sign-In using REDIRECT flow only.
+   * This is the safest strategy — it routes through Firebase's own
+   * firebaseapp.com domain (always authorized), so it works on ALL
+   * Vercel preview URLs, custom domains, and localhost without any
+   * Firebase console domain whitelist configuration.
    */
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
-    setAuthLoading(true);
     setOauthError("");
-
+    setRedirectProcessing(true);
     try {
-      let idToken;
-      try {
-        const result = await signInWithGooglePopup();
-        idToken = result.idToken;
-      } catch (popupErr) {
-        const isPopupBlocked =
-          popupErr.code === "auth/popup-blocked" ||
-          popupErr.code === "auth/cancelled-popup-request";
-
-        if (isPopupBlocked) {
-          console.info("[Auth] Popup blocked by browser policy. Automatically initiating redirect flow...");
-          setRedirectProcessing(true);
-          await signInWithGoogleRedirect(role, inviteCode);
-          return null; // Page is redirecting to Google
-        }
-
-        if (popupErr.code === "auth/popup-closed-by-user") {
-          throw new Error("Sign-in popup was closed before completing.");
-        }
-
-        throw popupErr;
-      }
-
-      // Popup succeeded
-      const data = await exchangeFirebaseToken(idToken, role, inviteCode);
-      persistUserSession(data);
-      setUser(data);
-      scheduleLogout(ONE_HOUR);
-      return data;
+      await signInWithGoogleRedirect(role, inviteCode);
+      // Page navigates away to Google — nothing more to do here.
+      return null;
     } catch (err) {
-      let msg =
+      console.error("[Auth] Failed to initiate Google redirect:", err);
+      setRedirectProcessing(false);
+      const msg =
         err.response?.data?.message ||
         err.message ||
-        "Google authentication failed. Please try again.";
-
-      if (err.code === "auth/unauthorized-domain") {
-        msg = `Domain not authorized in Firebase: ${window.location.hostname}. Please add "vercel.app" in Firebase Console -> Authentication -> Settings -> Authorized domains, or sign in via the production domain (https://veriproof.vercel.app).`;
-      }
-
+        "Could not start Google authentication. Please try again.";
       setOauthError(msg);
       throw err;
-    } finally {
-      setAuthLoading(false);
     }
   };
 
