@@ -73,37 +73,6 @@ export const handleRedirectResult = async () => {
       const idToken = await result.user.getIdToken(true);
       return { user: result.user, idToken };
     }
-
-    // Also check already-signed-in user (Firebase restores from persistence)
-    if (auth.currentUser) {
-      const idToken = await auth.currentUser.getIdToken(true);
-      return { user: auth.currentUser, idToken };
-    }
-
-    // Wait briefly for onAuthStateChanged hydration
-    const user = await new Promise((resolve) => {
-      let done = false;
-      const unsub = onAuthStateChanged(auth, (u) => {
-        if (u && !done) {
-          done = true;
-          unsub();
-          resolve(u);
-        }
-      });
-      setTimeout(() => {
-        if (!done) {
-          done = true;
-          unsub();
-          resolve(null);
-        }
-      }, 3000);
-    });
-
-    if (user) {
-      const idToken = await user.getIdToken(true);
-      return { user, idToken };
-    }
-
     return null;
   } catch (error) {
     console.error("[Firebase handleRedirectResult error]:", error);

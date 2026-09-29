@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import { signInWithGoogle, signInWithGoogleRedirect, handleRedirectResult } from "../config/firebase";
+import { auth, signInWithGoogle, signInWithGoogleRedirect, handleRedirectResult } from "../config/firebase";
 import { clearUserSession, getStoredUser, persistUserSession } from "../utils/authStorage";
 import useServerKeepAlive from "../hooks/useServerKeepAlive";
 
@@ -53,6 +53,25 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const processRedirect = async () => {
       const pendingStr = localStorage.getItem("veriproof_auth_pending");
+      // Fast path: if no redirect was initiated, do nothing
+      if (!pendingStr) {
+        setRedirectProcessing(false);
+        return;
+      }
+
+      // Immediately consume and clear pending flag so it can never re-trigger across reloads
+      localStorage.removeItem("veriproof_auth_pending");
+
+      let role = "student";
+      let inviteCode = "";
+      try {
+        const pending = JSON.parse(pendingStr);
+        const age = Date.now() - (pending.timestamp || 0);
+        if (age < 15 * 60 * 1000) {
+          role = pending.role || "student";
+          inviteCode = pending.inviteCode || "";
+        }
+      } catch (e) {}
 
       try {
         const result = await handleRedirectResult();
@@ -61,21 +80,6 @@ export const AuthProvider = ({ children }) => {
           setRedirectProcessing(true);
           setAuthLoading(true);
           setOauthError("");
-
-          let role = "student";
-          let inviteCode = "";
-
-          if (pendingStr) {
-            try {
-              const pending = JSON.parse(pendingStr);
-              const age = Date.now() - (pending.timestamp || 0);
-              if (age < 15 * 60 * 1000) {
-                role = pending.role || "student";
-                inviteCode = pending.inviteCode || "";
-              }
-            } catch (e) {}
-            localStorage.removeItem("veriproof_auth_pending");
-          }
 
           let data = null;
           for (let attempt = 0; attempt < 3; attempt++) {
@@ -100,27 +104,25 @@ export const AuthProvider = ({ children }) => {
             }
           }
 
-          updateCurrentUser(data);
-          scheduleLogout(ONE_HOUR);
+          if (data) {
+            updateCurrentUser(data);
+            scheduleLogout(ONE_HOUR);
 
-          if (data?.role) {
-            const dest = data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-            setTimeout(() => window.location.replace(dest), 50);
+            if (data.role) {
+              const dest = data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
+              if (window.location.pathname !== dest) {
+                window.location.replace(dest);
+              }
+            }
           }
-        } else {
-          // No redirect result — clear stale pending flag silently
-          if (pendingStr) localStorage.removeItem("veriproof_auth_pending");
-          setRedirectProcessing(false);
         }
       } catch (err) {
         console.error("[AuthContext] Redirect processing error:", err);
-        localStorage.removeItem("veriproof_auth_pending");
         setOauthError(
           err.response?.data?.message ||
             err.message ||
             "Google Sign-In failed. Please try again."
         );
-        setRedirectProcessing(false);
       } finally {
         setAuthLoading(false);
         setRedirectProcessing(false);
@@ -202,6 +204,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     try { api.post("/api/keep-alive/release").catch(() => {}); } catch (e) {}
+    try { auth.signOut().catch(() => {}); } catch (e) {}
     updateCurrentUser(null);
   };
 
