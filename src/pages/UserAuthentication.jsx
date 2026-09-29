@@ -3,22 +3,21 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
-import { persistUserSession } from "../utils/authStorage";
 import RecruiterCompanyOnboardingModal from "../components/RecruiterCompanyOnboardingModal";
 import AuthShell from "../components/auth/AuthShell";
 import IdentityGatewayCard from "../components/auth/IdentityGatewayCard";
 import { CheckCircle, KeyRound, Loader2 } from "lucide-react";
 
 const Login = () => {
-  const [email, setEmail]             = useState("");
-  const [password, setPassword]       = useState("");
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole]               = useState("student");
-  const [loading, setLoading]         = useState(false);
+  const [role, setRole]                 = useState("student");
+  const [loading, setLoading]           = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError]             = useState("");
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [welcomeName, setWelcomeName] = useState("");
+  const [error, setError]               = useState("");
+  const [showWelcome, setShowWelcome]   = useState(false);
+  const [welcomeName, setWelcomeName]   = useState("");
   const [showCompanyModal, setShowCompanyModal] = useState(false);
 
   // OTP state
@@ -32,7 +31,6 @@ const Login = () => {
     setUser,
     loginWithGoogle,
     authLoading,
-    redirectProcessing,
     oauthError,
   } = useAuth();
 
@@ -40,36 +38,41 @@ const Login = () => {
   const location   = useLocation();
   const timeoutRef = useRef(null);
 
+  // ── Redirect already-authenticated users ─────────────────────────────────
   useEffect(() => {
-    if (user) {
-      // Already logged in (e.g. page refresh with valid session, or redirect return)
-      // Only redirect if NOT in the middle of showing the welcome animation
-      if (showWelcome) return;
-      if (
-        user.role === "recruiter" &&
-        user.recruiterVerificationStatus &&
-        user.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
-      ) {
-        setShowCompanyModal(true);
-        return;
-      }
-      navigate(user.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", { replace: true });
+    // Never interrupt the welcome animation
+    if (showWelcome) return;
+    if (!user) return;
+
+    if (
+      user.role === "recruiter" &&
+      user.recruiterVerificationStatus &&
+      user.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
+    ) {
+      setShowCompanyModal(true);
+      return;
     }
-  }, [user, navigate, showWelcome]);
+
+    const dest = user.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
+    navigate(dest, { replace: true });
+  }, [user, showWelcome, navigate]);
 
   useEffect(() => {
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
+  // ── finishLogin ───────────────────────────────────────────────────────────
+  /**
+   * Show the welcome animation, persist the session, then navigate.
+   * Called by ALL login paths (email/password, OTP, Google popup).
+   */
   const finishLogin = (data) => {
-    setWelcomeName(data.name);
-    setShowWelcome(true);
+    // Persist + expose to context BEFORE animation starts so that any
+    // re-render triggered by setUser sees the correct user object.
+    setUser(data);
 
-    // For email/password login: data comes from the API, need to set session
-    // For Google popup: AuthContext.loginWithGoogle already set user + persisted session
-    // Calling setUser again is safe (idempotent), ensures session is always stored
-    persistUserSession(data);
-    setUser(data); // sync to context (no-op if already set by loginWithGoogle)
+    setWelcomeName(data.name || "");
+    setShowWelcome(true);
 
     timeoutRef.current = setTimeout(() => {
       if (
@@ -86,46 +89,45 @@ const Login = () => {
         fromPath || (data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard"),
         { replace: true }
       );
-    }, 1800);
+    }, 1_800);
   };
 
-
+  // ── Google OAuth handler ──────────────────────────────────────────────────
   const handleGoogleAuth = async () => {
     setError("");
     setGoogleLoading(true);
     try {
+      // loginWithGoogle handles the popup + backend exchange
       const data = await loginWithGoogle(role);
-      if (!data) {
-        // null means redirect was initiated — page is navigating away
-        // Show a brief loading message so the user isn't left staring at the login form
-        return;
-      }
-      // Popup succeeded — data is the VeriProof user object
-      // Use finishLogin to show welcome animation then navigate
+      // data is the VeriProof user object — go through finishLogin
       finishLogin(data);
     } catch (err) {
-      console.error("[Google Auth Error]:", err);
-      // oauthError is already set in AuthContext — it will show via the error prop
-      // Also set local error as fallback
-      setError(err.response?.data?.message || err.message || "Google authentication failed. Please try again.");
+      // oauthError is already set inside AuthContext
+      // set local error as additional fallback
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        "Google authentication failed. Please try again."
+      );
     } finally {
       setGoogleLoading(false);
     }
   };
 
+  // ── Email / password handler ──────────────────────────────────────────────
   const submitHandler = async (e) => {
     if (e) e.preventDefault();
 
-    let submittedEmail = email;
+    let submittedEmail    = email;
     let submittedPassword = password;
 
     if (e?.target instanceof HTMLFormElement) {
       const fd = new FormData(e.target);
-      submittedEmail = fd.get("email") ?? email;
+      submittedEmail    = fd.get("email")    ?? email;
       submittedPassword = fd.get("password") ?? password;
     }
 
-    submittedEmail = String(submittedEmail || "").trim().toLowerCase();
+    submittedEmail    = String(submittedEmail    || "").trim().toLowerCase();
     submittedPassword = String(submittedPassword || "");
 
     if (!submittedEmail || !submittedPassword) {
@@ -137,7 +139,7 @@ const Login = () => {
     setLoading(true);
     try {
       const { data } = await api.post("/api/users/login", {
-        email: submittedEmail,
+        email:    submittedEmail,
         password: submittedPassword,
         role,
       });
@@ -151,20 +153,21 @@ const Login = () => {
 
       finishLogin(data);
     } catch (err) {
-      const status = err.response?.status;
+      const status  = err.response?.status;
       const resData = err.response?.data;
-      const msg = resData?.message || "Authentication failed. Please check your credentials.";
+      const msg     = resData?.message || "Authentication failed. Please check your credentials.";
       setError(msg);
       setLoading(false);
       if ((status === 404 || status === 403) && resData?.redirectTo) {
         timeoutRef.current = setTimeout(
           () => navigate(`/register?email=${encodeURIComponent(submittedEmail)}&role=${role}`),
-          1500
+          1_500
         );
       }
     }
   };
 
+  // ── OTP handler ───────────────────────────────────────────────────────────
   const submitOtp = async (e) => {
     e.preventDefault();
     const code = otp.join("");
@@ -180,54 +183,33 @@ const Login = () => {
     }
   };
 
-  const handleOtpKey = (idx, e) => {
+  const handleOtpKey    = (idx, e)  => {
     if (e.key === "Backspace" && !otp[idx] && idx > 0) otpRefs.current[idx - 1]?.focus();
   };
-
   const handleOtpChange = (idx, val) => {
     const digit = val.replace(/\D/g, "").slice(-1);
-    const next = [...otp];
-    next[idx] = digit;
+    const next  = [...otp];
+    next[idx]   = digit;
     setOtp(next);
     if (digit && idx < 5) otpRefs.current[idx + 1]?.focus();
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="w-full relative">
-      {/* Fullscreen overlay while redirect OAuth processes */}
-      {redirectProcessing && (
-        <div className="fixed inset-0 z-[200] bg-[#070a14] flex flex-col items-center justify-center text-white">
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative w-16 h-16">
-              <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20" />
-              <div className="absolute inset-0 rounded-full border-4 border-t-cyan-400 animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="w-7 h-7" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400 animate-pulse mb-2">
-                Completing Google Sign-In...
-              </p>
-              <p className="text-[11px] font-mono text-gray-500">
-                Verifying with backend — this may take up to 30 seconds
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <RecruiterCompanyOnboardingModal
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}
-        onVerified={() => navigate(user?.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", { replace: true })}
+        onVerified={() =>
+          navigate(
+            user?.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard",
+            { replace: true }
+          )
+        }
       />
 
+      {/* Welcome animation */}
       <AnimatePresence>
         {showWelcome && (
           <motion.div
@@ -278,7 +260,8 @@ const Login = () => {
                 Enter Verification OTP
               </h2>
               <p className="text-xs text-gray-400 mt-2 font-mono">
-                A 6-digit access code was sent to <strong className="text-white">{otpEmail}</strong>
+                A 6-digit access code was sent to{" "}
+                <strong className="text-white">{otpEmail}</strong>
               </p>
             </div>
 

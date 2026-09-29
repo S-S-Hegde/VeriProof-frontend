@@ -1,68 +1,89 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import {
-  auth,
-  signInWithGooglePopup,
-  signInWithGoogleRedirect,
-  resolveRedirectResult,
-  firebaseSignOut,
-} from "../config/firebase";
+import { signInWithGooglePopup, firebaseSignOut } from "../config/firebase";
 import { clearUserSession, getStoredUser, persistUserSession } from "../utils/authStorage";
 import useServerKeepAlive from "../hooks/useServerKeepAlive";
 
+// ---------------------------------------------------------------------------
+// Context
+// ---------------------------------------------------------------------------
 const AuthContext = createContext();
-const ONE_HOUR = 3600000;
+const ONE_HOUR    = 3_600_000; // ms
 
 export const useAuth = () => useContext(AuthContext);
 
+// ---------------------------------------------------------------------------
+// Provider
+// ---------------------------------------------------------------------------
 export const AuthProvider = ({ children }) => {
-  // ── Session Initialisation ────────────────────────────────────────────────
-  const [user, setUser] = useState(() => {
-    const userInfo = getStoredUser();
-    const loginTimestamp = localStorage.getItem("loginTimestamp");
-    if (!userInfo || !loginTimestamp) {
-      clearUserSession();
-      return null;
-    }
-    const elapsed = Date.now() - parseInt(loginTimestamp, 10);
+
+  // ------------------------------------------------------------------
+  // Restore session from localStorage on first render (synchronous).
+  // We purposely do NOT clear the session here if it is expired — we
+  // let the session-expiry watchdog handle that so we have a single
+  // source of truth.
+  // ------------------------------------------------------------------
+  const [user, setUserState] = useState(() => {
+    const stored    = getStoredUser();
+    const ts        = localStorage.getItem("loginTimestamp");
+    if (!stored || !ts) return null;
+    const elapsed = Date.now() - parseInt(ts, 10);
     if (elapsed >= ONE_HOUR) {
       clearUserSession();
       return null;
     }
-    return userInfo;
+    return stored;
   });
 
+  // authLoading — true while an explicit login/google call is in-flight
   const [authLoading, setAuthLoading] = useState(false);
-  const [redirectProcessing, setRedirectProcessing] = useState(
-    // Only show loading overlay if we actually have a pending redirect
-    () => Boolean(localStorage.getItem("veriproof_auth_pending"))
-  );
+
+  // authInitialized — flips to true once AuthProvider has finished its
+  // own startup work. Consumers (RoleBasedRouter) MUST wait on this
+  // before making routing decisions.
+  const [authInitialized, setAuthInitialized] = useState(false);
+
   const [oauthError, setOauthError] = useState("");
-  const [isExiting, setIsExiting] = useState(false);
-  const logoutTimerRef = useRef(null);
+  const [isExiting, setIsExiting]   = useState(false);
+  const logoutTimerRef              = useRef(null);
 
   useServerKeepAlive(Boolean(user));
 
-  // ── Internal helpers ──────────────────────────────────────────────────────
-  const updateCurrentUser = (val) => {
-    setUser((prev) => {
+  // ------------------------------------------------------------------
+  // One-time init — mark initialized.
+  // We have no redirect flow any more, so this is trivially instant.
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    // Nothing async to do on mount — session was restored synchronously above.
+    // We set authInitialized on the next microtask so any children that mount
+    // simultaneously still see the correct initial user state.
+    setAuthInitialized(true);
+  }, []);
+
+  // ------------------------------------------------------------------
+  // Internal helpers
+  // ------------------------------------------------------------------
+
+  /** Write user to state + localStorage atomically. */
+  const setUser = (val) => {
+    setUserState((prev) => {
       const next = typeof val === "function" ? val(prev) : val;
       if (next) persistUserSession(next);
-      else clearUserSession();
+      else       clearUserSession();
       return next;
     });
   };
 
   const scheduleLogout = (ms) => {
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-    logoutTimerRef.current = setTimeout(() => updateCurrentUser(null), ms);
+    logoutTimerRef.current = setTimeout(() => setUser(null), Math.max(ms, 0));
   };
 
   /**
    * Exchange a Firebase idToken with our backend and get a VeriProof session.
-   * Retries on transient backend cold-start errors (502/503/504).
+   * Retries on transient cold-start errors (502/503/504).
    */
-  const exchangeFirebaseToken = async (idToken, role, inviteCode) => {
+  const exchangeFirebaseToken = async (idToken, role = "student", inviteCode = "") => {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const res = await api.post(
@@ -73,158 +94,77 @@ export const AuthProvider = ({ children }) => {
               "Content-Type": "application/json",
               Authorization: `Bearer ${idToken}`,
             },
-            timeout: 55000,
+            timeout: 55_000,
           }
         );
         return res.data;
       } catch (err) {
         const retryable = !err.response || [502, 503, 504].includes(err.response?.status);
         if (!retryable || attempt === 2) throw err;
-        await new Promise((r) => setTimeout(r, (attempt + 1) * 3000));
+        await new Promise((r) => setTimeout(r, (attempt + 1) * 3_000));
       }
     }
   };
 
-  // ── Redirect result handler — runs ONCE on mount ──────────────────────────
-  // This ONLY runs when veriproof_auth_pending is set (i.e. a redirect was initiated).
-  useEffect(() => {
-    const pendingStr = localStorage.getItem("veriproof_auth_pending");
-    if (!pendingStr) {
-      // No redirect was initiated — nothing to do, ensure overlay is hidden
-      setRedirectProcessing(false);
-      return;
-    }
-
-    // Consume the pending flag IMMEDIATELY before any async work
-    // This prevents any re-mount from re-processing
-    localStorage.removeItem("veriproof_auth_pending");
-
-    let role = "student";
-    let inviteCode = "";
-    try {
-      const pending = JSON.parse(pendingStr);
-      const age = Date.now() - (pending.timestamp || 0);
-      if (age < 15 * 60 * 1000) {
-        role = pending.role || "student";
-        inviteCode = pending.inviteCode || "";
-      }
-    } catch (e) {}
-
-    const handleRedirect = async () => {
-      setRedirectProcessing(true);
-      setOauthError("");
-
-      try {
-        const result = await resolveRedirectResult();
-
-        if (!result?.idToken) {
-          // Firebase redirect returned nothing — user may have cancelled
-          setOauthError("Google Sign-In was not completed. Please try again.");
-          return;
-        }
-
-        const data = await exchangeFirebaseToken(result.idToken, role, inviteCode);
-
-        if (data) {
-          updateCurrentUser(data);
-          scheduleLogout(ONE_HOUR);
-          // Navigate to dashboard — use React Router navigate if available, else window
-          // We use window.location.replace here because we're in a provider (no navigate hook)
-          // This is a ONE-TIME navigation after a legitimate redirect login
-          const dest = data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard";
-          if (window.location.pathname !== dest) {
-            window.location.replace(dest);
-          }
-        }
-      } catch (err) {
-        console.error("[AuthContext] Google redirect processing error:", err);
-        setOauthError(
-          err.response?.data?.message ||
-            err.message ||
-            "Google Sign-In failed. Please try again."
-        );
-      } finally {
-        setRedirectProcessing(false);
-      }
-    };
-
-    handleRedirect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Session expiry watchdog ───────────────────────────────────────────────
+  // ------------------------------------------------------------------
+  // Session-expiry watchdog — re-arms whenever user changes
+  // ------------------------------------------------------------------
   useEffect(() => {
     if (!user) {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
       return;
     }
-    const loginTimestamp = localStorage.getItem("loginTimestamp");
-    if (!loginTimestamp) {
+    const ts = localStorage.getItem("loginTimestamp");
+    if (!ts) {
       clearUserSession();
-      setUser(null);
+      setUserState(null);
       return;
     }
-    const elapsed = Date.now() - parseInt(loginTimestamp, 10);
-    scheduleLogout(Math.max(ONE_HOUR - elapsed, 0));
+    const elapsed = Date.now() - parseInt(ts, 10);
+    scheduleLogout(ONE_HOUR - elapsed);
     return () => {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // ── Public API ────────────────────────────────────────────────────────────
+  // ------------------------------------------------------------------
+  // Public API
+  // ------------------------------------------------------------------
 
-  /** Email/password login */
+  /** Email / password login */
   const login = async (email, password) => {
     const { data } = await api.post(
       "/api/users/login",
       { email, password },
       { headers: { "Content-Type": "application/json" } }
     );
-    updateCurrentUser(data);
+    setUser(data);
     scheduleLogout(ONE_HOUR);
     return data;
   };
 
   /**
-   * Google sign-in — PRIMARY method. Uses popup.
-   * Falls back to redirect only if popup is definitively blocked.
+   * Google sign-in via popup (ONLY method — no redirect fallback).
    *
-   * Returns VeriProof user data on popup success.
-   * Returns null if redirect was initiated (page will navigate away).
-   * Throws on any other error.
+   * Returns the VeriProof user object on success.
+   * Throws on any error — caller is responsible for displaying it.
    */
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
     setAuthLoading(true);
     setOauthError("");
 
     try {
-      let idToken;
+      // 1. Open Google popup and get Firebase credential
+      const { idToken } = await signInWithGooglePopup();
 
-      try {
-        // Primary: popup — instant, works on all modern browsers when not blocked
-        const result = await signInWithGooglePopup();
-        idToken = result.idToken;
-      } catch (popupErr) {
-        // Fall back to redirect ONLY on explicit popup block/close/cancel
-        const isPopupIssue =
-          popupErr.code === "auth/popup-blocked" ||
-          popupErr.code === "auth/popup-closed-by-user" ||
-          popupErr.code === "auth/cancelled-popup-request";
-
-        if (isPopupIssue) {
-          // Initiate redirect — page will navigate away, nothing returns here
-          await signInWithGoogleRedirect(role, inviteCode);
-          return null; // unreachable but TypeScript-friendly
-        }
-
-        throw popupErr;
-      }
-
-      // We have an idToken from the popup — exchange with backend
+      // 2. Exchange with our backend for a VeriProof session
       const data = await exchangeFirebaseToken(idToken, role, inviteCode);
-      updateCurrentUser(data);
+
+      // 3. Persist and expose session
+      setUser(data);
       scheduleLogout(ONE_HOUR);
+
       return data;
     } catch (err) {
       const msg =
@@ -238,26 +178,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /** Logout — clears session locally and signs out of Firebase */
+  /** Logout — clears everything */
   const logout = () => {
-    try { api.post("/api/keep-alive/release").catch(() => {}); } catch (e) {}
-    firebaseSignOut(); // clears Firebase IndexedDB session
-    updateCurrentUser(null);
+    try { api.post("/api/keep-alive/release").catch(() => {}); } catch (_) {}
+    firebaseSignOut();    // clears Firebase IndexedDB
+    setUser(null);
   };
 
+  // ------------------------------------------------------------------
+  // Context value
+  // ------------------------------------------------------------------
   return (
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         loginWithGoogle,
         logout,
-        loading: authLoading,
+        loading:         authLoading,   // kept for back-compat
         authLoading,
-        redirectProcessing,
+        authInitialized,                // NEW — gate for route guards
         oauthError,
         setOauthError,
-        setUser: updateCurrentUser,
         isExiting,
         setIsExiting,
       }}
