@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import PageTransition from "../components/PageTransition";
+import ConfirmModal from "../components/ConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../utils/api";
 import { resolveFileUrl } from "../utils/fileUrl";
@@ -89,6 +90,11 @@ const CertificationsPage = () => {
   const [dragActive, setDragActive] = useState(false);
   const [formError, setFormError] = useState("");
   const [successNotice, setSuccessNotice] = useState("");
+
+  // Confirm Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [certToDelete, setCertToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Modal Lightbox Preview
   const [previewCert, setPreviewCert] = useState(null);
@@ -242,13 +248,23 @@ const CertificationsPage = () => {
     }
   };
 
-  const handleDelete = async (certId) => {
-    if (!window.confirm("Are you sure you want to remove this verified certificate?")) return;
+  const handleDeleteRequest = (certId) => {
+    setCertToDelete(certId);
+    setDeleteModalOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!certToDelete) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/certificates/${certId}`);
-      setCertificates((prev) => prev.filter((c) => c._id !== certId));
+      await api.delete(`/api/certificates/${certToDelete}`);
+      setCertificates((prev) => prev.filter((c) => c._id !== certToDelete));
+      setDeleteModalOpen(false);
+      setCertToDelete(null);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete certificate.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -847,7 +863,7 @@ const CertificationsPage = () => {
                   </div>
 
                   <button
-                    onClick={() => handleDelete(cert._id)}
+                    onClick={() => handleDeleteRequest(cert._id)}
                     className="p-1.5 text-[var(--color-muted)] hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                     title="Remove Certificate"
                   >
@@ -926,6 +942,20 @@ const CertificationsPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ── Confirm Delete Modal ── */}
+        <ConfirmModal
+          isOpen={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false);
+            setCertToDelete(null);
+          }}
+          onConfirm={executeDelete}
+          title="Remove Certificate"
+          message="Are you sure you want to remove this verified certificate? This action cannot be undone."
+          confirmText="Delete"
+          loading={isDeleting}
+        />
       </div>
     </PageTransition>
   );
