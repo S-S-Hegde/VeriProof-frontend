@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import { signInWithGoogleRedirect, firebaseSignOut } from "../config/firebase";
+import { signInWithGooglePopup, firebaseSignOut } from "../config/firebase";
 import { clearUserSession, getStoredUser, persistUserSession } from "../utils/authStorage";
 import useServerKeepAlive from "../hooks/useServerKeepAlive";
 
@@ -103,29 +103,35 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  /**
-   * Google Sign-In — redirect-only flow.
-   *
-   * Routes through Firebase's own firebaseapp.com domain (always authorized),
-   * so it works on ALL Vercel preview URLs and custom domains without any
-   * Firebase console domain whitelist configuration.
-   *
-   * On return from Google, AuthCallback.jsx handles the token exchange and
-   * writes the session to localStorage. AuthContext then reads it on its
-   * next mount (synchronously, via the useState initializer above).
-   */
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
     setOauthError("");
     setRedirectProcessing(true);
     try {
-      const qs = new URLSearchParams();
-      if (role) qs.append("role", role);
-      if (inviteCode) qs.append("inviteCode", inviteCode);
-      window.location.href = `/auth/callback?${qs.toString()}`;
-      return null;
+      const { idToken } = await signInWithGooglePopup();
+      
+      const res = await api.post(
+        "/api/users/firebase-auth",
+        { role, inviteCode, idToken },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          timeout: 55000,
+        }
+      );
+      
+      const data = res.data;
+      if (!data) throw new Error("Failed to obtain user session from backend.");
+      
+      setUser(data);
+      scheduleLogout(ONE_HOUR);
+      setRedirectProcessing(false);
+      return data;
     } catch (err) {
       setRedirectProcessing(false);
-      setOauthError(err.message || "Could not start Google authentication.");
+      console.error("[Auth] Google Popup Error:", err);
+      setOauthError(err.response?.data?.message || err.message || "Could not complete Google authentication.");
       throw err;
     }
   };
