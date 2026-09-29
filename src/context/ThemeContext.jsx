@@ -23,12 +23,22 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    // Clean all possible theme classes (including legacy)
-    ['light', 'dark', 'storyteller', 'immersive'].forEach(t => root.classList.remove(`theme-${t}`));
+    const body = document.body;
+
+    ['light', 'dark', 'storyteller', 'immersive'].forEach((t) => {
+      root.classList.remove(`theme-${t}`);
+      if (body) body.classList.remove(`theme-${t}`);
+    });
     root.classList.remove('dark');
+    if (body) body.classList.remove('dark');
 
     root.classList.add(`theme-${theme}`);
-    if (theme === THEMES.DARK) root.classList.add('dark');
+    if (body) body.classList.add(`theme-${theme}`);
+
+    if (theme === THEMES.DARK) {
+      root.classList.add('dark');
+      if (body) body.classList.add('dark');
+    }
 
     localStorage.setItem('veriproof-theme', theme);
   }, [theme]);

@@ -154,7 +154,7 @@ const ForensicShaderBackgroundInner = () => {
         gl.uniform1f(locations.opacity, tokens.opacity);
         gl.uniform1f(locations.grid, tokens.grid);
         gl.uniform1f(locations.pulse, tokens.pulse);
-        gl.uniform1f(locations.mode, isLight);
+        gl.uniform1f(locations.mode, isLight ? 1.0 : 0.0);
         gl.uniform3fv(locations.bgA, tokens.bgA);
         gl.uniform3fv(locations.bgB, tokens.bgB);
         gl.uniform3fv(locations.signal, tokens.signal);

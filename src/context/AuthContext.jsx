@@ -221,10 +221,15 @@ export const AuthProvider = ({ children }) => {
       scheduleLogout(ONE_HOUR);
       return data;
     } catch (err) {
-      const msg =
+      let msg =
         err.response?.data?.message ||
         err.message ||
         "Google authentication failed. Please try again.";
+
+      if (err.code === "auth/unauthorized-domain") {
+        msg = `Domain not authorized in Firebase: ${window.location.hostname}. Please add "vercel.app" in Firebase Console -> Authentication -> Settings -> Authorized domains, or sign in via the production domain (https://veriproof.vercel.app).`;
+      }
+
       setOauthError(msg);
       throw err;
     } finally {
