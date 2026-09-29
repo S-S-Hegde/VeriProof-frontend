@@ -1,11 +1,16 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import { signInWithGooglePopup, firebaseSignOut } from "../config/firebase";
+import {
+  signInWithGooglePopup,
+  signInWithGoogleRedirect,
+  resolveRedirectResult,
+  firebaseSignOut,
+} from "../config/firebase";
 import { clearUserSession, getStoredUser, persistUserSession } from "../utils/authStorage";
 import useServerKeepAlive from "../hooks/useServerKeepAlive";
 
 // ---------------------------------------------------------------------------
-// Context
+// Context Definition
 // ---------------------------------------------------------------------------
 const AuthContext = createContext();
 const ONE_HOUR    = 3_600_000; // ms
@@ -16,16 +21,10 @@ export const useAuth = () => useContext(AuthContext);
 // Provider
 // ---------------------------------------------------------------------------
 export const AuthProvider = ({ children }) => {
-
-  // ------------------------------------------------------------------
-  // Restore session from localStorage on first render (synchronous).
-  // We purposely do NOT clear the session here if it is expired — we
-  // let the session-expiry watchdog handle that so we have a single
-  // source of truth.
-  // ------------------------------------------------------------------
+  // Synchronous session initialization from localStorage
   const [user, setUserState] = useState(() => {
-    const stored    = getStoredUser();
-    const ts        = localStorage.getItem("loginTimestamp");
+    const stored = getStoredUser();
+    const ts     = localStorage.getItem("loginTimestamp");
     if (!stored || !ts) return null;
     const elapsed = Date.now() - parseInt(ts, 10);
     if (elapsed >= ONE_HOUR) {
@@ -35,14 +34,11 @@ export const AuthProvider = ({ children }) => {
     return stored;
   });
 
-  // authLoading — true while an explicit login/google call is in-flight
   const [authLoading, setAuthLoading] = useState(false);
-
-  // authInitialized — flips to true once AuthProvider has finished its
-  // own startup work. Consumers (RoleBasedRouter) MUST wait on this
-  // before making routing decisions.
+  const [redirectProcessing, setRedirectProcessing] = useState(
+    () => Boolean(localStorage.getItem("veriproof_auth_pending"))
+  );
   const [authInitialized, setAuthInitialized] = useState(false);
-
   const [oauthError, setOauthError] = useState("");
   const [isExiting, setIsExiting]   = useState(false);
   const logoutTimerRef              = useRef(null);
@@ -50,21 +46,8 @@ export const AuthProvider = ({ children }) => {
   useServerKeepAlive(Boolean(user));
 
   // ------------------------------------------------------------------
-  // One-time init — mark initialized.
-  // We have no redirect flow any more, so this is trivially instant.
+  // Helper: Persist and update user atomically
   // ------------------------------------------------------------------
-  useEffect(() => {
-    // Nothing async to do on mount — session was restored synchronously above.
-    // We set authInitialized on the next microtask so any children that mount
-    // simultaneously still see the correct initial user state.
-    setAuthInitialized(true);
-  }, []);
-
-  // ------------------------------------------------------------------
-  // Internal helpers
-  // ------------------------------------------------------------------
-
-  /** Write user to state + localStorage atomically. */
   const setUser = (val) => {
     setUserState((prev) => {
       const next = typeof val === "function" ? val(prev) : val;
@@ -80,7 +63,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Exchange a Firebase idToken with our backend and get a VeriProof session.
+   * Exchange Firebase ID token with our backend.
    * Retries on transient cold-start errors (502/503/504).
    */
   const exchangeFirebaseToken = async (idToken, role = "student", inviteCode = "") => {
@@ -107,7 +90,62 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ------------------------------------------------------------------
-  // Session-expiry watchdog — re-arms whenever user changes
+  // Redirect return handler — runs once on mount
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    const pendingStr = localStorage.getItem("veriproof_auth_pending");
+    if (!pendingStr) {
+      setRedirectProcessing(false);
+      setAuthInitialized(true);
+      return;
+    }
+
+    // Immediately remove pending item to ensure no loop can ever happen
+    localStorage.removeItem("veriproof_auth_pending");
+
+    let role = "student";
+    let inviteCode = "";
+    try {
+      const parsed = JSON.parse(pendingStr);
+      const age = Date.now() - (parsed.timestamp || 0);
+      if (age < 15 * 60 * 1000) {
+        role = parsed.role || "student";
+        inviteCode = parsed.inviteCode || "";
+      }
+    } catch (_) {}
+
+    const handleRedirect = async () => {
+      setRedirectProcessing(true);
+      setOauthError("");
+
+      try {
+        const result = await resolveRedirectResult();
+        if (result?.idToken) {
+          const data = await exchangeFirebaseToken(result.idToken, role, inviteCode);
+          if (data) {
+            persistUserSession(data); // Synchronous to storage
+            setUserState(data);
+            scheduleLogout(ONE_HOUR);
+          }
+        }
+      } catch (err) {
+        console.error("[AuthContext] Redirect login failed:", err);
+        setOauthError(
+          err.response?.data?.message ||
+          err.message ||
+          "Google authentication failed. Please try again."
+        );
+      } finally {
+        setRedirectProcessing(false);
+        setAuthInitialized(true);
+      }
+    };
+
+    handleRedirect();
+  }, []);
+
+  // ------------------------------------------------------------------
+  // Session watchdog
   // ------------------------------------------------------------------
   useEffect(() => {
     if (!user) {
@@ -129,10 +167,8 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   // ------------------------------------------------------------------
-  // Public API
+  // Public Auth API
   // ------------------------------------------------------------------
-
-  /** Email / password login */
   const login = async (email, password) => {
     const { data } = await api.post(
       "/api/users/login",
@@ -145,26 +181,44 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Google sign-in via popup (ONLY method — no redirect fallback).
-   *
-   * Returns the VeriProof user object on success.
-   * Throws on any error — caller is responsible for displaying it.
+   * Google Sign-In with Automatic Seamless Fallback:
+   * 1. Attempts popup first (instant for desktop users).
+   * 2. If popup is blocked by Chrome/browser settings:
+   *    Automatically and seamlessly switches to redirect flow (no technical config required from user).
    */
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
     setAuthLoading(true);
     setOauthError("");
 
     try {
-      // 1. Open Google popup and get Firebase credential
-      const { idToken } = await signInWithGooglePopup();
+      let idToken;
+      try {
+        const result = await signInWithGooglePopup();
+        idToken = result.idToken;
+      } catch (popupErr) {
+        const isPopupBlocked =
+          popupErr.code === "auth/popup-blocked" ||
+          popupErr.code === "auth/cancelled-popup-request";
 
-      // 2. Exchange with our backend for a VeriProof session
+        if (isPopupBlocked) {
+          console.info("[Auth] Popup blocked by browser policy. Automatically initiating redirect flow...");
+          setRedirectProcessing(true);
+          await signInWithGoogleRedirect(role, inviteCode);
+          return null; // Page is redirecting to Google
+        }
+
+        if (popupErr.code === "auth/popup-closed-by-user") {
+          throw new Error("Sign-in popup was closed before completing.");
+        }
+
+        throw popupErr;
+      }
+
+      // Popup succeeded
       const data = await exchangeFirebaseToken(idToken, role, inviteCode);
-
-      // 3. Persist and expose session
+      persistUserSession(data);
       setUser(data);
       scheduleLogout(ONE_HOUR);
-
       return data;
     } catch (err) {
       const msg =
@@ -178,16 +232,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /** Logout — clears everything */
   const logout = () => {
     try { api.post("/api/keep-alive/release").catch(() => {}); } catch (_) {}
-    firebaseSignOut();    // clears Firebase IndexedDB
+    firebaseSignOut();
     setUser(null);
   };
 
-  // ------------------------------------------------------------------
-  // Context value
-  // ------------------------------------------------------------------
   return (
     <AuthContext.Provider
       value={{
@@ -196,9 +246,10 @@ export const AuthProvider = ({ children }) => {
         login,
         loginWithGoogle,
         logout,
-        loading:         authLoading,   // kept for back-compat
+        loading: authLoading,
         authLoading,
-        authInitialized,                // NEW — gate for route guards
+        authInitialized,
+        redirectProcessing,
         oauthError,
         setOauthError,
         isExiting,

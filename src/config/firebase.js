@@ -3,6 +3,9 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged,
   browserLocalPersistence,
   setPersistence,
 } from "firebase/auth";
@@ -22,20 +25,20 @@ const firebaseConfig = {
 const app  = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Force local persistence so the Firebase session survives page reloads
+// Force local persistence so the Firebase session survives across tabs and reloads
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
 // ---------------------------------------------------------------------------
-// Popup-only sign-in — simple, reliable, no redirect complexity
+// Auth Methods: Popup with automated Redirect fallback
 // ---------------------------------------------------------------------------
 
 /**
- * Opens the Google sign-in popup.
+ * Opens Google Sign-In popup.
  * Returns { user, idToken } on success.
- * Throws a Firebase AuthError on failure — let the caller handle it.
+ * Throws Firebase error if blocked or cancelled.
  */
 export const signInWithGooglePopup = async () => {
   const result = await signInWithPopup(auth, googleProvider);
@@ -45,15 +48,78 @@ export const signInWithGooglePopup = async () => {
 };
 
 /**
- * Sign out of Firebase so IndexedDB is cleared.
- * Call this whenever the user logs out.
+ * Starts full-page redirect sign-in.
+ * Used when popups are blocked by browser policy without requiring user configuration.
+ */
+export const signInWithGoogleRedirect = async (role = "student", inviteCode = "") => {
+  localStorage.setItem(
+    "veriproof_auth_pending",
+    JSON.stringify({ role, inviteCode, timestamp: Date.now() })
+  );
+  await signInWithRedirect(auth, googleProvider);
+};
+
+/**
+ * Resolves redirect result when returning from Google.
+ * Attempts getRedirectResult first, followed by currentUser and onAuthStateChanged hydration.
+ */
+export const resolveRedirectResult = async () => {
+  try {
+    // 1. First attempt: standard getRedirectResult
+    try {
+      const result = await getRedirectResult(auth);
+      if (result?.user) {
+        const idToken = await result.user.getIdToken(true);
+        return { user: result.user, idToken };
+      }
+    } catch (e) {
+      console.warn("[Firebase] getRedirectResult note:", e?.message);
+    }
+
+    // 2. Check if auth.currentUser is already populated
+    if (auth.currentUser) {
+      const idToken = await auth.currentUser.getIdToken(true);
+      return { user: auth.currentUser, idToken };
+    }
+
+    // 3. Wait on onAuthStateChanged up to 6 seconds for IndexedDB hydration
+    const user = await new Promise((resolve) => {
+      let resolved = false;
+      const unsub = onAuthStateChanged(auth, (u) => {
+        if (!resolved && u) {
+          resolved = true;
+          unsub();
+          resolve(u);
+        }
+      });
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          unsub();
+          resolve(null);
+        }
+      }, 6000);
+    });
+
+    if (user) {
+      const idToken = await user.getIdToken(true);
+      return { user, idToken };
+    }
+
+    return null;
+  } catch (err) {
+    console.error("[Firebase resolveRedirectResult error]:", err);
+    return null;
+  }
+};
+
+/**
+ * Sign out of Firebase so IndexedDB and cached auth states are cleared.
  */
 export const firebaseSignOut = async () => {
   try {
     await auth.signOut();
-  } catch (_) {
-    // silence — we still clear the app session
-  }
+  } catch (_) {}
 };
 
 export { app, auth, googleProvider };
