@@ -118,17 +118,14 @@ export const AuthProvider = ({ children }) => {
     setOauthError("");
     setRedirectProcessing(true);
     try {
-      await signInWithGoogleRedirect(role, inviteCode);
-      // Browser navigates away — nothing executes after this.
+      const qs = new URLSearchParams();
+      if (role) qs.append("role", role);
+      if (inviteCode) qs.append("inviteCode", inviteCode);
+      window.location.href = `/auth/callback?${qs.toString()}`;
       return null;
     } catch (err) {
-      console.error("[Auth] Failed to initiate Google redirect:", err);
       setRedirectProcessing(false);
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Could not start Google authentication. Please try again.";
-      setOauthError(msg);
+      setOauthError(err.message || "Could not start Google authentication.");
       throw err;
     }
   };
