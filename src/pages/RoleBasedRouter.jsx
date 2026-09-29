@@ -7,30 +7,26 @@ import InvestigatorHub from "./InvestigatorHub";
 /**
  * Route guard + role-based renderer.
  *
- * CRITICAL: we MUST wait for `authInitialized` before making any
- * routing decisions. If we check `user` before the AuthContext has
- * finished its own startup work we will bounce authenticated users
- * back to /login on every page load.
+ * AuthContext now initializes synchronously from localStorage, so
+ * authInitialized is always true on first render. No loading spinner
+ * is needed here — if the user is not authenticated, we redirect
+ * immediately to /login.
  */
 const RoleBasedRouter = ({ children, allowedRoles }) => {
-  const { user, authLoading, authInitialized } = useAuth();
+  const { user, authLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Do not act until AuthContext has finished initialising
-    if (!authInitialized) return;
-    // Do not act while a login call is in-flight
     if (authLoading) return;
-
     if (!user) {
       navigate("/login", { replace: true });
     } else if (allowedRoles && !allowedRoles.includes(user.role)) {
       navigate("/dashboard", { replace: true });
     }
-  }, [user, authLoading, authInitialized, navigate, allowedRoles]);
+  }, [user, authLoading, navigate, allowedRoles]);
 
-  // Show nothing (not even a loader) until we know auth state
-  if (!authInitialized || authLoading) {
+  // Show a minimal spinner only while an explicit login call is in-flight
+  if (authLoading) {
     return (
       <div className="flex min-h-[65vh] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -47,9 +43,7 @@ const RoleBasedRouter = ({ children, allowedRoles }) => {
   }
 
   if (!user) return null;
-
   if (allowedRoles && !allowedRoles.includes(user.role)) return null;
-
   if (children) return children;
 
   return user.role === "recruiter" ? <InvestigatorHub /> : <StudentDashboard />;

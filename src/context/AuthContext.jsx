@@ -1,10 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import api from "../utils/api";
-import {
-  signInWithGoogleRedirect,
-  resolveRedirectResult,
-  firebaseSignOut,
-} from "../config/firebase";
+import { signInWithGoogleRedirect, firebaseSignOut } from "../config/firebase";
 import { clearUserSession, getStoredUser, persistUserSession } from "../utils/authStorage";
 import useServerKeepAlive from "../hooks/useServerKeepAlive";
 
@@ -12,7 +8,7 @@ import useServerKeepAlive from "../hooks/useServerKeepAlive";
 // Context Definition
 // ---------------------------------------------------------------------------
 const AuthContext = createContext();
-const ONE_HOUR    = 3_600_000; // ms
+const ONE_HOUR = 3_600_000; // ms
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -20,10 +16,14 @@ export const useAuth = () => useContext(AuthContext);
 // Provider
 // ---------------------------------------------------------------------------
 export const AuthProvider = ({ children }) => {
-  // Synchronous session initialization from localStorage
+  // Synchronous session initialization from localStorage.
+  // AuthContext NEVER calls Firebase APIs directly for OAuth — that is
+  // AuthCallback.jsx's sole responsibility. This prevents the race condition
+  // where both AuthContext and AuthCallback called getRedirectResult()
+  // simultaneously, consuming the one-time redirect result unpredictably.
   const [user, setUserState] = useState(() => {
     const stored = getStoredUser();
-    const ts     = localStorage.getItem("loginTimestamp");
+    const ts = localStorage.getItem("loginTimestamp");
     if (!stored || !ts) return null;
     const elapsed = Date.now() - parseInt(ts, 10);
     if (elapsed >= ONE_HOUR) {
@@ -33,14 +33,20 @@ export const AuthProvider = ({ children }) => {
     return stored;
   });
 
-  const [authLoading, setAuthLoading] = useState(false);
-  const [redirectProcessing, setRedirectProcessing] = useState(
-    () => Boolean(localStorage.getItem("veriproof_auth_pending"))
-  );
-  const [authInitialized, setAuthInitialized] = useState(false);
-  const [oauthError, setOauthError] = useState("");
-  const [isExiting, setIsExiting]   = useState(false);
-  const logoutTimerRef              = useRef(null);
+  const [authLoading, setAuthLoading]   = useState(false);
+  const [oauthError, setOauthError]     = useState("");
+  const [isExiting, setIsExiting]       = useState(false);
+  const logoutTimerRef                  = useRef(null);
+
+  // authInitialized: true immediately — we read synchronously from localStorage.
+  // No async work needed. RoleBasedRouter can render on the first paint.
+  const authInitialized = true;
+
+  // redirectProcessing: only true while the page is mid-redirect to Google
+  // (set by loginWithGoogle below). Cleared as soon as the redirect launches.
+  // On return from Google, AuthCallback handles everything — AuthContext state
+  // starts fresh from localStorage (already written by AuthCallback).
+  const [redirectProcessing, setRedirectProcessing] = useState(false);
 
   useServerKeepAlive(Boolean(user));
 
@@ -51,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     setUserState((prev) => {
       const next = typeof val === "function" ? val(prev) : val;
       if (next) persistUserSession(next);
-      else       clearUserSession();
+      else clearUserSession();
       return next;
     });
   };
@@ -61,90 +67,8 @@ export const AuthProvider = ({ children }) => {
     logoutTimerRef.current = setTimeout(() => setUser(null), Math.max(ms, 0));
   };
 
-  /**
-   * Exchange Firebase ID token with our backend.
-   * Retries on transient cold-start errors (502/503/504).
-   */
-  const exchangeFirebaseToken = async (idToken, role = "student", inviteCode = "") => {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const res = await api.post(
-          "/api/users/firebase-auth",
-          { role, inviteCode, idToken },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${idToken}`,
-            },
-            timeout: 55_000,
-          }
-        );
-        return res.data;
-      } catch (err) {
-        const retryable = !err.response || [502, 503, 504].includes(err.response?.status);
-        if (!retryable || attempt === 2) throw err;
-        await new Promise((r) => setTimeout(r, (attempt + 1) * 3_000));
-      }
-    }
-  };
-
   // ------------------------------------------------------------------
-  // Redirect return handler — runs once on mount
-  // ------------------------------------------------------------------
-  useEffect(() => {
-    const pendingStr = localStorage.getItem("veriproof_auth_pending");
-    if (!pendingStr) {
-      setRedirectProcessing(false);
-      setAuthInitialized(true);
-      return;
-    }
-
-    // Immediately remove pending item to ensure no loop can ever happen
-    localStorage.removeItem("veriproof_auth_pending");
-
-    let role = "student";
-    let inviteCode = "";
-    try {
-      const parsed = JSON.parse(pendingStr);
-      const age = Date.now() - (parsed.timestamp || 0);
-      if (age < 15 * 60 * 1000) {
-        role = parsed.role || "student";
-        inviteCode = parsed.inviteCode || "";
-      }
-    } catch (_) {}
-
-    const handleRedirect = async () => {
-      setRedirectProcessing(true);
-      setOauthError("");
-
-      try {
-        const result = await resolveRedirectResult();
-        if (result?.idToken) {
-          const data = await exchangeFirebaseToken(result.idToken, role, inviteCode);
-          if (data) {
-            persistUserSession(data); // Synchronous to storage
-            setUserState(data);
-            scheduleLogout(ONE_HOUR);
-          }
-        }
-      } catch (err) {
-        console.error("[AuthContext] Redirect login failed:", err);
-        setOauthError(
-          err.response?.data?.message ||
-          err.message ||
-          "Google authentication failed. Please try again."
-        );
-      } finally {
-        setRedirectProcessing(false);
-        setAuthInitialized(true);
-      }
-    };
-
-    handleRedirect();
-  }, []);
-
-  // ------------------------------------------------------------------
-  // Session watchdog
+  // Session watchdog — reschedules logout timer based on stored timestamp
   // ------------------------------------------------------------------
   useEffect(() => {
     if (!user) {
@@ -180,18 +104,22 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Google Sign-In using REDIRECT flow only.
-   * This is the safest strategy — it routes through Firebase's own
-   * firebaseapp.com domain (always authorized), so it works on ALL
-   * Vercel preview URLs, custom domains, and localhost without any
+   * Google Sign-In — redirect-only flow.
+   *
+   * Routes through Firebase's own firebaseapp.com domain (always authorized),
+   * so it works on ALL Vercel preview URLs and custom domains without any
    * Firebase console domain whitelist configuration.
+   *
+   * On return from Google, AuthCallback.jsx handles the token exchange and
+   * writes the session to localStorage. AuthContext then reads it on its
+   * next mount (synchronously, via the useState initializer above).
    */
   const loginWithGoogle = async (role = "student", inviteCode = "") => {
     setOauthError("");
     setRedirectProcessing(true);
     try {
       await signInWithGoogleRedirect(role, inviteCode);
-      // Page navigates away to Google — nothing more to do here.
+      // Browser navigates away — nothing executes after this.
       return null;
     } catch (err) {
       console.error("[Auth] Failed to initiate Google redirect:", err);
@@ -206,7 +134,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    try { api.post("/api/keep-alive/release").catch(() => {}); } catch (_) {}
+    try {
+      api.post("/api/keep-alive/release").catch(() => {});
+    } catch (_) {}
     firebaseSignOut();
     setUser(null);
   };
@@ -221,7 +151,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         loading: authLoading,
         authLoading,
-        authInitialized,
+        authInitialized,       // Always true — sync init from localStorage
         redirectProcessing,
         oauthError,
         setOauthError,
