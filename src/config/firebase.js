@@ -6,6 +6,8 @@ import {
   signInWithRedirect,
   getRedirectResult,
   onAuthStateChanged,
+  browserLocalPersistence,
+  setPersistence,
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -20,63 +22,103 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+// Ensure session persists across page reloads (default is local, but be explicit)
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
 /**
- * Try popup first. If popup is blocked, fall back to full-page redirect.
- * Returns { user, idToken } on popup success, or null if redirect was initiated.
+ * POPUP sign-in. Returns { user, idToken } on success.
+ * Throws on error — caller handles errors.
  */
-export const signInWithGoogle = async (role = "student", inviteCode = "") => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    if (!result?.user) throw new Error("No user returned from Google.");
-    const idToken = await result.user.getIdToken(true);
-    return { user: result.user, idToken };
-  } catch (error) {
-    if (
-      error.code === "auth/popup-blocked" ||
-      error.code === "auth/popup-closed-by-user" ||
-      error.code === "auth/cancelled-popup-request"
-    ) {
-      // Fall back to full-page redirect — browser will return to same URL
-      localStorage.setItem(
-        "veriproof_auth_pending",
-        JSON.stringify({ role, inviteCode, timestamp: Date.now() })
-      );
-      await signInWithRedirect(auth, googleProvider);
-      return null; // page navigates away
-    }
-    throw error;
-  }
+export const signInWithGooglePopup = async () => {
+  const result = await signInWithPopup(auth, googleProvider);
+  if (!result?.user) throw new Error("No user returned from Google popup.");
+  const idToken = await result.user.getIdToken(true);
+  return { user: result.user, idToken };
 };
 
 /**
- * Explicitly start a full-page redirect (used when popup is explicitly not wanted).
+ * Start a full-page redirect sign-in.
+ * Stores role/inviteCode in localStorage so we can read it back after redirect.
  */
 export const signInWithGoogleRedirect = async (role = "student", inviteCode = "") => {
+  // Stamp exactly what we need so the returning page can recover it
   localStorage.setItem(
     "veriproof_auth_pending",
     JSON.stringify({ role, inviteCode, timestamp: Date.now() })
   );
   await signInWithRedirect(auth, googleProvider);
+  // Page navigates away — nothing executes after this
 };
 
 /**
- * Check if Google returned a redirect result on the current page load.
+ * Call this on app mount ONLY when veriproof_auth_pending exists in localStorage.
+ * Waits for Firebase to resolve the redirect result, with a generous timeout.
  * Returns { user, idToken } or null.
+ *
+ * Strategy:
+ * 1. Try getRedirectResult() — works when Firebase restores state synchronously
+ * 2. Wait up to 8s on onAuthStateChanged — handles async IndexedDB hydration
  */
-export const handleRedirectResult = async () => {
+export const resolveRedirectResult = async () => {
   try {
+    // Attempt 1: getRedirectResult (synchronous if Firebase state already restored)
     const result = await getRedirectResult(auth);
     if (result?.user) {
       const idToken = await result.user.getIdToken(true);
       return { user: result.user, idToken };
     }
+
+    // Attempt 2: Wait for onAuthStateChanged — Firebase may still be reading IndexedDB
+    const user = await new Promise((resolve) => {
+      let settled = false;
+
+      // Check if already available
+      if (auth.currentUser) {
+        resolve(auth.currentUser);
+        return;
+      }
+
+      const unsub = onAuthStateChanged(auth, (u) => {
+        if (!settled) {
+          settled = true;
+          unsub();
+          resolve(u);
+        }
+      });
+
+      // 8 second timeout — more than enough for IndexedDB hydration
+      setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          unsub();
+          resolve(null);
+        }
+      }, 8000);
+    });
+
+    if (user) {
+      const idToken = await user.getIdToken(true);
+      return { user, idToken };
+    }
+
     return null;
   } catch (error) {
-    console.error("[Firebase handleRedirectResult error]:", error);
-    throw error;
+    console.error("[Firebase resolveRedirectResult error]:", error);
+    return null;
+  }
+};
+
+/**
+ * Sign out from Firebase (call this on app logout so IndexedDB is cleared).
+ */
+export const firebaseSignOut = async () => {
+  try {
+    await auth.signOut();
+  } catch (e) {
+    // silence
   }
 };
 

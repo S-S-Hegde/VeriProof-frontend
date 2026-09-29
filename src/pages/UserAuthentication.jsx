@@ -42,6 +42,9 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
+      // Already logged in (e.g. page refresh with valid session, or redirect return)
+      // Only redirect if NOT in the middle of showing the welcome animation
+      if (showWelcome) return;
       if (
         user.role === "recruiter" &&
         user.recruiterVerificationStatus &&
@@ -52,7 +55,7 @@ const Login = () => {
       }
       navigate(user.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard", { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, showWelcome]);
 
   useEffect(() => {
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
@@ -61,9 +64,14 @@ const Login = () => {
   const finishLogin = (data) => {
     setWelcomeName(data.name);
     setShowWelcome(true);
+
+    // For email/password login: data comes from the API, need to set session
+    // For Google popup: AuthContext.loginWithGoogle already set user + persisted session
+    // Calling setUser again is safe (idempotent), ensures session is always stored
+    persistUserSession(data);
+    setUser(data); // sync to context (no-op if already set by loginWithGoogle)
+
     timeoutRef.current = setTimeout(() => {
-      setUser(data);
-      persistUserSession(data);
       if (
         data.role === "recruiter" &&
         data.recruiterVerificationStatus &&
@@ -74,9 +82,13 @@ const Login = () => {
         return;
       }
       const fromPath = location.state?.from?.pathname || location.state?.from;
-      navigate(fromPath || (data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard"), { replace: true });
+      navigate(
+        fromPath || (data.role === "recruiter" ? "/recruiter-dashboard" : "/dashboard"),
+        { replace: true }
+      );
     }, 1800);
   };
+
 
   const handleGoogleAuth = async () => {
     setError("");
@@ -84,12 +96,17 @@ const Login = () => {
     try {
       const data = await loginWithGoogle(role);
       if (!data) {
-        // Redirect initiated — page will navigate away, nothing to do
+        // null means redirect was initiated — page is navigating away
+        // Show a brief loading message so the user isn't left staring at the login form
         return;
       }
+      // Popup succeeded — data is the VeriProof user object
+      // Use finishLogin to show welcome animation then navigate
       finishLogin(data);
     } catch (err) {
       console.error("[Google Auth Error]:", err);
+      // oauthError is already set in AuthContext — it will show via the error prop
+      // Also set local error as fallback
       setError(err.response?.data?.message || err.message || "Google authentication failed. Please try again.");
     } finally {
       setGoogleLoading(false);
