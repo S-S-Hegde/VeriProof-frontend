@@ -616,7 +616,7 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
               ) : (
                 <button
                   type="button"
-                  onClick={() => navigate("/exams")}
+                  onClick={() => { window.location.href = "/exams"; }}
                   className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-1.5 cursor-pointer shadow-md"
                 >
                   <Shield className="w-3 h-3" /> Attend Technical Assessment
