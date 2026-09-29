@@ -248,7 +248,9 @@ const AnimatedRoutes = () => {
           path="/dashboard"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <RoleBasedRouter />
+              <PageTransition>
+                <RoleBasedRouter />
+              </PageTransition>
             </Suspense>
           }
         />

@@ -329,7 +329,7 @@ const StudentDashboard = () => {
   ];
 
   return (
-    <PageTransition>
+    <>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-12 pb-28 lg:pb-12">
         <Reveal>
           <div className="mb-12 lg:mb-16">
@@ -625,7 +625,7 @@ const StudentDashboard = () => {
           setSelectedProjectForVerify(updated);
         }}
       />
-    </PageTransition>
+    </>
   );
 };
 

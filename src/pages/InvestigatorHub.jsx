@@ -56,7 +56,7 @@ const RecruiterDashboard = () => {
   const completedApplicantsCount = applicants.filter((a) => a.status === "Completed" || a.examStatus === "Attended").length;
 
   return (
-    <PageTransition>
+    <>
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-12 py-6 sm:py-12 pb-28 lg:pb-12 relative space-y-8 sm:space-y-12">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--color-accent)] opacity-[0.02] blur-[150px] -z-10 pointer-events-none" />
 
@@ -213,7 +213,7 @@ const RecruiterDashboard = () => {
           </div>
         )}
       </div>
-    </PageTransition>
+    </>
   );
 };
 
