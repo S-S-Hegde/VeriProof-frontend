@@ -540,19 +540,34 @@ const AppContent = () => {
   const { user, isExiting, setIsExiting, logout } = useAuth();
 
   // Show cinematic intro ONLY once per browser session, and NEVER if already authenticated
+  // NOTE: We check BOTH localStorage (survives OAuth redirects) and sessionStorage.
+  // sessionStorage is cleared when the page navigates away (e.g. Google OAuth redirect),
+  // so without localStorage we'd show the intro again after every login — blocking the UI.
   const [showIntro, setShowIntro] = useState(() => {
-    if (getStoredUser() || user) return false;
-    const hasSeenSessionIntro = sessionStorage.getItem("vp-session-intro-seen");
-    return !hasSeenSessionIntro;
+    const isAuthenticated = Boolean(getStoredUser() || user);
+    if (isAuthenticated) {
+      // Persist flag so redirect returns also skip intro
+      localStorage.setItem("vp-intro-seen-permanent", "1");
+      return false;
+    }
+    const hasSeenBefore =
+      localStorage.getItem("vp-intro-seen-permanent") ||
+      sessionStorage.getItem("vp-session-intro-seen");
+    return !hasSeenBefore;
   });
 
   const [isAppVisible, setIsAppVisible] = useState(() => {
-    if (getStoredUser() || user) return true;
-    return Boolean(sessionStorage.getItem("vp-session-intro-seen"));
+    const isAuthenticated = Boolean(getStoredUser() || user);
+    if (isAuthenticated) return true;
+    return Boolean(
+      localStorage.getItem("vp-intro-seen-permanent") ||
+      sessionStorage.getItem("vp-session-intro-seen")
+    );
   });
 
   const handleIntroComplete = () => {
     sessionStorage.setItem("vp-session-intro-seen", "true");
+    localStorage.setItem("vp-intro-seen-permanent", "1");
     setShowIntro(false);
     setIsAppVisible(true);
   };
