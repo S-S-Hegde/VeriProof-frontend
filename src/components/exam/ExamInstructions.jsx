@@ -20,8 +20,12 @@ const isMobileDevice = () => {
     || (typeof window !== 'undefined' && window.innerWidth < 768);
 };
 
-const ACE_STREAM_URL = "http://localhost:8000/api/stream";
-const ACE_STATUS_URL = "http://localhost:8000/api/proctor/status";
+const defaultBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000");
+
+const ACE_STREAM_URL = `${defaultBaseUrl}/api/stream`;
+const ACE_STATUS_URL = `${defaultBaseUrl}/api/proctor/status`;
 
 const ExamInstructions = ({
   onStartExam,
@@ -34,6 +38,15 @@ const ExamInstructions = ({
   const [agreed, setAgreed] = useState(false);
   const [camStatus, setCamStatus] = useState("checking"); // 'checking' | 'ace_active' | 'active' | 'error' | 'idle'
   const [aceActive, setAceActive] = useState(false);
+
+  // ── Wake-on-Login-Attempt Polling ─────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const PYTHON_ENGINE_URL = import.meta.env.VITE_AI_ENGINE_URL || "https://python-engine-adw8.onrender.com";
+      fetch(`${defaultBaseUrl}/api/keep-alive`).catch(() => {});
+      fetch(`${PYTHON_ENGINE_URL}/api/ping`).catch(() => {});
+    } catch (err) {}
+  }, []);
 
   // 1. First check if ACE Hardware Engine is active on localhost:8000
   useEffect(() => {

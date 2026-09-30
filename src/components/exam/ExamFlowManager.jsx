@@ -107,8 +107,12 @@ export default function ExamFlowManager() {
         setWebcamStream(null);
       }
       try {
-        fetch("http://localhost:8000/api/shutdown", { method: "POST" }).catch(() => {});
-        fetch("http://localhost:8000/api/engine/stop", { method: "POST" }).catch(() => {});
+        const defaultBaseUrl =
+          import.meta.env.VITE_API_BASE_URL ||
+          (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000");
+
+        fetch(`${defaultBaseUrl}/api/shutdown`, { method: "POST" }).catch(() => {});
+        fetch(`${defaultBaseUrl}/api/engine/stop`, { method: "POST" }).catch(() => {});
       } catch (err) {}
 
       // Exit fullscreen safely

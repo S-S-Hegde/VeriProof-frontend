@@ -40,6 +40,7 @@ const IdentityGatewayCard = ({
   setShowPassword,
   name,
   setName,
+  serverAwake = true,
 }) => {
   const isRecruiter = role === "recruiter";
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -372,6 +373,13 @@ const IdentityGatewayCard = ({
                   className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-400 text-xs transition-colors"
                 />
               </div>
+            </div>
+          )}
+
+          {!serverAwake && (
+            <div className="flex items-center gap-2 mb-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 text-[10px] font-mono">
+              <Loader2 className="w-3 h-3 animate-spin text-blue-500 dark:text-cyan-400" />
+              <span>Warming up server, this can take up to a minute on first login...</span>
             </div>
           )}
 

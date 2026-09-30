@@ -62,6 +62,40 @@ const Login = () => {
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
+  // ── Wake-on-Login-Attempt Polling ─────────────────────────────────────────
+  const [serverAwake, setServerAwake] = useState(false);
+  
+  useEffect(() => {
+    let polling = true;
+    
+    const pingServices = async () => {
+      try {
+        const defaultBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000");
+        const PYTHON_ENGINE_URL = import.meta.env.VITE_AI_ENGINE_URL || "https://python-engine-adw8.onrender.com";
+        
+        // Fire-and-forget
+        fetch(`${defaultBaseUrl}/api/keep-alive`).catch(() => {});
+        fetch(`${PYTHON_ENGINE_URL}/api/ping`).catch(() => {});
+        
+        // Poll for status
+        const res = await fetch(`${defaultBaseUrl}/api/keep-alive`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.awake || data.status === "ok") {
+            setServerAwake(true);
+            polling = false;
+          }
+        }
+      } catch (err) {}
+      
+      if (polling) setTimeout(pingServices, 3500);
+    };
+    
+    pingServices();
+    
+    return () => { polling = false; };
+  }, []);
+
   // ── Listen for authentication completion from dedicated auth window ────────
   useEffect(() => {
     const handleAuthMessage = (event) => {
@@ -379,6 +413,7 @@ const Login = () => {
             setPassword={setPassword}
             showPassword={showPassword}
             setShowPassword={setShowPassword}
+            serverAwake={serverAwake}
           />
         )}
       </AuthShell>

@@ -2,8 +2,17 @@ import React, { useRef, useEffect, useState } from "react";
 import { Activity, UserCheck, AlertCircle, ShieldCheck } from "lucide-react";
 import api from "../../utils/api";
 
-const ACE_STREAM_URL = "http://localhost:8000/api/stream";
-const ACE_WS_URL = "ws://localhost:8000/ws/telemetry";
+const defaultBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000");
+
+// Convert http:// to ws:// and https:// to wss://
+const getWsUrl = (baseUrl) => {
+  return baseUrl.replace(/^http(s?):\/\//i, "ws$1://");
+};
+
+const ACE_STREAM_URL = `${defaultBaseUrl}/api/stream`;
+const ACE_WS_URL = `${getWsUrl(defaultBaseUrl)}/ws/telemetry`;
 
 const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
   const videoRef = useRef(null);
@@ -123,7 +132,10 @@ const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
     connectAce();
 
     return () => {
-      if (ws) ws.close();
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
   }, [onViolation, onTelemetryUpdate]);
