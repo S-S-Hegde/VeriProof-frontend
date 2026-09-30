@@ -537,14 +537,15 @@ export default function IntroScreen({ onComplete }) {
                       className="font-serif text-white font-black tabular-nums"
                       style={{ fontSize: "clamp(1.5rem, 4vw, 3rem)", letterSpacing: "-0.02em" }}
                     >
-                      <DataCounter
-                        from={0}
-                        to={item.val}
-                        delay={0.4 + i * 0.18}
-                        duration={1.2}
-                        suffix={item.suffix ?? ""}
-                      />
-                      {item.val === 0 && (
+                      {item.val !== 0 ? (
+                        <DataCounter
+                          from={0}
+                          to={item.val}
+                          delay={0.4 + i * 0.18}
+                          duration={1.2}
+                          suffix={item.suffix ?? ""}
+                        />
+                      ) : (
                         <motion.span
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}

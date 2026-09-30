@@ -16,9 +16,10 @@ export const ThemeProvider = ({ children }) => {
       if (saved && Object.values(THEMES).includes(saved)) return saved;
       // Legacy theme migration — map removed themes to dark
       if (saved === 'storyteller' || saved === 'immersive') return THEMES.DARK;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? THEMES.DARK : THEMES.LIGHT;
+      // Default to dark mode for the premium aesthetic
+      return THEMES.DARK;
     }
-    return THEMES.LIGHT;
+    return THEMES.DARK;
   });
 
   useEffect(() => {
