@@ -33,7 +33,7 @@ export default function OutroScreen({ onComplete }) {
         skewX: [0, -10, 10, 0] 
       }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="outro-container fixed inset-0 z-[1000] bg-black flex items-center justify-center overflow-hidden select-none font-mono"
+      className="outro-container fixed inset-0 z-[1000] bg-black flex items-center justify-center overflow-hidden select-none font-mono pointer-events-none"
     >
       {/* 1. Imploding Grid FX */}
       <motion.div 

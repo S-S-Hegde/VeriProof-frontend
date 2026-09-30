@@ -130,13 +130,13 @@ const Login = () => {
     setShowWelcome(true);
 
     timeoutRef.current = setTimeout(() => {
+      setShowWelcome(false); // Fully unmount the overlay before navigating
       if (
         data.role === "recruiter" &&
         data.recruiterVerificationStatus &&
         data.recruiterVerificationStatus !== "COMPANY_EMAIL_VERIFIED"
       ) {
         setShowCompanyModal(true);
-        setShowWelcome(false);
         return;
       }
       const fromPath = location.state?.from?.pathname || location.state?.from;
@@ -307,7 +307,7 @@ const Login = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-[#070a14] flex flex-col items-center justify-center text-white"
+            className="fixed inset-0 z-[100] bg-[#070a14] flex flex-col items-center justify-center text-white pointer-events-none"
           >
             <motion.div
               initial={{ scale: 0, opacity: 0 }}

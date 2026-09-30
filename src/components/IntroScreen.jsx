@@ -264,7 +264,7 @@ const SkipButton = ({ onSkip, totalMs, elapsedMs }) => {
   return (
     <motion.button
       onClick={onSkip}
-      className="absolute bottom-10 right-8 z-[260] flex items-center gap-2.5 group"
+      className="absolute bottom-10 right-8 z-[260] flex items-center gap-2.5 group pointer-events-auto"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.8, duration: 0.5, ease: EXPO_OUT }}
@@ -409,7 +409,7 @@ export default function IntroScreen({ onComplete }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[150] bg-black overflow-hidden select-none"
+      className="fixed inset-0 z-[150] bg-black overflow-hidden select-none pointer-events-none"
       initial={{ opacity: 1 }}
       animate={{ opacity: exiting ? 0 : 1 }}
       transition={{ duration: 1.0, ease: HARD_CUT }}
