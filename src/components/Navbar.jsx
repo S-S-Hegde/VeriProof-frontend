@@ -232,7 +232,7 @@ const Navbar = () => {
                   {active && (
                     <motion.div
                       layoutId="nav-pill"
-                      className="absolute inset-0 bg-[var(--color-text)] rounded-[var(--radius-md)]"
+                      className="absolute inset-0 bg-[var(--color-text)] rounded-[var(--radius-md)] pointer-events-none"
                       transition={{
                         type: "spring",
                         stiffness: 380,
@@ -430,7 +430,7 @@ const Navbar = () => {
                       {active && (
                         <motion.div
                           layoutId="dock-indicator"
-                          className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-[var(--color-accent)]"
+                          className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-[var(--color-accent)] pointer-events-none"
                           transition={{
                             type: "spring",
                             stiffness: 400,
