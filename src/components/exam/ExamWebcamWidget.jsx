@@ -16,6 +16,7 @@ const ACE_WS_URL = `${getWsUrl(defaultBaseUrl)}/ws/telemetry`;
 
 const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
   const videoRef = useRef(null);
+  const wsRef = useRef(null);
   const [aceConnected, setAceConnected] = useState(false);
   const [telemetry, setTelemetry] = useState(null);
 
@@ -34,6 +35,7 @@ const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
     const connectAce = () => {
       try {
         ws = new WebSocket(ACE_WS_URL);
+        wsRef.current = ws;
 
         ws.onopen = () => {
           setAceConnected(true);
@@ -140,67 +142,125 @@ const ExamWebcamWidget = ({ webcamStream, onViolation, onTelemetryUpdate }) => {
     };
   }, [onViolation, onTelemetryUpdate]);
 
-  // 2. Active In-Browser Optical Snapshot Loop (Runs continuously when in Browser Webcam Mode)
+  // 2. Client-Side face-api.js Real-time Detection Loop
   useEffect(() => {
-    if (aceConnected || !webcamStream) return;
+    if (!webcamStream || !videoRef.current) return;
 
     let isMounted = true;
-    let isAnalyzing = false;
+    let detectionInterval;
+    let violationStrikeCount = 0; // Debounce counter
+
+    const startDetection = () => {
+      detectionInterval = setInterval(async () => {
+        if (!isMounted || videoRef.current.readyState < 2) return;
+        
+        try {
+          // Detect faces using TinyFaceDetector
+          const detections = await faceapi.detectAllFaces(
+            videoRef.current,
+            new faceapi.TinyFaceDetectorOptions()
+          );
+
+          const faceCount = detections.length;
+          
+          let faceState = "ok";
+          let message = "Face Locked & Verified";
+          if (faceCount === 0) {
+            faceState = "no_face";
+            message = "No face detected in camera view";
+          } else if (faceCount > 1) {
+            faceState = "multiple_faces";
+            message = "Multiple people detected in view";
+          }
+
+          if (faceState !== "ok") {
+            violationStrikeCount++;
+            
+            // 3 consecutive ticks (~4.5s - 6s) to trigger debounce
+            if (violationStrikeCount >= 3) {
+              setProctorState({
+                status: faceState === "no_face" ? "NO_FACE_DETECTED" : "MULTIPLE_FACES",
+                message: message,
+                provider: "Local AI (face-api)",
+                confidence: 0.95,
+              });
+
+              if (onViolation) {
+                onViolation(`Local AI Guard: ${message}`);
+              }
+              
+              // Fallback to REST API for violation since WebSocket server is removed
+              api.post("/api/exams/record-violation", {
+                type: "face_violation",
+                reason: message,
+                confidence: 0.95
+              }).catch(err => console.warn("Failed to record face violation:", err));
+            }
+          } else {
+            violationStrikeCount = 0; // Reset on successful frame
+            if (proctorState.status === "NO_FACE_DETECTED" || proctorState.status === "MULTIPLE_FACES") {
+               setProctorState({
+                 status: "VERIFIED",
+                 message: "Face Locked & Verified",
+                 provider: "Local AI (face-api)",
+                 confidence: 0.99,
+               });
+            }
+          }
+        } catch (err) {
+          // Ignore detection errors (model not loaded yet, etc)
+        }
+      }, 2000); // Every 2 seconds
+    };
+
+    startDetection();
+
+    return () => {
+      isMounted = false;
+      if (detectionInterval) clearInterval(detectionInterval);
+    };
+  }, [webcamStream, onViolation, proctorState.status]);
+
+  // 3. Periodic Snapshot Audit Trail
+  useEffect(() => {
+    if (!webcamStream || !videoRef.current) return;
+    
+    let isMounted = true;
+    let isUploading = false;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
+    // Extract examId from the URL or passed props. Since ExamWebcamWidget might not have it,
+    // wait, we can just POST to `/api/exams/proctor-snapshot` and the backend uses req.user._id to find the active exam.
+    // The previous code did exactly that.
+
     const snapshotInterval = setInterval(async () => {
-      if (isAnalyzing || !videoRef.current || videoRef.current.readyState < 2) return;
+      if (isUploading || !videoRef.current || videoRef.current.readyState < 2) return;
       try {
-        isAnalyzing = true;
+        isUploading = true;
         const video = videoRef.current;
         canvas.width = 480;
         canvas.height = 270;
         ctx.drawImage(video, 0, 0, 480, 270);
-        const base64Data = canvas.toDataURL("image/jpeg", 0.7);
+        const base64Data = canvas.toDataURL("image/jpeg", 0.6);
 
-        const { data } = await api.post("/api/exams/proctor-snapshot", {
+        await api.post("/api/exams/proctor-snapshot", {
           imageBase64: base64Data,
           image: base64Data,
+          isAuditSnapshot: true
         });
-
-        if (!isMounted || !data) return;
-
-        if (data.violation) {
-          const violType = (data.violationType || data.type || "VIOLATION").toUpperCase();
-          const violReason = data.reason || data.details || "Proctoring violation detected";
-
-          setProctorState({
-            status: violType,
-            message: violReason,
-            provider: data.provider || "AI Vision Guard",
-            confidence: data.confidence || 0.95,
-          });
-
-          // Trigger violation modal & strike counter in ExamFlowManager
-          if (onViolation) {
-            onViolation(`${violType}: ${violReason}`);
-          }
-        } else {
-          setProctorState({
-            status: "VERIFIED",
-            message: data.reason || "Face Locked & Verified",
-            provider: data.provider || "AI Vision Guard",
-            confidence: data.confidence || 0.99,
-          });
-        }
       } catch (err) {
-        // Silently handle transient network snapshot failure
+        // Silently handle transient network failure
       } finally {
-        isAnalyzing = false;
+        if (isMounted) isUploading = false;
       }
-    }, 3000);
+    }, 45000); // Every 45 seconds
 
     return () => {
       isMounted = false;
       clearInterval(snapshotInterval);
     };
-  }, [aceConnected, webcamStream, onViolation, onTelemetryUpdate]);
+  }, [webcamStream]);
 
   // Fallback video stream attachment if ACE is not running
   useEffect(() => {

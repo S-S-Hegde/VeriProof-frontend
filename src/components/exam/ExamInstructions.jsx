@@ -13,6 +13,7 @@ import {
   Monitor,
   Smartphone,
 } from "lucide-react";
+import * as faceapi from "face-api.js";
 
 // Detect mobile/tablet device
 const isMobileDevice = () => {
@@ -46,6 +47,18 @@ const ExamInstructions = ({
       fetch(`${defaultBaseUrl}/api/keep-alive`).catch(() => {});
       fetch(`${PYTHON_ENGINE_URL}/api/ping`).catch(() => {});
     } catch (err) {}
+
+    // ── Preload face-api.js models silently
+    const loadFaceApiModels = async () => {
+      try {
+        console.log("[ExamInstructions] Preloading face-api.js tinyFaceDetector...");
+        await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+        console.log("[ExamInstructions] face-api.js loaded successfully.");
+      } catch (err) {
+        console.warn("[ExamInstructions] Failed to preload face-api.js (non-fatal):", err);
+      }
+    };
+    loadFaceApiModels();
   }, []);
 
   // 1. First check if ACE Hardware Engine is active on localhost:8000
