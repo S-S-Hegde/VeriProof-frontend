@@ -21,7 +21,10 @@ const ExamQuestionView = ({
   return (
     <div className="relative glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between min-h-[420px] shadow-2xl border border-slate-800 select-none overflow-hidden">
       {/* ── Dynamic Forensic Anti-Leak Watermark Overlay ── */}
-      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-around opacity-[0.06] rotate-[-18deg] select-none font-mono text-xs uppercase tracking-widest text-white leading-loose overflow-hidden">
+      <div 
+        className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-around opacity-[0.06] rotate-[-18deg] select-none font-mono text-xs uppercase tracking-widest text-white leading-loose overflow-hidden"
+        style={{ pointerEvents: "none" }}
+      >
         <div>PROCTORED ASSESSMENT • {candidateInfo} • SECURE SESSION</div>
         <div>PROCTORED ASSESSMENT • {candidateInfo} • SECURE SESSION</div>
         <div>PROCTORED ASSESSMENT • {candidateInfo} • SECURE SESSION</div>
