@@ -71,6 +71,22 @@ export default function ExamFlowManager() {
   const eyeOffTimerRef = useRef(null);
   const isSubmittingRef = useRef(false);
 
+  // Sync active exam state to localStorage so keep-alive doesn't pause during idle moments
+  useEffect(() => {
+    const isExamActive = stage === "assessment" || stage === "purgatory";
+    if (isExamActive) {
+      localStorage.setItem("veriproof_active_exam", "true");
+    } else {
+      localStorage.removeItem("veriproof_active_exam");
+    }
+    window.dispatchEvent(new Event("veriproof_exam_state_change"));
+    
+    return () => {
+      localStorage.removeItem("veriproof_active_exam");
+      window.dispatchEvent(new Event("veriproof_exam_state_change"));
+    };
+  }, [stage]);
+
   // Core Submission Handler (Enforces instant submission on termination)
   const handleSubmitExam = useCallback(async (isTerminated = false, overrideCount = null, overrideLogs = null) => {
     if (isSubmittingRef.current) return;

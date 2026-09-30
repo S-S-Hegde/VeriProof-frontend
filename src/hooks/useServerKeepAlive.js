@@ -11,6 +11,20 @@ export const useServerKeepAlive = (isAuthenticated) => {
   const lastActivityRef = useRef(Date.now());
   const [isIdle, setIsIdle] = useState(false);
 
+  const [isExamActive, setIsExamActive] = useState(() => localStorage.getItem("veriproof_active_exam") === "true");
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setIsExamActive(localStorage.getItem("veriproof_active_exam") === "true");
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("veriproof_exam_state_change", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("veriproof_exam_state_change", handleStorage);
+    };
+  }, []);
+
   // Track user activity to determine idle state
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -24,6 +38,7 @@ export const useServerKeepAlive = (isAuthenticated) => {
     events.forEach(e => window.addEventListener(e, handleActivity));
 
     const checkIdleInterval = setInterval(() => {
+      // Only count as idle if NOT in an active exam
       if (Date.now() - lastActivityRef.current > IDLE_TIMEOUT_MS) {
         setIsIdle(true);
       }
@@ -36,8 +51,8 @@ export const useServerKeepAlive = (isAuthenticated) => {
   }, [isAuthenticated, isIdle]);
 
   const pingServers = async () => {
-    // If idle, do not ping
-    if (isIdle) return;
+    // If idle AND not in an active exam, do not ping
+    if (isIdle && !isExamActive) return;
 
     const now = Date.now();
     // Debounce to at most once per 30 seconds
@@ -56,7 +71,7 @@ export const useServerKeepAlive = (isAuthenticated) => {
   };
 
   useEffect(() => {
-    if (!isAuthenticated || isIdle) {
+    if (!isAuthenticated || (isIdle && !isExamActive)) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -85,7 +100,7 @@ export const useServerKeepAlive = (isAuthenticated) => {
       }
       window.removeEventListener("focus", handleFocus);
     };
-  }, [isAuthenticated, isIdle]); // Re-run when idle state changes
+  }, [isAuthenticated, isIdle, isExamActive]); // Re-run when idle or exam state changes
 };
 
 export default useServerKeepAlive;
