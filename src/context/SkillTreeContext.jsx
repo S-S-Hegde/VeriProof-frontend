@@ -16,8 +16,12 @@ export const SkillTreeProvider = ({ children }) => {
   const [error, setError] = useState("");
   const intervalRef = useRef(null);
 
+  const userId = user?._id || user?.id || null;
+  const userRef = useRef(user);
+  userRef.current = user;
+
   const refreshSkillTree = useCallback(async ({ quiet = false } = {}) => {
-    if (!user) return null;
+    if (!userRef.current) return null;
     try {
       if (!quiet) setLoading(true);
       setError("");
@@ -33,7 +37,7 @@ export const SkillTreeProvider = ({ children }) => {
     } finally {
       if (!quiet) setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const recordSkillEvent = useCallback(async (payload) => {
     const { data } = await api.post("/api/skill-tree/event", payload);
@@ -41,8 +45,6 @@ export const SkillTreeProvider = ({ children }) => {
     setProgress(data.progress);
     return data;
   }, []);
-
-  const userId = user?._id || user?.id || null;
 
   useEffect(() => {
     if (!userId) {

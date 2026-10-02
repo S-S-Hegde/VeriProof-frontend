@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from "react";
 import api from "../utils/api";
 import { signInWithGooglePopup, firebaseSignOut } from "../config/firebase";
 import { clearUserSession, getStoredUser, persistUserSession } from "../utils/authStorage";
@@ -51,21 +51,21 @@ export const AuthProvider = ({ children }) => {
   useServerKeepAlive(Boolean(user));
 
   // ------------------------------------------------------------------
-  // Helper: Persist and update user atomically
+  // Helper: Persist and update user atomically (stable reference)
   // ------------------------------------------------------------------
-  const setUser = (val) => {
+  const setUser = useCallback((val) => {
     setUserState((prev) => {
       const next = typeof val === "function" ? val(prev) : val;
       if (next) persistUserSession(next);
       else clearUserSession();
       return next;
     });
-  };
+  }, []);
 
-  const scheduleLogout = (ms) => {
+  const scheduleLogout = useCallback((ms) => {
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     logoutTimerRef.current = setTimeout(() => setUser(null), Math.max(ms, 0));
-  };
+  }, [setUser]);
 
   // ------------------------------------------------------------------
   // Session watchdog — reschedules logout timer based on stored timestamp
@@ -86,13 +86,12 @@ export const AuthProvider = ({ children }) => {
     return () => {
       if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, scheduleLogout]);
 
   // ------------------------------------------------------------------
-  // Public Auth API
+  // Public Auth API (memoized)
   // ------------------------------------------------------------------
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     const { data } = await api.post(
       "/api/users/login",
       { email, password },
@@ -101,9 +100,9 @@ export const AuthProvider = ({ children }) => {
     setUser(data);
     scheduleLogout(ONE_HOUR);
     return data;
-  };
+  }, [setUser, scheduleLogout]);
 
-  const loginWithGoogle = async (role = "student", inviteCode = "") => {
+  const loginWithGoogle = useCallback(async (role = "student", inviteCode = "") => {
     setOauthError("");
     setRedirectProcessing(true);
     try {
@@ -134,34 +133,44 @@ export const AuthProvider = ({ children }) => {
       setOauthError(err.response?.data?.message || err.message || "Could not complete Google authentication.");
       throw err;
     }
-  };
+  }, [setUser, scheduleLogout]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     try {
       api.post("/api/keep-alive/release").catch(() => {});
     } catch (_) {}
     firebaseSignOut();
     setUser(null);
-  };
+  }, [setUser]);
+
+  const contextValue = useMemo(() => ({
+    user,
+    setUser,
+    login,
+    loginWithGoogle,
+    logout,
+    loading: authLoading,
+    authLoading,
+    authInitialized,       // Always true — sync init from localStorage
+    redirectProcessing,
+    oauthError,
+    setOauthError,
+    isExiting,
+    setIsExiting,
+  }), [
+    user,
+    setUser,
+    login,
+    loginWithGoogle,
+    logout,
+    authLoading,
+    redirectProcessing,
+    oauthError,
+    isExiting,
+  ]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        login,
-        loginWithGoogle,
-        logout,
-        loading: authLoading,
-        authLoading,
-        authInitialized,       // Always true — sync init from localStorage
-        redirectProcessing,
-        oauthError,
-        setOauthError,
-        isExiting,
-        setIsExiting,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

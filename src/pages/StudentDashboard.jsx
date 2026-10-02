@@ -137,9 +137,14 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const { progress } = useSkillTree();
 
+  const hasFetchedRef = useRef(false);
+
   // ── Initial data load ───────────────────────────────────────────────────────
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
     let isMounted = true;
+
     const fetchData = async () => {
       try {
         const [profileRes, projectsRes] = await Promise.all([
@@ -151,14 +156,6 @@ const StudentDashboard = () => {
 
         setProfileData(profileRes.data);
         setCertificates(profileRes.data.certificates || []);
-        if (profileRes.data) {
-          setUser((prev) => ({
-            ...prev,
-            ...profileRes.data,
-            workflowState: profileRes.data.workflowState,
-          }));
-        }
-
         setProjects(projectsRes.data || []);
         setLoading(false);
       } catch (err) {
@@ -170,7 +167,7 @@ const StudentDashboard = () => {
     return () => {
       isMounted = false;
     };
-  }, [setUser]);
+  }, []);
 
   const workflowState = profileData?.workflowState || user?.workflowState;
   const isInvited =
@@ -212,13 +209,6 @@ const StudentDashboard = () => {
           const profileRes = await api.get("/api/users/profile");
           if (!isMounted) return;
           setProfileData(profileRes.data);
-          if (profileRes.data.workflowState) {
-            setUser((prev) => ({
-              ...prev,
-              resumeStatus: profileRes.data.resumeStatus,
-              workflowState: profileRes.data.workflowState,
-            }));
-          }
         }
       } catch (err) {
         console.error("Failed to check resume analysis status:", err);
@@ -234,7 +224,7 @@ const StudentDashboard = () => {
       isMounted = false;
       if (intervalId) clearInterval(intervalId);
     };
-  }, [resumeStatus, setUser]);
+  }, [resumeStatus]);
 
   // ── GitHub analysis polling ──────────────────────────────────────────────
   // Polls every 5s when: resume is analyzed + repos not yet done + user has github
@@ -269,12 +259,7 @@ const StudentDashboard = () => {
           ]);
           if (!isMounted) return;
           setProjects(projectsRes.data || []);
-          if (profileRes.data.workflowState) {
-            setUser((prev) => ({
-              ...prev,
-              workflowState: profileRes.data.workflowState,
-            }));
-          }
+          setProfileData(profileRes.data);
         }
       } catch {
         // Silence — GitHub status is non-critical
