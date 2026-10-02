@@ -164,8 +164,8 @@ const FloatingParticles = () => {
 
 const SectionReveal = ({ children, className = "", delay = 0 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 40, filter: "blur(4px)" }}
-    whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: "-80px" }}
     transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
     className={className}
@@ -308,8 +308,8 @@ export default function Home() {
         <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[var(--color-border)] to-transparent opacity-20" />
 
         <motion.div
-          initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="flex items-center gap-3 px-5 py-2.5 border border-[var(--color-border)] backdrop-blur-md mb-10 rounded-full"
         >
@@ -340,8 +340,8 @@ export default function Home() {
         </div>
 
         <motion.p
-          initial={{ opacity: 0, y: 30, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.7 }}
           className="text-center max-w-xl text-base md:text-lg text-[var(--color-muted)] mt-10 leading-relaxed"
         >

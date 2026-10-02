@@ -30,8 +30,9 @@ const pageVariants = {
     y: -8,
     scale: 0.998,
     transition: {
-      duration: 0.2,
+      duration: 0.15,
       ease: [0.4, 0, 1, 1],
+      when: "afterChildren",
     },
   },
 };
