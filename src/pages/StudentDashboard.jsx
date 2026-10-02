@@ -151,9 +151,10 @@ const StudentDashboard = () => {
 
         setProfileData(profileRes.data);
         setCertificates(profileRes.data.certificates || []);
-        if (profileRes.data.workflowState && user) {
+        if (profileRes.data) {
           setUser((prev) => ({
             ...prev,
+            ...profileRes.data,
             workflowState: profileRes.data.workflowState,
           }));
         }
@@ -378,7 +379,12 @@ const StudentDashboard = () => {
                 resumeUrl={resumeUrl}
                 resumeStatus={resumeStatus}
                 analysisState={analysisState}
-                user={{ ...user, origin: isInvited ? "recruiter_invited" : user?.origin }}
+                user={{
+                  ...user,
+                  ...profileData,
+                  origin: isInvited ? "recruiter_invited" : (profileData?.origin || user?.origin),
+                }}
+                workflowState={workflowState}
                 onOpenUploadModal={isInvited ? null : () => setIsUploadModalOpen(true)}
               />
               <VerificationPipeline
@@ -405,7 +411,11 @@ const StudentDashboard = () => {
                       }).catch(console.error);
                     }
                   } else if (stepId === "assessment") {
-                    navigate("/exams");
+                    if (workflowState?.hasExamPassed || workflowState?.isVerificationComplete) {
+                      navigate("/skill-tree");
+                    } else {
+                      navigate("/exams");
+                    }
                   } else if (stepId === "verified") {
                     navigate("/skill-tree");
                   }

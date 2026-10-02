@@ -514,10 +514,11 @@ export const ResumeUploadCard = ({ resumeUrl, resumeStatus, onUploadComplete, an
 };
 
 // ─── Resume Status Card (Read-Only) ────────────────────────
-export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user, onOpenUploadModal }) => {
+export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user, workflowState, onOpenUploadModal }) => {
   const navigate = useNavigate();
   const isInvited = user?.origin === "recruiter_invited";
-  const hasResume = !!resumeUrl || isInvited || ["Analyzed", "Verified", "Pending Evaluation"].includes(resumeStatus) || user?.workflowState?.hasResume;
+  const effectiveWorkflow = workflowState || user?.workflowState;
+  const hasResume = !!resumeUrl || isInvited || ["Analyzed", "Verified", "Pending Evaluation"].includes(resumeStatus) || effectiveWorkflow?.hasResume;
   const statusInfo = RESUME_STATUS_MAP[resumeStatus] || null;
 
   // ─── Resume under analysis / processing status ───
@@ -574,7 +575,17 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
 
   // ─── Resume already uploaded or Recruiter Invited ───
   if (hasResume) {
-    const isAssessmentCompleted = user?.pipelineStage === "verification_complete" || user?.examStatus === "Attended" || user?.examStatus === "Completed";
+    const isAssessmentCompleted = Boolean(
+      effectiveWorkflow?.isVerificationComplete ||
+      effectiveWorkflow?.hasExamPassed ||
+      effectiveWorkflow?.hasVerificationRequest ||
+      getStepStatus("assessment", effectiveWorkflow) === "complete" ||
+      getStepStatus("verified", effectiveWorkflow) === "complete" ||
+      ["verification_complete", "candidate_complete", "waiting_for_recruiter"].includes(user?.pipelineStage) ||
+      user?.examStatus === "Attended" ||
+      user?.examStatus === "Completed" ||
+      (Array.isArray(user?.certificates) && user.certificates.length > 0)
+    );
     const StatusIcon = isInvited ? CheckCircle : (statusInfo?.icon || CheckCircle);
     const effectiveResumeUrl = resumeUrl || user?.resumeUrl || "/uploads/candidate-resumes/verified_resume.pdf";
 
@@ -605,15 +616,7 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
             </div>
             
             <div className="flex flex-wrap gap-2 mt-4">
-              {isAssessmentCompleted ? (
-                <button
-                  type="button"
-                  disabled
-                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-4 gap-1.5 opacity-80 cursor-not-allowed border border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
-                >
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Assessment Completed (Single Attempt)
-                </button>
-              ) : (
+              {!isAssessmentCompleted && (
                 <button
                   type="button"
                   onClick={() => { window.location.href = "/exams"; }}
