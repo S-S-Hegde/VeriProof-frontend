@@ -53,7 +53,7 @@ const IdentityGatewayCard = ({
           <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 dark:text-gray-400 block mb-1 text-center font-semibold">
             Select Terminal Portal
           </label>
-          <div className="flex p-1 rounded-xl bg-slate-200/80 dark:bg-black/60 border border-slate-300 dark:border-white/10 backdrop-blur-md">
+          <div className="flex p-1 rounded-xl bg-sky-100/70 dark:bg-black/60 border border-sky-200/90 dark:border-white/10 backdrop-blur-md">
             <button
               type="button"
               onClick={() => setRole("student")}
@@ -98,7 +98,7 @@ const IdentityGatewayCard = ({
       )}
 
       {/* Main Glass Terminal Card */}
-      <div className="relative p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl bg-white/80 dark:bg-[#0c1222]/70 border border-slate-200 dark:border-cyan-500/20 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.37)] overflow-hidden transition-colors duration-300">
+      <div className="relative p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white/95 via-sky-50/70 to-white/90 dark:from-[#0c1222]/80 dark:via-[#0f172a]/70 dark:to-[#0c1222]/80 border border-sky-200/90 dark:border-cyan-500/20 backdrop-blur-2xl shadow-[0_12px_36px_rgba(15,42,58,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.37)] overflow-hidden transition-colors duration-300">
         {/* Glow halo */}
         <div
           className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-[100px] pointer-events-none transition-all duration-700 ${
@@ -110,7 +110,7 @@ const IdentityGatewayCard = ({
 
         {/* Mandatory Identity Checkpoint Badge */}
         <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 text-slate-700 dark:text-gray-300 font-semibold">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider bg-sky-50 dark:bg-white/5 border border-sky-200/80 dark:border-white/10 text-slate-700 dark:text-gray-300 font-semibold">
             <Lock className="w-3 h-3 text-amber-500 dark:text-amber-400" />
             <span>MANDATORY_IDENTITY_CHECKPOINT</span>
           </span>
@@ -195,9 +195,9 @@ const IdentityGatewayCard = ({
         {/* Divider */}
         <div className="relative my-2.5 text-center">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200 dark:border-white/10" />
+            <div className="w-full border-t border-sky-200/80 dark:border-white/10" />
           </div>
-          <span className="relative px-2.5 bg-white dark:bg-[#0c1222] text-[9px] font-mono tracking-widest text-slate-500 dark:text-gray-400 uppercase font-semibold">
+          <span className="relative px-2.5 bg-sky-50 dark:bg-[#0c1222] text-[9px] font-mono tracking-widest text-slate-500 dark:text-gray-400 uppercase font-semibold">
             Or With Verified Credentials
           </span>
         </div>

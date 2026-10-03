@@ -6,7 +6,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
   const isRecruiter = role === "recruiter";
 
   return (
-    <div className="h-full w-full flex flex-col justify-between p-5 lg:p-6 relative overflow-hidden bg-slate-100/60 dark:bg-[#070a14]/50 backdrop-blur-2xl text-slate-900 dark:text-white border-r border-slate-200/80 dark:border-white/5 transition-colors duration-300">
+    <div className="h-full w-full flex flex-col justify-between p-5 lg:p-6 relative overflow-hidden bg-gradient-to-b from-sky-50/80 via-blue-50/50 to-white/70 dark:from-[#070a14]/60 dark:via-[#090d1b]/50 dark:to-[#070a14]/60 backdrop-blur-2xl text-slate-900 dark:text-white border-r border-sky-200/80 dark:border-white/5 transition-colors duration-300">
       {/* Dynamic Background Glows */}
       <div
         className={`absolute -top-24 -left-24 w-96 h-96 rounded-full blur-[120px] pointer-events-none transition-all duration-700 ${
@@ -95,7 +95,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
 
         {isRecruiter ? (
           <>
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/60 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 backdrop-blur-sm shadow-sm dark:shadow-none">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/80 dark:bg-white/[0.02] border border-sky-200/70 dark:border-white/5 backdrop-blur-sm shadow-xs dark:shadow-none">
               <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mt-0.5">
                 <ShieldCheck className="w-3.5 h-3.5" />
               </div>
@@ -105,7 +105,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/60 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 backdrop-blur-sm shadow-sm dark:shadow-none">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/80 dark:bg-white/[0.02] border border-sky-200/70 dark:border-white/5 backdrop-blur-sm shadow-xs dark:shadow-none">
               <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mt-0.5">
                 <Cpu className="w-3.5 h-3.5" />
               </div>
@@ -117,7 +117,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
           </>
         ) : (
           <>
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/60 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 backdrop-blur-sm shadow-sm dark:shadow-none">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/80 dark:bg-white/[0.02] border border-sky-200/70 dark:border-white/5 backdrop-blur-sm shadow-xs dark:shadow-none">
               <div className="p-1.5 rounded-md bg-blue-500/10 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400 mt-0.5">
                 <GitBranch className="w-3.5 h-3.5" />
               </div>
@@ -127,7 +127,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/60 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 backdrop-blur-sm shadow-sm dark:shadow-none">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/80 dark:bg-white/[0.02] border border-sky-200/70 dark:border-white/5 backdrop-blur-sm shadow-xs dark:shadow-none">
               <div className="p-1.5 rounded-md bg-blue-500/10 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400 mt-0.5">
                 <Layers className="w-3.5 h-3.5" />
               </div>
