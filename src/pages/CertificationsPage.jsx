@@ -65,11 +65,25 @@ const PRESET_SKILLS = [
   "REST APIs",
 ];
 
+const PRESET_SUBJECTS = [
+  "Machine Learning & AI",
+  "Cloud Architecture & DevOps",
+  "Full Stack Web Development",
+  "Frontend Engineering",
+  "Backend Systems & APIs",
+  "Cybersecurity & InfoSec",
+  "Data Engineering & Analytics",
+  "Mobile App Development",
+  "Systems & Network Engineering",
+  "Blockchain & Web3",
+];
+
 const CertificationsPage = () => {
   const { user, setUser } = useAuth();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [reanalyzing, setReanalyzing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
 
@@ -79,6 +93,9 @@ const CertificationsPage = () => {
   const [title, setTitle] = useState("");
   const [issuer, setIssuer] = useState("");
   const [customIssuer, setCustomIssuer] = useState("");
+  const [vendor, setVendor] = useState("");
+  const [subject, setSubject] = useState("");
+  const [customSubject, setCustomSubject] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [credentialId, setCredentialId] = useState("");
@@ -164,6 +181,9 @@ const CertificationsPage = () => {
     setTitle("");
     setIssuer("");
     setCustomIssuer("");
+    setVendor("");
+    setSubject("");
+    setCustomSubject("");
     setIssueDate("");
     setExpiryDate("");
     setCredentialId("");
@@ -174,6 +194,24 @@ const CertificationsPage = () => {
     setFilePreview(null);
     setFormError("");
     setIsFormOpen(false);
+  };
+
+  // Re-Analyze All Existing Certificates with AI & Cross-Check Resume
+  const handleReanalyzeAll = async () => {
+    try {
+      setReanalyzing(true);
+      const { data } = await api.post("/api/certificates/re-analyze-all");
+      if (data && data.certificates) {
+        setCertificates(data.certificates);
+      }
+      setSuccessNotice(`⚡ AI inspection synchronized! Titles, subjects, vendors & resume cross-checks refreshed.`);
+      setTimeout(() => setSuccessNotice(""), 6000);
+    } catch (err) {
+      console.error("Failed to re-analyze certificates:", err);
+      alert(err.response?.data?.message || "Failed to sync certificates with AI.");
+    } finally {
+      setReanalyzing(false);
+    }
   };
 
   // Submit Handler supporting both AI Auto-Extract and Manual Specification
@@ -203,8 +241,11 @@ const CertificationsPage = () => {
         formData.append("certificate", file);
       } else {
         const finalIssuer = issuer === "Other" ? customIssuer.trim() : issuer.trim();
+        const finalSubject = subject === "Other" ? customSubject.trim() : subject.trim();
         formData.append("title", title.trim());
         formData.append("issuer", finalIssuer);
+        formData.append("vendor", vendor.trim() || finalIssuer);
+        if (finalSubject) formData.append("subject", finalSubject);
         if (issueDate) formData.append("issueDate", issueDate);
         if (expiryDate) formData.append("expiryDate", expiryDate);
         if (credentialId) formData.append("credentialId", credentialId.trim());
@@ -220,10 +261,11 @@ const CertificationsPage = () => {
       });
 
       setCertificates((prev) => [data, ...prev]);
+      const xpGained = data.xpAwarded || (data.resumeMatched ? 350 : 250);
       setSuccessNotice(
-        uploadMode === "auto"
-          ? `⚡ AI extracted and verified "${data.title}" from ${data.issuer}! (+250 XP)`
-          : `🛡️ Credential "${data.title}" verified and saved to ledger! (+250 XP)`
+        data.resumeMatched
+          ? `🎯 Verified "${data.title}" from ${data.vendor || data.issuer} & cross-matched with your resume! (+${xpGained} XP)`
+          : `🛡️ Credential "${data.title}" from ${data.vendor || data.issuer} verified to ledger! (+${xpGained} XP)`
       );
       setTimeout(() => setSuccessNotice(""), 6000);
 
@@ -233,9 +275,9 @@ const CertificationsPage = () => {
           ...prev,
           skillProgress: {
             ...prev?.skillProgress,
-            totalXp: (prev?.skillProgress?.totalXp || 0) + 250,
+            totalXp: (prev?.skillProgress?.totalXp || 0) + xpGained,
             verifiedCount: (prev?.skillProgress?.verifiedCount || 0) + 1,
-            trustScore: Math.min(99, (prev?.skillProgress?.trustScore || 80) + 3),
+            trustScore: Math.min(99, (prev?.skillProgress?.trustScore || 80) + (data.resumeMatched ? 5 : 3)),
           },
         }));
       }
@@ -269,12 +311,18 @@ const CertificationsPage = () => {
   };
 
   const filteredCertificates = certificates.filter((cert) => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      cert.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cert.issuer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (cert.skills || []).some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      cert.title?.toLowerCase().includes(q) ||
+      cert.issuer?.toLowerCase().includes(q) ||
+      cert.vendor?.toLowerCase().includes(q) ||
+      cert.subject?.toLowerCase().includes(q) ||
+      cert.resumeMatchDetails?.toLowerCase().includes(q) ||
+      (cert.skills || []).some((s) => s.toLowerCase().includes(q));
 
     if (activeFilter === "all") return matchesSearch;
+    if (activeFilter === "resumeMatched") return matchesSearch && cert.resumeMatched;
+    if (activeFilter === "independent") return matchesSearch && !cert.resumeMatched;
     return matchesSearch && cert.verificationStatus === activeFilter;
   });
 
@@ -307,6 +355,15 @@ const CertificationsPage = () => {
 
           <div className="flex items-center gap-3 flex-wrap">
             <button
+              onClick={handleReanalyzeAll}
+              disabled={reanalyzing || loading}
+              className="vp-btn vp-btn-secondary text-xs px-4 py-2.5 gap-2"
+              title="Run AI inspection across all certificates to clean titles, detect subjects, and verify against resume"
+            >
+              <Zap className={`w-3.5 h-3.5 text-amber-400 ${reanalyzing ? "animate-spin" : ""}`} />
+              <span>{reanalyzing ? "AI Inspecting..." : "⚡ Sync & Clean Credentials"}</span>
+            </button>
+            <button
               onClick={fetchCertificates}
               className="vp-btn vp-btn-secondary text-xs px-4 py-2.5 gap-2"
               title="Refresh ledger"
@@ -327,9 +384,9 @@ const CertificationsPage = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Verified Credentials", val: certificates.length, icon: Award, color: "text-amber-400" },
-            { label: "Total Proof XP", val: `+${totalXpEarned} XP`, icon: Sparkles, color: "text-[var(--color-accent)]" },
-            { label: "Trust Score Boost", val: `+${totalTrustBoost}%`, icon: ShieldCheck, color: "text-emerald-400" },
-            { label: "Active Skills Mapped", val: new Set(certificates.flatMap((c) => c.skills || [])).size, icon: Layers, color: "text-cyan-400" },
+            { label: "Resume Cross-Verified", val: `${certificates.filter((c) => c.resumeMatched).length} Verified`, icon: CheckCircle, color: "text-emerald-400" },
+            { label: "Total Proof XP", val: `+${certificates.reduce((sum, c) => sum + (c.xpAwarded || (c.resumeMatched ? 350 : 250)), 0)} XP`, icon: Sparkles, color: "text-[var(--color-accent)]" },
+            { label: "Trust Score Boost", val: `+${certificates.reduce((sum, c) => sum + (c.trustScoreBonus || (c.resumeMatched ? 8 : 5)), 0)}%`, icon: ShieldCheck, color: "text-cyan-400" },
           ].map((stat, i) => (
             <div
               key={i}
@@ -478,7 +535,7 @@ const CertificationsPage = () => {
                         {!file && (
                           <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[11px] font-mono text-cyan-400">
                             <Cpu className="w-3.5 h-3.5" />
-                            <span>AI automatically extracts Title, Issuer, Date &amp; Skills</span>
+                            <span>AI multimodal engine extracts Certificate Name, Vendor, Subject Domain &amp; Cross-References Resume</span>
                           </div>
                         )}
                       </div>
@@ -497,7 +554,7 @@ const CertificationsPage = () => {
                           className="vp-btn vp-btn-accent text-xs px-6 py-2.5 gap-2 shadow-lg disabled:opacity-50"
                         >
                           <Zap className={`w-4 h-4 ${submitting ? "animate-spin" : ""}`} />
-                          <span>{submitting ? "Analyzing & Verifying..." : "⚡ Auto-Extract & Verify Credential"}</span>
+                          <span>{submitting ? "Analyzing & Cross-Referencing Resume..." : "⚡ Auto-Extract & Verify Credential"}</span>
                         </button>
                       </div>
                     </div>
@@ -523,13 +580,47 @@ const CertificationsPage = () => {
                             />
                           </div>
 
+                          {/* Subject Domain */}
                           <div>
                             <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
-                              Issuing Organization *
+                              Technical Subject Domain *
+                            </label>
+                            <select
+                              value={subject}
+                              onChange={(e) => setSubject(e.target.value)}
+                              className="vp-input w-full text-xs font-mono py-2.5 mb-2"
+                              required
+                            >
+                              <option value="">Select Technical Subject Domain</option>
+                              {PRESET_SUBJECTS.map((sub) => (
+                                <option key={sub} value={sub}>
+                                  {sub}
+                                </option>
+                              ))}
+                              <option value="Other">Other / Custom Subject</option>
+                            </select>
+                            {subject === "Other" && (
+                              <input
+                                type="text"
+                                required
+                                placeholder="Enter custom subject domain (e.g. Embedded Systems)"
+                                value={customSubject}
+                                onChange={(e) => setCustomSubject(e.target.value)}
+                                className="vp-input w-full text-xs font-mono py-2.5"
+                              />
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-mono uppercase tracking-widest text-[var(--color-muted)] mb-1.5 font-bold">
+                              Issuing Organization / Vendor *
                             </label>
                             <select
                               value={issuer}
-                              onChange={(e) => setIssuer(e.target.value)}
+                              onChange={(e) => {
+                                setIssuer(e.target.value);
+                                if (e.target.value !== "Other") setVendor(e.target.value.split("/")[0].split("(")[0].trim());
+                              }}
                               className="vp-input w-full text-xs font-mono py-2.5 mb-2"
                             >
                               <option value="">Select Issuing Body / Provider</option>
@@ -544,9 +635,12 @@ const CertificationsPage = () => {
                               <input
                                 type="text"
                                 required
-                                placeholder="Enter issuing organization name"
+                                placeholder="Enter issuing organization name (e.g. AWS, Stanford, Udemy)"
                                 value={customIssuer}
-                                onChange={(e) => setCustomIssuer(e.target.value)}
+                                onChange={(e) => {
+                                  setCustomIssuer(e.target.value);
+                                  setVendor(e.target.value);
+                                }}
                                 className="vp-input w-full text-xs font-mono py-2.5"
                               />
                             )}
@@ -723,17 +817,22 @@ const CertificationsPage = () => {
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-            {["all", "Verified", "Pending"].map((flt) => (
+            {[
+              { id: "all", label: "All Credentials" },
+              { id: "resumeMatched", label: "✓ Resume Verified" },
+              { id: "independent", label: "Independent" },
+              { id: "Pending", label: "Pending" },
+            ].map((flt) => (
               <button
-                key={flt}
-                onClick={() => setActiveFilter(flt)}
+                key={flt.id}
+                onClick={() => setActiveFilter(flt.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all whitespace-nowrap ${
-                  activeFilter === flt
+                  activeFilter === flt.id
                     ? "bg-[var(--color-accent)] text-white font-bold shadow"
                     : "bg-[var(--color-bg-sunken)] border border-[var(--color-border)] text-[var(--color-muted)] hover:text-white"
                 }`}
               >
-                {flt === "all" ? "All Credentials" : flt}
+                {flt.label}
               </button>
             ))}
           </div>
@@ -778,32 +877,74 @@ const CertificationsPage = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="rounded-[var(--radius-xl)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 p-6 flex flex-col justify-between space-y-6 group transition-all relative overflow-hidden shadow-lg"
+                className="rounded-[var(--radius-xl)] bg-[var(--color-bg-sunken)] border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 p-6 flex flex-col justify-between space-y-5 group transition-all relative overflow-hidden shadow-lg"
               >
                 <div className="absolute top-0 right-0 w-28 h-28 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-[var(--color-accent)]/10 transition-colors pointer-events-none" />
 
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   {/* Top Badges */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                      <ShieldCheck className="w-3 h-3" />
-                      {cert.verificationStatus || "Verified"}
-                    </span>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <ShieldCheck className="w-3 h-3" />
+                        {cert.verificationStatus || "Verified"}
+                      </span>
+                      {cert.resumeMatched ? (
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/50 text-[10px] font-mono text-emerald-300 font-bold uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                          <CheckCircle className="w-3 h-3 text-emerald-400" />
+                          Resume Verified
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-mono text-cyan-300 font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-cyan-400" />
+                          Independent
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[10px] font-mono text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                      +250 XP
+                      +{cert.xpAwarded || (cert.resumeMatched ? 350 : 250)} XP
                     </span>
                   </div>
 
-                  {/* Title & Issuer */}
+                  {/* Subject Domain Badge */}
+                  {cert.subject && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-500/15 border border-indigo-500/30 text-[10px] font-mono text-indigo-300 font-bold uppercase tracking-wider">
+                      <Layers className="w-3 h-3 text-indigo-400" />
+                      <span>Subject: {cert.subject}</span>
+                    </div>
+                  )}
+
+                  {/* Title & Vendor / Issuer */}
                   <div>
                     <h4 className="text-base font-bold text-white group-hover:text-[var(--color-accent)] transition-colors leading-snug line-clamp-2">
                       {cert.title}
                     </h4>
-                    <p className="text-xs font-mono text-cyan-400 mt-1 flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5" />
-                      <span>{cert.issuer}</span>
-                    </p>
+                    <div className="flex items-center justify-between text-xs font-mono text-cyan-400 mt-1.5">
+                      <span className="flex items-center gap-1.5 font-bold truncate">
+                        <Award className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                        <span>{cert.vendor || cert.issuer}</span>
+                      </span>
+                      {cert.vendor && cert.issuer && cert.vendor !== cert.issuer && (
+                        <span className="text-[10px] text-[var(--color-muted)] truncate max-w-[130px]" title={cert.issuer}>
+                          via {cert.issuer}
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Resume Verification Detail */}
+                  {cert.resumeMatchDetails && (
+                    <div className={`text-[10px] font-mono px-2.5 py-1.5 rounded border flex items-center gap-2 ${
+                      cert.resumeMatched
+                        ? "bg-emerald-950/30 border-emerald-500/30 text-emerald-300"
+                        : "bg-white/5 border-white/10 text-[var(--color-muted)]"
+                    }`}>
+                      <CheckCircle className={`w-3.5 h-3.5 flex-shrink-0 ${cert.resumeMatched ? "text-emerald-400" : "text-[var(--color-muted)]"}`} />
+                      <span className="truncate" title={cert.resumeMatchDetails}>
+                        {cert.resumeMatchDetails}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Metadata row */}
                   <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-[var(--color-muted)] pt-2 border-t border-[var(--color-border)]">
@@ -906,7 +1047,7 @@ const CertificationsPage = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <a
-                      href={resolveFileUrl(previewCert.fileUrl)}
+                      href={previewCert.fileUrl ? resolveFileUrl(previewCert.fileUrl) : `/api/certificates/${previewCert._id}/file`}
                       target="_blank"
                       rel="noreferrer"
                       download
@@ -924,17 +1065,28 @@ const CertificationsPage = () => {
                 </div>
 
                 <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center bg-black/40 min-h-[400px]">
-                  {previewCert.fileUrl?.toLowerCase().endsWith(".pdf") ? (
+                  {previewCert.fileUrl?.toLowerCase().endsWith(".pdf") || previewCert.fileType?.includes("pdf") ? (
                     <iframe
-                      src={resolveFileUrl(previewCert.fileUrl)}
+                      src={previewCert.fileUrl ? resolveFileUrl(previewCert.fileUrl) : `/api/certificates/${previewCert._id}/file`}
                       title={previewCert.title}
                       className="w-full h-[600px] rounded-lg border border-[var(--color-border)]"
                     />
                   ) : (
                     <img
-                      src={resolveFileUrl(previewCert.fileUrl)}
+                      src={previewCert.fileUrl ? resolveFileUrl(previewCert.fileUrl) : `/api/certificates/${previewCert._id}/file`}
                       alt={previewCert.title}
                       className="max-h-[600px] w-auto object-contain rounded-lg border border-[var(--color-border)] shadow-lg"
+                      onError={(e) => {
+                        // Fallback to streaming file endpoint
+                        if (!e.target.dataset.retried && previewCert._id) {
+                          e.target.dataset.retried = "true";
+                          const apiBase = (
+                            import.meta.env.VITE_API_BASE_URL ||
+                            (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000")
+                          ).replace(/\/$/, "");
+                          e.target.src = `${apiBase}/api/certificates/${previewCert._id}/file`;
+                        }
+                      }}
                     />
                   )}
                 </div>
