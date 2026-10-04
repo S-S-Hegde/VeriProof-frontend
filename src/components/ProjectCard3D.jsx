@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Github, ShieldCheck, ExternalLink, Plus, CheckCircle, AlertTriangle, Cpu } from "lucide-react";
+import { Github, ShieldCheck, ExternalLink, Plus, CheckCircle, AlertTriangle, Cpu, Lock } from "lucide-react";
 import SaveProjectButton from "./SaveProjectButton";
 
 const ProjectCard3D = ({ project, isSaved = false, onToggleSaved, saveBusy = false, onOpenVerify }) => {
@@ -51,6 +51,12 @@ const ProjectCard3D = ({ project, isSaved = false, onToggleSaved, saveBusy = fal
       <div className="p-7 flex-grow relative z-10" style={{ transform: "translateZ(30px)" }}>
         {/* Verification Status Badge */}
         <div className="absolute top-4 right-4 flex items-center gap-1.5">
+          {(project.isLocked || project.fromResumeClaim) && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-[var(--radius-sm)] border border-purple-500/40 text-purple-400 bg-purple-500/10">
+              <Lock className="w-2.5 h-2.5" />
+              <span className="text-[8px] font-mono uppercase tracking-[0.1em]">Resume Claim</span>
+            </div>
+          )}
           {isVerified ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] border border-emerald-500/40 text-emerald-400 bg-emerald-500/10">
               <ShieldCheck className="w-3 h-3 text-emerald-400" />

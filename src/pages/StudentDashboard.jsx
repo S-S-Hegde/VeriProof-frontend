@@ -12,6 +12,7 @@ import {
 } from "../components/OnboardingComponents";
 import ResumeUploadModal from "../components/ResumeUploadModal";
 import ProjectVerificationModal from "../components/ProjectVerificationModal";
+import ResumeProjectLinkModal from "../components/ResumeProjectLinkModal";
 import { resolveFileUrl } from "../utils/fileUrl";
 import { useSkillTree } from "../context/SkillTreeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -134,6 +135,7 @@ const StudentDashboard = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedProjectForVerify, setSelectedProjectForVerify] = useState(null);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [isLinkProjectsModalOpen, setIsLinkProjectsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { progress } = useSkillTree();
 
@@ -384,17 +386,9 @@ const StudentDashboard = () => {
                       setIsUploadModalOpen(true);
                     }
                   } else if (stepId === "repo") {
-                    if (workflowState?.hasRepoAnalysis) {
-                      navigate("/add-project");
-                      return;
-                    }
-                    // Trigger GitHub analysis and update UI immediately
-                    if (!githubAnalysisState || githubAnalysisState.status !== "running") {
-                      setGithubAnalysisState({ status: "running", reposProcessed: 0, totalRepos: 3 });
-                      api.post("/api/github/trigger").then(({ data }) => {
-                        if (data.status) setGithubAnalysisState(data.status);
-                      }).catch(console.error);
-                    }
+                    setIsLinkProjectsModalOpen(true);
+                  } else if (stepId === "certs") {
+                    navigate("/certifications");
                   } else if (stepId === "assessment") {
                     if (workflowState?.hasExamPassed || workflowState?.isVerificationComplete) {
                       navigate("/skill-tree");
@@ -618,6 +612,16 @@ const StudentDashboard = () => {
         onVerified={(updated) => {
           setProjects((prev) => prev.map((p) => (p._id === updated._id ? updated : p)));
           setSelectedProjectForVerify(updated);
+        }}
+      />
+
+      <ResumeProjectLinkModal
+        isOpen={isLinkProjectsModalOpen}
+        onClose={() => setIsLinkProjectsModalOpen(false)}
+        onLinked={() => {
+          // Re-fetch profile and projects to update workflow state
+          api.get("/api/users/profile").then(({ data }) => setProfileData(data)).catch(console.error);
+          api.get("/api/projects/myprojects").then(({ data }) => setProjects(data || [])).catch(console.error);
         }}
       />
     </>

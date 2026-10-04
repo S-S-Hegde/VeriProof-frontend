@@ -16,11 +16,12 @@ import {
 
 // ─── Verification Progress Pipeline ─────────────────────────
 const PIPELINE_STEPS = [
-  { id: "resume",     label: "Upload Resume",        icon: Upload,    xp: 40  },
-  { id: "analysis",   label: "Resume Analysis",      icon: FileText,  xp: 60  },
-  { id: "repo",       label: "Repository Analysis",  icon: GitBranch, xp: 80  },
-  { id: "assessment", label: "Technical Assessment",  icon: Shield,    xp: 120 },
-  { id: "verified",   label: "Verification Complete", icon: Award,     xp: 200 },
+  { id: "resume",     label: "Upload Resume",              icon: Upload,      xp: 40  },
+  { id: "analysis",   label: "Resume Analysis",            icon: FileText,    xp: 60  },
+  { id: "repo",       label: "Link Project Repositories",  icon: GitBranch,   xp: 80  },
+  { id: "certs",      label: "Verify Certificates",        icon: Award,       xp: 100 },
+  { id: "assessment", label: "Technical Assessment",        icon: Shield,      xp: 150 },
+  { id: "verified",   label: "Verification Complete",       icon: CheckCircle, xp: 200 },
 ];
 
 const getStepStatus = (stepId, workflowState) => {
@@ -33,9 +34,12 @@ const getStepStatus = (stepId, workflowState) => {
       return workflowState.isResumeAnalyzed ? "complete" : "active";
     case "repo":
       if (!workflowState.isResumeAnalyzed) return "locked";
-      return workflowState.hasRepoAnalysis ? "complete" : "active";
+      return workflowState.hasProjectsLinked ? "complete" : "active";
+    case "certs":
+      if (!workflowState.hasProjectsLinked) return "locked";
+      return workflowState.hasCertificatesVerified ? "complete" : "active";
     case "assessment":
-      if (!workflowState.hasRepoAnalysis) return "locked";
+      if (!workflowState.isAssessmentUnlocked) return "locked";
       return workflowState.hasExamPassed ? "complete" : "active";
     case "verified":
       if (!workflowState.hasExamPassed) return "locked";
@@ -48,8 +52,9 @@ const getStepStatus = (stepId, workflowState) => {
 const PREREQUISITES = {
   resume: "Step 1: Upload candidate resume",
   analysis: "Complete resume upload to unlock automated claim extraction",
-  repo: "Complete resume analysis to unlock repository intelligence",
-  assessment: "Complete repository analysis to unlock technical assessments",
+  repo: "Select and link GitHub repositories for projects extracted from your resume",
+  certs: "Upload and verify certificates for credentials claimed on your resume",
+  assessment: "Link resume project repositories and verify certificates to unlock technical assessment",
   verified: "Pass technical assessments to unlock final verification report",
 };
 
@@ -617,13 +622,24 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
             
             <div className="flex flex-wrap gap-2 mt-4">
               {!isAssessmentCompleted && (
-                <button
-                  type="button"
-                  onClick={() => { window.location.href = "/exams"; }}
-                  className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-1.5 cursor-pointer shadow-md"
-                >
-                  <Shield className="w-3 h-3" /> Attend Technical Assessment
-                </button>
+                effectiveWorkflow?.isAssessmentUnlocked ? (
+                  <button
+                    type="button"
+                    onClick={() => { window.location.href = "/exams"; }}
+                    className="vp-btn vp-btn-accent text-[10px] py-2 px-4 gap-1.5 cursor-pointer shadow-md"
+                  >
+                    <Shield className="w-3 h-3" /> Attend Technical Assessment
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { window.location.href = "/exams"; }}
+                    className="vp-btn text-[10px] py-2 px-4 gap-1.5 cursor-pointer bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20"
+                    title="Prerequisites pending: Link resume project repos & verify certificates"
+                  >
+                    <Lock className="w-3 h-3 text-amber-400" /> Assessment Locked (Prerequisites Pending)
+                  </button>
+                )
               )}
 
               <a
