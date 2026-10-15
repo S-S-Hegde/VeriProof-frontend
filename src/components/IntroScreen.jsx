@@ -345,9 +345,7 @@ export default function IntroScreen({ onComplete }) {
   useEffect(() => {
     try {
       const defaultBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000");
-      const PYTHON_ENGINE_URL = import.meta.env.VITE_AI_ENGINE_URL || "https://python-engine-adw8.onrender.com";
       fetch(`${defaultBaseUrl}/api/keep-alive`).catch(() => {});
-      fetch(`${PYTHON_ENGINE_URL}/api/ping`).catch(() => {});
     } catch (err) {}
   }, []);
 

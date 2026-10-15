@@ -65,10 +65,7 @@ export default function ExamFlowManager() {
 
   // Big On-Screen Webpage Alerts & 7-Second Eye Countdown HUD
   const [activeBannerWarning, setActiveBannerWarning] = useState("");
-  const [eyeOffSeconds, setEyeOffSeconds] = useState(7);
-  const [isEyeOffScreen, setIsEyeOffScreen] = useState(false);
-
-  const eyeOffTimerRef = useRef(null);
+  
   const isSubmittingRef = useRef(false);
 
   // Sync active exam state to localStorage so keep-alive doesn't pause during idle moments
@@ -190,76 +187,6 @@ export default function ExamFlowManager() {
       setActiveBannerWarning("");
     }, 8000);
   }, [stage, handleSubmitExam]);
-
-  const lastViolationTriggerRef = useRef(0);
-
-  // Real-time AI Telemetry Receiver (Eye tracking, Head Pose, YOLO objects, Multi-face)
-  const handleTelemetryUpdate = useCallback((telemetry) => {
-    if (stage !== "assessment" || isSubmittingRef.current || !telemetry) return;
-
-    const now = Date.now();
-    const canTrigger = (now - lastViolationTriggerRef.current) > 3000;
-
-    // 1. Direct Optical Violations: Phone / Electronic Device
-    if (telemetry.phone_detected || (telemetry.active_warnings && telemetry.active_warnings.some(w => w.includes("PHONE")))) {
-      if (canTrigger) {
-        lastViolationTriggerRef.current = now;
-        triggerViolation("Mobile Phone / Electronic Device Detected in Camera View");
-      }
-      return;
-    }
-
-    // 2. Direct Optical Violations: Multiple Faces / Secondary Person
-    const faces = telemetry.face_count !== undefined ? telemetry.face_count : (telemetry.faces_count || 0);
-    if (faces > 1 || (telemetry.active_warnings && telemetry.active_warnings.some(w => w.includes("MULTIPLE")))) {
-      if (canTrigger) {
-        lastViolationTriggerRef.current = now;
-        triggerViolation(`Multiple People Detected (${faces} faces in camera frame)`);
-      }
-      return;
-    }
-
-    // 3. Direct Optical Violations: Book / Unauthorized Material
-    if (telemetry.book_detected || (telemetry.active_warnings && telemetry.active_warnings.some(w => w.includes("BOOK")))) {
-      if (canTrigger) {
-        lastViolationTriggerRef.current = now;
-        triggerViolation("Prohibited Book / Reference Material Detected in Workspace");
-      }
-      return;
-    }
-
-    // 4. Eyes Off-Screen / Head Pose Deviation
-    const eyesAway = Boolean(telemetry.gaze_violation || (telemetry.yaw_dev && Math.abs(telemetry.yaw_dev) > 25));
-
-    if (eyesAway) {
-      setIsEyeOffScreen(true);
-      if (!eyeOffTimerRef.current) {
-        let remaining = 7;
-        setEyeOffSeconds(remaining);
-
-        eyeOffTimerRef.current = setInterval(() => {
-          remaining -= 1;
-          setEyeOffSeconds(remaining);
-
-          if (remaining <= 0) {
-            clearInterval(eyeOffTimerRef.current);
-            eyeOffTimerRef.current = null;
-            setIsEyeOffScreen(false);
-            setEyeOffSeconds(7);
-            triggerViolation("Eyes / Head turned away from screen for > 7 continuous seconds");
-          }
-        }, 1000);
-      }
-    } else {
-      // Candidate looked back at screen! Reset timer cleanly
-      if (eyeOffTimerRef.current) {
-        clearInterval(eyeOffTimerRef.current);
-        eyeOffTimerRef.current = null;
-      }
-      setIsEyeOffScreen(false);
-      setEyeOffSeconds(7);
-    }
-  }, [stage, triggerViolation]);
 
   // Strict Validation: Candidate cannot submit unless all questions are attempted
   const handleManualSubmit = useCallback(async () => {
@@ -580,30 +507,7 @@ export default function ExamFlowManager() {
             </div>
           )}
 
-          {/* 👁️ 2. BIG 7-SECOND EYE GAZE & HEAD TURN COUNTDOWN HUD */}
-          {isEyeOffScreen && (
-            <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-amber-950/90 via-orange-950/90 to-amber-950/90 border-2 border-amber-500 shadow-[0_0_35px_rgba(245,158,11,0.4)] backdrop-blur-md flex items-center justify-between animate-bounce">
-              <div className="flex items-center space-x-3">
-                <div className="h-12 w-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/40">
-                  <Eye className="w-7 h-7 text-amber-400 animate-pulse" />
-                </div>
-                <div>
-                  <h4 className="text-base font-black text-amber-200 uppercase tracking-wide">
-                    ⚠️ ATTENTION: EYES / HEAD TURNED OFF-SCREEN!
-                  </h4>
-                  <p className="text-xs text-amber-300">
-                    Refocus on your examination screen immediately to avoid a violation strike.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2 bg-amber-900/80 px-4 py-2 rounded-xl border border-amber-400">
-                <span className="text-xs uppercase font-mono font-bold text-amber-300">Strike In:</span>
-                <span className="text-2xl font-black font-mono text-white tracking-widest">
-                  00:0{eyeOffSeconds}s
-                </span>
-              </div>
-            </div>
-          )}
+          
 
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 flex flex-col">
@@ -642,11 +546,7 @@ export default function ExamFlowManager() {
             </div>
 
             <div className="w-full lg:w-80 space-y-6 shrink-0">
-              <ExamWebcamWidget
-                webcamStream={webcamStream}
-                onViolation={triggerViolation}
-                onTelemetryUpdate={handleTelemetryUpdate}
-              />
+              <ExamWebcamWidget webcamStream={webcamStream} />
               <ExamPaletteWidget
                 questions={questions}
                 answers={answers}

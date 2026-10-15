@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../utils/api";
 
-const PYTHON_ENGINE_HEALTH_URL = "https://python-engine-adw8.onrender.com/health";
 const PING_INTERVAL_MS = 3.5 * 60 * 1000; // 3.5 minutes (Keeps Render awake before 15-min cooldown)
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes of inactivity cuts off keep-alive
 
@@ -60,11 +59,8 @@ export const useServerKeepAlive = (isAuthenticated) => {
     lastPingRef.current = now;
 
     try {
-      // 1. Ping Node.js Backend
+      // Ping Node.js Backend
       api.get("/api/keep-alive").catch(() => {});
-
-      // 2. Direct ping to Python AI Engine
-      fetch(PYTHON_ENGINE_HEALTH_URL, { mode: "no-cors" }).catch(() => {});
     } catch (e) {
       // Silent catch
     }

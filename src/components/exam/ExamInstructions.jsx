@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  ShieldAlert,
   Camera,
   Maximize,
   AlertTriangle,
@@ -13,20 +12,12 @@ import {
   Monitor,
   Smartphone,
 } from "lucide-react";
-import * as faceapi from "face-api.js";
 
 // Detect mobile/tablet device
 const isMobileDevice = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     || (typeof window !== 'undefined' && window.innerWidth < 768);
 };
-
-const defaultBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000");
-
-const ACE_STREAM_URL = `${defaultBaseUrl}/api/stream`;
-const ACE_STATUS_URL = `${defaultBaseUrl}/api/proctor/status`;
 
 const ExamInstructions = ({
   onStartExam,
@@ -37,63 +28,9 @@ const ExamInstructions = ({
 }) => {
   const videoRef = useRef(null);
   const [agreed, setAgreed] = useState(false);
-  const [camStatus, setCamStatus] = useState("checking"); // 'checking' | 'ace_active' | 'active' | 'error' | 'idle'
-  const [aceActive, setAceActive] = useState(false);
+  const [camStatus, setCamStatus] = useState("idle"); // 'idle' | 'loading' | 'active' | 'error'
 
-  // ── Wake-on-Login-Attempt Polling ─────────────────────────────────────────
-  useEffect(() => {
-    try {
-      const PYTHON_ENGINE_URL = import.meta.env.VITE_AI_ENGINE_URL || "https://python-engine-adw8.onrender.com";
-      fetch(`${defaultBaseUrl}/api/keep-alive`).catch(() => {});
-      fetch(`${PYTHON_ENGINE_URL}/api/ping`).catch(() => {});
-    } catch (err) {}
-
-    // ── Preload face-api.js models silently
-    const loadFaceApiModels = async () => {
-      try {
-        console.log("[ExamInstructions] Preloading face-api.js tinyFaceDetector...");
-        await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
-        console.log("[ExamInstructions] face-api.js loaded successfully.");
-      } catch (err) {
-        console.warn("[ExamInstructions] Failed to preload face-api.js (non-fatal):", err);
-      }
-    };
-    loadFaceApiModels();
-  }, []);
-
-  // 1. First check if ACE Hardware Engine is active on localhost:8000
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkAce = async () => {
-      try {
-        const res = await fetch(ACE_STATUS_URL, { method: "GET" });
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setAceActive(true);
-            setCamStatus("ace_active");
-            return;
-          }
-        }
-      } catch (err) {
-        // ACE not running, will allow browser camera fallback
-      }
-
-      if (isMounted && !aceActive) {
-        setCamStatus(webcamStream ? "active" : "idle");
-      }
-    };
-
-    checkAce();
-    const interval = setInterval(checkAce, 3000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [webcamStream, aceActive]);
-
-  // 2. Browser Camera fallback activation
+  // Browser Camera activation
   const enableBrowserCamera = async () => {
     setCamStatus("loading");
     try {
@@ -110,15 +47,15 @@ const ExamInstructions = ({
   };
 
   useEffect(() => {
-    if (webcamStream && videoRef.current && !aceActive) {
+    if (webcamStream && videoRef.current) {
       videoRef.current.srcObject = webcamStream;
       setCamStatus("active");
     }
-  }, [webcamStream, aceActive]);
+  }, [webcamStream]);
 
-  const isReadyToStart = agreed && (aceActive || Boolean(webcamStream));
+  const isReadyToStart = agreed && Boolean(webcamStream);
 
-  // ── Mobile device gate — exam requires desktop fullscreen + webcam ──
+  // Mobile device gate — exam requires desktop fullscreen + webcam
   if (isMobileDevice()) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 py-12 text-center">
@@ -130,7 +67,7 @@ const ExamInstructions = ({
             Desktop Required
           </h2>
           <p className="text-sm text-slate-300 mb-5 leading-relaxed">
-            This examination requires a <strong className="text-amber-300">desktop or laptop browser</strong>. Mobile devices cannot support the mandatory fullscreen lockdown, webcam proctoring, and tab-switch detection that ensure exam integrity.
+            This examination requires a <strong className="text-amber-300">desktop or laptop browser</strong>. Mobile devices cannot support the mandatory fullscreen lockdown, identity verification snapshots, and tab-switch detection that ensure exam integrity.
           </p>
           <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-700 flex items-center gap-3 text-left mb-5">
             <Monitor className="w-6 h-6 text-blue-400 flex-shrink-0" />
@@ -191,7 +128,7 @@ const ExamInstructions = ({
             <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-start space-x-3">
               <Activity className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
-                <strong className="text-blue-300">AI Video Proctoring:</strong> Eyes must remain on screen. Looking away for &gt; 5-7s, holding cell phones, secondary screens, or whispering will trigger instant strikes.
+                <strong className="text-blue-300">Client Telemetric Surveillance:</strong> Window blurs, application switches, and clipboard paste actions are recorded in real-time.
               </div>
             </div>
 
@@ -219,15 +156,7 @@ const ExamInstructions = ({
             </h3>
 
             <div className="relative w-full aspect-video rounded-xl bg-slate-950 overflow-hidden border border-slate-800 flex items-center justify-center mb-3">
-              {aceActive ? (
-                // Hardware Stream from ACE Engine
-                <img
-                  src={ACE_STREAM_URL}
-                  alt="Live ACE Proctor Feed"
-                  className="w-full h-full object-cover"
-                />
-              ) : webcamStream ? (
-                // Fallback Browser Video
+              {webcamStream ? (
                 <video
                   ref={videoRef}
                   autoPlay
@@ -249,33 +178,25 @@ const ExamInstructions = ({
               )}
             </div>
 
-            {aceActive ? (
+            {camStatus === "active" ? (
               <div className="px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 mx-auto">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>ACE AI Camera Active & Ready</span>
+                <span>Webcam Active & Ready</span>
               </div>
             ) : (
               <button
                 onClick={enableBrowserCamera}
                 type="button"
-                className={`px-4 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center mx-auto gap-1.5 ${
-                  camStatus === "active"
-                    ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/30"
-                    : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20"
-                }`}
+                className="px-4 py-2 rounded-lg text-xs font-medium transition flex items-center justify-center mx-auto gap-1.5 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20"
               >
                 <Camera className="w-3.5 h-3.5" />
-                <span>
-                  {camStatus === "active" ? "Camera Active (Re-test)" : "Enable Camera (Mandatory)"}
-                </span>
+                <span>Enable Camera (Mandatory)</span>
               </button>
             )}
           </div>
 
           <p className="text-[11px] text-slate-400 mt-3">
-            {aceActive
-              ? "Hardware camera guard connected."
-              : "Webcam verification is strictly mandatory for anti-cheat proctoring."}
+            Webcam identity snapshot verification is strictly mandatory for anti-cheat proctoring.
           </p>
         </div>
       </div>
