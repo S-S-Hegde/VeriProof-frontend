@@ -347,10 +347,9 @@ export default function Demo() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5 }}
-            className="text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto mb-12 leading-relaxed"
+            className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-12 leading-relaxed"
           >
-            Where cryptographic precision meets architectural storytelling. The
-            global truth layer for professional identities.
+            Traditional ATS systems rely on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims and AI-generated portfolios, VeriProof replaces trust with cryptographic proof—analyzing git commit history, dependency graphs, and code architectures to verify what engineers actually built.
           </motion.p>
 
           <motion.div
@@ -414,21 +413,21 @@ export default function Demo() {
               num="01"
               icon={Fingerprint}
               title="Connect Identity"
-              desc="Link your GitHub, GitLab, and other code repositories. Our system begins mapping your digital fingerprint across all connected nodes."
+              desc="Link GitHub and developer profiles securely via cryptographic handshake to establish your authentic digital fingerprint across verified nodes."
               index={0}
             />
             <ProcessStep
               num="02"
               icon={Scan}
-              title="Forensic Analysis"
-              desc="Neural scanning verifies every commit, pull request, and code contribution. Cross-referencing billions of lines to ensure 100% authenticity."
+              title="Forensic Code Analysis"
+              desc="Our engine parses commit provenance, authorship signatures, dependency graphs, and algorithmic complexity rather than static keywords."
               index={1}
             />
             <ProcessStep
               num="03"
               icon={Shield}
-              title="Issue Proof"
-              desc="Receive a cryptographically signed VeriProof certificate — an immutable record of your verified skills that recruiters can trust."
+              title="Issue Immutable Proof"
+              desc="Generates a verifiable, tamper-proof candidate credential and cryptographic certificate that recruiters and hiring teams can trust instantly."
               index={2}
             />
           </div>
@@ -454,26 +453,26 @@ export default function Demo() {
 
               <FeatureRow
                 icon={Fingerprint}
-                label="Biometric Verification"
-                desc="Hash-based identity validation across distributed nodes with zero-knowledge proofs."
+                label="Authorship & Provenance Verification"
+                desc="Deep Git tree analysis verifies raw commit signatures, contributor timelines, and repository ownership to expose cloned or purchased code."
                 index={0}
               />
               <FeatureRow
                 icon={Globe}
-                label="Global Sync"
-                desc="Real-time synchronization with primary talent repositories across 47 jurisdictions."
+                label="Global Repositories Sync"
+                desc="Real-time multi-platform synchronization across GitHub, GitLab, and developer ledgers across distributed verification nodes."
                 index={1}
               />
               <FeatureRow
                 icon={Layers}
-                label="Neural Archive"
-                desc="Permanent, immutable record of skill manifestations encoded in append-only ledgers."
+                label="Neural Architectural Scanning"
+                desc="Evaluates code complexity, architectural cohesion, and dependency patterns to benchmark authentic engineering ability against industry standards."
                 index={2}
               />
               <FeatureRow
                 icon={Eye}
-                label="Transparency Layer"
-                desc="Every verification decision is auditable. Full traceability from raw commit to final proof."
+                label="Independent Auditability Layer"
+                desc="Every verification decision is cryptographically signed and immutable. Full traceability from raw commit hashes to final candidate proof."
                 index={3}
               />
             </div>
