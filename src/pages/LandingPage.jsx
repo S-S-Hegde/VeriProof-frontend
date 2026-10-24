@@ -27,6 +27,8 @@ import {
   Cpu,
   Sparkles,
   Database,
+  AlertTriangle,
+  ShieldCheck,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -325,7 +327,7 @@ export default function Demo() {
             className="lg:col-span-7 flex flex-col items-start text-left"
           >
             <div className="flex items-center gap-3 mb-6">
-              <TerminalBadge text="Core_Verified_Archive // Protocol v4.2" icon={Cpu} pulse />
+              <TerminalBadge text="SYSTEM_STATUS: SECURE_PROTOCOL_ACTIVE" icon={Cpu} pulse />
               <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Zero_Knowledge
@@ -356,7 +358,7 @@ export default function Demo() {
               transition={{ delay: 0.6 }}
               className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-xl mb-8 leading-relaxed font-sans"
             >
-              Traditional ATS systems rely on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims and AI-generated portfolios, VeriProof replaces trust with cryptographic proof—analyzing git commit history, dependency graphs, and code architectures to verify what engineers actually built.
+              Traditional candidate screening relies on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims, AI-generated portfolios, and technical skill fraud, hiring teams are flying blind. VeriProof replaces blind trust with cryptographic proof—analyzing commit history, dependency graphs, and architecture choices to verify what engineers actually built.
             </motion.p>
 
             <motion.div
@@ -413,6 +415,79 @@ export default function Demo() {
         </div>
       </section>
 
+      {/* ── The Problem & Solution: Why The Market Needs VeriProof ── */}
+      <section className="relative py-24 lg:py-32 px-6 border-t border-[var(--color-border)]">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16 max-w-3xl">
+            <div className="mb-6">
+              <TerminalBadge text="Market_Friction // Threat_Matrix" icon={AlertTriangle} />
+            </div>
+            <TextReveal>
+              <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.88]">
+                Why The Market Needs
+                <br />
+                <span className="text-[var(--color-accent)] not-italic">
+                  VeriProof.
+                </span>
+              </h2>
+            </TextReveal>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Card 1: The Resume Inflation Crisis */}
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.96 }}
+              whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="group border border-[var(--color-border)] p-8 lg:p-10 hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-500 relative overflow-hidden"
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 border border-[var(--color-border)] flex items-center justify-center group-hover:border-red-500 group-hover:text-red-500 transition-colors duration-500">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-red-500 font-bold">
+                  [ PROBLEM // 01 ]
+                </span>
+              </div>
+              <h3 className="text-2xl font-black uppercase tracking-tight mb-4 group-hover:text-red-500 transition-colors duration-500">
+                The Resume Inflation Crisis
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+                Over 70% of engineering applicants embellish technical proficiencies or submit AI-generated code samples that they cannot explain, wasting hundreds of engineering hours in dead-end interviews.
+              </p>
+              <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-700" />
+            </motion.div>
+
+            {/* Card 2: Cryptographic Verification Over Trust */}
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.96 }}
+              whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="group border border-[var(--color-border)] p-8 lg:p-10 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5 transition-all duration-500 relative overflow-hidden"
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 border border-[var(--color-border)] flex items-center justify-center group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)] transition-colors duration-500">
+                  <ShieldCheck className="w-5 h-5 text-[var(--color-accent)]" />
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-[var(--color-accent)] font-bold">
+                  [ SOLUTION // 02 ]
+                </span>
+              </div>
+              <h3 className="text-2xl font-black uppercase tracking-tight mb-4 group-hover:text-[var(--color-accent)] transition-colors duration-500">
+                Cryptographic Verification Over Trust
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+                Instead of trusting static PDF resumes, VeriProof cryptographically binds code provenance directly to candidate profiles, ensuring 100% authenticity before a recruiter ever clicks schedule.
+              </p>
+              <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-[var(--color-accent)] group-hover:w-full transition-all duration-700" />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works (The 3-Step Protocol) ── */}
       <section className="relative py-32 lg:py-44 px-6 border-t border-[var(--color-border)]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,var(--color-accent),transparent_60%)] opacity-[0.03] pointer-events-none" />
 
@@ -436,22 +511,22 @@ export default function Demo() {
             <ProcessStep
               num="01"
               icon={Fingerprint}
-              title="Connect Identity"
-              desc="Link GitHub and developer profiles securely via cryptographic handshake to establish your authentic digital fingerprint across verified nodes."
+              title="CONNECT IDENTITY"
+              desc="Securely link developer GitHub handles and candidate portfolios via cryptographic handshakes, mapping authentic commit provenance to a verified profile."
               index={0}
             />
             <ProcessStep
               num="02"
               icon={Scan}
-              title="Forensic Code Analysis"
-              desc="Our engine parses commit provenance, authorship signatures, dependency graphs, and algorithmic complexity rather than static keywords."
+              title="FORENSIC CODE ANALYSIS"
+              desc="Our engine parses deep repository metadata, author signatures, and structural complexity metrics rather than relying on easily manipulated resume keywords."
               index={1}
             />
             <ProcessStep
               num="03"
               icon={Shield}
-              title="Issue Immutable Proof"
-              desc="Generates a verifiable, tamper-proof candidate credential and cryptographic certificate that recruiters and hiring teams can trust instantly."
+              title="ISSUE IMMUTABLE PROOF"
+              desc="Generates a tamper-proof, verifiable candidate credential and audit ledger that technical recruiters and engineering managers can trust instantly."
               index={2}
             />
           </div>
