@@ -542,29 +542,20 @@ const AppContent = () => {
   const { user, isExiting, setIsExiting, logout } = useAuth();
 
   // Show cinematic intro once per browser session.
+  // Show cinematic intro on boot/load.
   // Never show on OAuth redirect routes (/auth/callback) to avoid blocking credential handshakes.
   const [showIntro, setShowIntro] = useState(() => {
-    // Purge legacy permanent key so existing browsers can play the intro once per session
+    // Purge any legacy flags so the intro is never permanently blocked
     try {
       localStorage.removeItem("vp-intro-seen-permanent");
+      sessionStorage.removeItem("vp-session-intro-seen");
     } catch (_) {}
 
     const isAuthCallback =
       typeof window !== "undefined" &&
       window.location.pathname.startsWith("/auth/callback");
 
-    if (isAuthCallback) {
-      try {
-        sessionStorage.setItem("vp-session-intro-seen", "true");
-      } catch (_) {}
-      return false;
-    }
-
-    const hasSeenSessionIntro = Boolean(
-      typeof window !== "undefined" &&
-        sessionStorage.getItem("vp-session-intro-seen")
-    );
-    return !hasSeenSessionIntro;
+    return !isAuthCallback;
   });
 
   const [isAppVisible, setIsAppVisible] = useState(() => {
@@ -572,17 +563,13 @@ const AppContent = () => {
       typeof window !== "undefined" &&
       window.location.pathname.startsWith("/auth/callback");
 
-    if (isAuthCallback) return true;
-
-    return Boolean(
-      typeof window !== "undefined" &&
-        sessionStorage.getItem("vp-session-intro-seen")
-    );
+    return Boolean(isAuthCallback);
   });
 
   const handleIntroComplete = () => {
     try {
-      sessionStorage.setItem("vp-session-intro-seen", "true");
+      localStorage.removeItem("vp-intro-seen-permanent");
+      sessionStorage.removeItem("vp-session-intro-seen");
     } catch (_) {}
     setShowIntro(false);
     setIsAppVisible(true);

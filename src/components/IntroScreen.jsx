@@ -399,6 +399,16 @@ export default function IntroScreen({ onComplete }) {
     triggerExit();
   }, [triggerExit]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        handleSkip();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleSkip]);
+
   const act = ACTS[actIndex]?.id ?? "blackout";
   const isCut = act === "cut1" || act === "cut2" || act === "cut3";
   const showLetterbox = actIndex >= 1 && !exiting;
@@ -407,7 +417,7 @@ export default function IntroScreen({ onComplete }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[150] bg-black overflow-hidden select-none pointer-events-none"
+      className="fixed inset-0 z-[9999] bg-black overflow-hidden select-none pointer-events-auto"
       initial={{ opacity: 1 }}
       animate={{ opacity: exiting ? 0 : 1 }}
       transition={{ duration: 1.0, ease: HARD_CUT }}
