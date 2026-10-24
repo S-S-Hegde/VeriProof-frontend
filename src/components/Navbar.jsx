@@ -109,11 +109,17 @@ const Navbar = () => {
 
   const handleLogout = () => setShowLogoutModal(true);
 
-  // ─── NAVIGATION DEFINITIONS ───
+  // ─── AUTH & ROUTE CHECKS ───
   const isRecruiter = user?.role === "recruiter";
+  const isAuthPage =
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname.startsWith("/auth") ||
+    location.pathname === "/forgot-password" ||
+    location.pathname.startsWith("/reset-password");
 
-  // Primary nav (desktop top bar + mobile bottom dock)
-  const primaryNav = isUnverifiedRecruiter
+  // Primary nav (desktop top bar) — Only for authenticated users outside auth pages
+  const primaryNav = !user || isAuthPage || isUnverifiedRecruiter
     ? []
     : isRecruiter
     ? [
@@ -130,18 +136,20 @@ const Navbar = () => {
         { name: "Project Archive", path: "/project-archive", icon: FolderGit2 },
       ];
 
-
-  // Mobile dock items (5 max — primary nav + Home)
-  const dockItems = [
-    { name: "Home", path: "/", icon: Home },
-    ...primaryNav.slice(0, 3),
-    {
-      name: "More",
-      path: null,
-      icon: MoreHorizontal,
-      action: () => setMoreOpen(true),
-    },
-  ];
+  // Mobile dock items — Strictly for authenticated users on workspace pages
+  const showMobileDock = Boolean(user && !isAuthPage && !isUnverifiedRecruiter);
+  const dockItems = showMobileDock
+    ? [
+        { name: "Home", path: "/", icon: Home },
+        ...primaryNav.slice(0, 3),
+        {
+          name: "More",
+          path: null,
+          icon: MoreHorizontal,
+          action: () => setMoreOpen(true),
+        },
+      ]
+    : [];
 
   // Overflow drawer items (everything not in dock)
   const overflowNav = [
@@ -179,7 +187,7 @@ const Navbar = () => {
             : "py-2.5 bg-transparent translate-y-2"
         }`}
       >
-        <div className="max-w-[1600px] mx-auto px-6 xl:px-10 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between w-full">
           {/* ── Left: Logo + Forensic Status ── */}
           <div className="flex items-center gap-6">
             <Link to={logoDestination} className="group relative flex items-center">
@@ -213,41 +221,43 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* ── Center: Nav Links with Pill Indicators ── */}
-          <div className="flex items-center gap-1 rounded-[var(--radius-lg)] bg-[var(--color-bg-sunken)]/50 p-1 border border-[var(--color-border)]">
-            {primaryNav.map((link) => {
-              const Icon = link.icon;
-              const active = isActive(link.path);
-              return (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  onClick={(e) => guard(e, link.path)}
-                  className={`relative flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 rounded-[var(--radius-md)] ${
-                    active
-                      ? "text-[var(--color-bg)]"
-                      : "text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white"
-                  }`}
-                >
-                  {active && (
-                    <motion.div
-                      layoutId="nav-pill"
-                      className="absolute inset-0 bg-[var(--color-text)] rounded-[var(--radius-md)] pointer-events-none"
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
-                      }}
-                    />
-                  )}
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Icon className="w-3.5 h-3.5" />
-                    <span className="hidden xl:inline">{link.name}</span>
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+          {/* ── Center: Nav Links with Pill Indicators (Authenticated Workspace Only) ── */}
+          {primaryNav.length > 0 && (
+            <div className="flex items-center gap-1 rounded-[var(--radius-lg)] bg-[var(--color-bg-sunken)]/50 p-1 border border-[var(--color-border)]">
+              {primaryNav.map((link) => {
+                const Icon = link.icon;
+                const active = isActive(link.path);
+                return (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    onClick={(e) => guard(e, link.path)}
+                    className={`relative flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 rounded-[var(--radius-md)] ${
+                      active
+                        ? "text-[var(--color-bg)]"
+                        : "text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white"
+                    }`}
+                  >
+                    {active && (
+                      <motion.div
+                        layoutId="nav-pill"
+                        className="absolute inset-0 bg-[var(--color-text)] rounded-[var(--radius-md)] pointer-events-none"
+                        transition={{
+                          type: "spring",
+                          stiffness: 380,
+                          damping: 30,
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Icon className="w-3.5 h-3.5" />
+                      <span className="hidden xl:inline">{link.name}</span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
 
           {/* ── Right: Theme + Auth/Profile ── */}
           <div className="flex items-center gap-3">
@@ -390,94 +400,97 @@ const Navbar = () => {
       </nav>
 
       {/* ════════════════════════════════════════════
-          MOBILE BOTTOM DOCK
+          MOBILE BOTTOM DOCK (Workspace Only)
           ════════════════════════════════════════════ */}
-      <nav className="fixed bottom-0 inset-x-0 z-[60] lg:hidden">
-        {/* Dock bar */}
-        <div className="mx-3 mb-3 rounded-[var(--radius-2xl)] bg-[var(--vp-glass-bg)] backdrop-blur-2xl border border-[var(--vp-glass-border)] shadow-[0_-4px_32px_rgba(0,0,0,0.12)]">
-          <div className="flex items-center justify-around px-2 py-2">
-            {dockItems.map((item) => {
-              const Icon = item.icon;
-              const active = item.path && isActive(item.path);
-              const isMore = item.name === "More";
+      {showMobileDock && dockItems.length > 0 && (
+        <nav className="fixed bottom-0 inset-x-0 z-[60] lg:hidden">
+          {/* Dock bar */}
+          <div className="mx-3 mb-3 rounded-[var(--radius-2xl)] bg-[var(--vp-glass-bg)] backdrop-blur-2xl border border-[var(--vp-glass-border)] shadow-[0_-4px_32px_rgba(0,0,0,0.12)]">
+            <div className="flex items-center justify-around px-2 py-2">
+              {dockItems.map((item) => {
+                const Icon = item.icon;
+                const active = item.path && isActive(item.path);
+                const isMore = item.name === "More";
 
-              return (
-                <motion.div key={item.name} whileTap={{ scale: 0.9 }}>
-                  {isMore ? (
-                    <button
-                      onClick={item.action}
-                      className="flex flex-col items-center gap-1 px-3 py-2 text-[var(--color-muted)] active:text-[var(--color-text)] transition-colors"
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">
-                        {item.name}
-                      </span>
-                    </button>
-                  ) : (
-                    <Link
-                      to={item.path}
-                      onClick={(e) => guard(e, item.path)}
-                      className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors relative ${
-                        active
-                          ? "text-[var(--color-accent)]"
-                          : "text-[var(--color-muted)]"
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">
-                        {item.name}
-                      </span>
-                      {active && (
-                        <motion.div
-                          layoutId="dock-indicator"
-                          className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-[var(--color-accent)] pointer-events-none"
-                          transition={{
-                            type: "spring",
-                            stiffness: 400,
-                            damping: 28,
-                          }}
-                        />
-                      )}
-                    </Link>
-                  )}
-                </motion.div>
-              );
-            })}
+                return (
+                  <motion.div key={item.name} whileTap={{ scale: 0.9 }}>
+                    {isMore ? (
+                      <button
+                        onClick={item.action}
+                        className="flex flex-col items-center gap-1 px-3 py-2 text-[var(--color-muted)] active:text-[var(--color-text)] transition-colors"
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="text-[9px] font-bold uppercase tracking-wider">
+                          {item.name}
+                        </span>
+                      </button>
+                    ) : (
+                      <Link
+                        to={item.path}
+                        onClick={(e) => guard(e, item.path)}
+                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors relative ${
+                          active
+                            ? "text-[var(--color-accent)]"
+                            : "text-[var(--color-muted)]"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="text-[9px] font-bold uppercase tracking-wider">
+                          {item.name}
+                        </span>
+                        {active && (
+                          <motion.div
+                            layoutId="dock-indicator"
+                            className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-[var(--color-accent)] pointer-events-none"
+                            transition={{
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 28,
+                            }}
+                          />
+                        )}
+                      </Link>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
       {/* ════════════════════════════════════════════
           MOBILE: Minimal top bar (logo + theme + profile)
           ════════════════════════════════════════════ */}
       <div
-        className={`fixed top-0 inset-x-0 z-[60] lg:hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`fixed top-0 inset-x-0 z-[60] lg:hidden transition-all duration-300 ease-out ${
           scrolled
-            ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)]"
-            : "py-3 bg-transparent"
+            ? "bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)] shadow-sm"
+            : "bg-transparent"
         }`}
       >
-        <div className="px-4 flex items-center justify-between">
+        <div className="flex justify-between items-center w-full px-6 py-4">
           <Link
             to={logoDestination}
             className="text-lg font-black italic tracking-tighter uppercase text-[var(--color-text)]"
           >
-            VP<span className="text-[var(--color-accent)] not-italic">.</span>
+            VeriProof<span className="text-[var(--color-accent)] not-italic">.</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Compact status */}
-            <div className="flex items-center gap-1.5 mr-2">
+            <div className="flex items-center gap-1.5 mr-1">
               <span className="vp-status-dot" style={{ width: 4, height: 4 }} />
-              <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
+              <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)] font-semibold">
                 Live
               </span>
             </div>
 
             <motion.button
               onClick={toggleTheme}
-              className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-muted)]"
+              className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors"
               whileTap={{ scale: 0.9 }}
+              aria-label="Toggle theme"
             >
               {theme === THEMES.DARK ? (
                 <Sun className="w-3.5 h-3.5" />
@@ -502,6 +515,13 @@ const Navbar = () => {
                     {user.name.charAt(0)}
                   </span>
                 )}
+              </Link>
+            ) : isAuthPage ? (
+              <Link
+                to="/"
+                className="font-mono text-[10px] uppercase tracking-wider text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white"
+              >
+                Home
               </Link>
             ) : (
               <Link

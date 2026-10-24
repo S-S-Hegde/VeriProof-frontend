@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { useTheme } from "../../context/ThemeContext";
 import { useReducedMotion } from "framer-motion";
-import { Activity, ShieldCheck, Globe, Wifi, Minimize2, Maximize2, Cpu } from "lucide-react";
+import { Activity, ShieldCheck, Globe, Wifi, Radio } from "lucide-react";
 
 // Global verification hub coordinates [lat, lng, name]
 const HUBS = [
@@ -49,111 +49,45 @@ function latLngToVector3(lat, lng, radius) {
 }
 
 /**
- * Live Telemetry HUD Widget
+ * HeroInteractiveGlobe
+ * The central attraction for the Landing Page Hero section.
+ * - Responsive 3D WebGL Fibonacci dot sphere
+ * - Dynamic Bézier cryptographic verification arcs
+ * - Scoped pointer drag-to-rotate interaction (no window event leaks)
+ * - Corner live telemetry HUD ticker overlay
  */
-export const GlobeTelemetryHUD = () => {
-  const [isMinimized, setIsMinimized] = useState(false);
+export const HeroInteractiveGlobe = () => {
+  const mountRef = useRef(null);
+  const { theme } = useTheme();
+  const shouldReduceMotion = useReducedMotion();
+
+  // Telemetry state
   const [resumesScanned, setResumesScanned] = useState(14892);
   const [proofsIssued, setProofsIssued] = useState(6310);
   const [opsPerSec, setOpsPerSec] = useState(892);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // Simulate live verification stream traffic
       setResumesScanned((prev) => prev + Math.floor(Math.random() * 3) + 1);
       if (Math.random() > 0.4) {
         setProofsIssued((prev) => prev + 1);
       }
       setOpsPerSec(870 + Math.floor(Math.random() * 55));
-    }, 2800);
+    }, 2500);
     return () => clearInterval(interval);
   }, []);
-
-  return (
-    <aside
-      aria-label="Global Verification Telemetry"
-      className="fixed bottom-6 right-6 z-20 pointer-events-auto transition-all duration-300 font-mono"
-    >
-      <div className="bg-stone-50/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/80 dark:border-cyan-500/30 rounded-none shadow-2xl p-3.5 max-w-xs text-xs text-slate-800 dark:text-slate-200">
-        <div className="flex items-center justify-between gap-3 mb-2 pb-2 border-b border-slate-200 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-700 dark:text-cyan-400">
-              Mesh_Telemetry
-            </span>
-          </div>
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="text-slate-400 hover:text-slate-700 dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
-            aria-label={isMinimized ? "Expand telemetry" : "Minimize telemetry"}
-          >
-            {isMinimized ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-
-        {!isMinimized ? (
-          <div className="space-y-2 text-[11px]">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-gray-400">Resumes Scanned:</span>
-              <span className="font-bold text-slate-900 dark:text-white tabular-nums">
-                {resumesScanned.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-gray-400">Proofs Cryptographically Issued:</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                {proofsIssued.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-gray-400">Active Node Channels:</span>
-              <span className="font-bold text-blue-600 dark:text-cyan-400 tabular-nums">
-                48 / 48 (42ms)
-              </span>
-            </div>
-            <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-gray-800/80 text-[10px]">
-              <span className="text-slate-500 dark:text-gray-500">Hash Throughput:</span>
-              <span className="text-slate-700 dark:text-cyan-300 font-semibold tabular-nums">
-                {opsPerSec} ops/sec
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 text-[10px] text-slate-600 dark:text-gray-400">
-            <span>48 NODES</span>
-            <span>•</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-              {resumesScanned.toLocaleString()} SCANNED
-            </span>
-          </div>
-        )}
-      </div>
-    </aside>
-  );
-};
-
-/**
- * Interactive WebGL 3D Globe Background
- */
-const InteractiveGlobeBackground = () => {
-  const mountRef = useRef(null);
-  const { theme } = useTheme();
-  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    let width = container.clientWidth || window.innerWidth;
-    let height = container.clientHeight || window.innerHeight;
+    let width = container.clientWidth || 480;
+    let height = container.clientHeight || 480;
 
-    // 1. Scene, Camera, Renderer
+    // 1. Three.js Scene, Camera, Renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-    camera.position.z = 270;
+    camera.position.z = 265;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -167,24 +101,23 @@ const InteractiveGlobeBackground = () => {
 
     // Root globe group
     const globeGroup = new THREE.Group();
-    // Default subtle tilt
-    globeGroup.rotation.x = 0.25;
+    globeGroup.rotation.x = 0.22;
+    globeGroup.rotation.y = -0.5;
     scene.add(globeGroup);
 
-    // Dynamic theme colors
+    // Dynamic theme styling
     const isDark = theme === "dark";
     const primaryColor = isDark ? 0x22d3ee : 0x0284c7; // Cyan vs Slate Sky
     const secondaryColor = isDark ? 0x6366f1 : 0x3b82f6; // Indigo vs Blue
-    const wireframeOpacity = isDark ? 0.08 : 0.06;
-    const particleOpacity = isDark ? 0.45 : 0.35;
+    const wireframeOpacity = isDark ? 0.1 : 0.08;
+    const particleOpacity = isDark ? 0.75 : 0.6;
 
-    // 2. Cryptographic Dot Matrix Sphere
+    // 2. Cryptographic Dot Matrix Sphere (1,800 points)
     const dotsCount = 1800;
     const dotPositions = new Float32Array(dotsCount * 3);
     const dotSizes = new Float32Array(dotsCount);
 
     for (let i = 0; i < dotsCount; i++) {
-      // Golden spiral distribution across sphere surface
       const y = 1 - (i / (dotsCount - 1)) * 2;
       const radiusAtY = Math.sqrt(1 - y * y);
       const theta = i * 2.399963229728653; // Golden angle
@@ -196,7 +129,7 @@ const InteractiveGlobeBackground = () => {
       dotPositions[i * 3 + 1] = y * RADIUS;
       dotPositions[i * 3 + 2] = z * RADIUS;
 
-      dotSizes[i] = Math.random() * 1.5 + 1.0;
+      dotSizes[i] = Math.random() * 1.6 + 1.2;
     }
 
     const dotGeometry = new THREE.BufferGeometry();
@@ -205,7 +138,7 @@ const InteractiveGlobeBackground = () => {
 
     const dotMaterial = new THREE.PointsMaterial({
       color: primaryColor,
-      size: 1.8,
+      size: 2.2,
       transparent: true,
       opacity: particleOpacity,
       blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
@@ -230,12 +163,12 @@ const InteractiveGlobeBackground = () => {
 
     hubPoints.forEach((pos) => {
       // Outer ping ring
-      const ringGeo = new THREE.RingGeometry(1.2, 2.2, 16);
+      const ringGeo = new THREE.RingGeometry(1.4, 2.6, 16);
       const ringMat = new THREE.MeshBasicMaterial({
         color: primaryColor,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: isDark ? 0.7 : 0.6,
+        opacity: isDark ? 0.85 : 0.7,
       });
       const ringMesh = new THREE.Mesh(ringGeo, ringMat);
       ringMesh.position.copy(pos);
@@ -243,11 +176,11 @@ const InteractiveGlobeBackground = () => {
       hubGroup.add(ringMesh);
 
       // Inner glowing core
-      const coreGeo = new THREE.SphereGeometry(1.2, 8, 8);
+      const coreGeo = new THREE.SphereGeometry(1.6, 8, 8);
       const coreMat = new THREE.MeshBasicMaterial({
         color: isDark ? 0xffffff : primaryColor,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.95,
       });
       const coreMesh = new THREE.Mesh(coreGeo, coreMat);
       coreMesh.position.copy(pos);
@@ -263,123 +196,134 @@ const InteractiveGlobeBackground = () => {
       const p1 = hubPoints[startIdx];
       const p2 = hubPoints[endIdx];
 
-      // Midpoint lifted above sphere based on distance
       const distance = p1.distanceTo(p2);
       const mid = p1.clone().add(p2).multiplyScalar(0.5);
-      const lift = Math.min(distance * 0.35, 35);
+      const lift = Math.min(distance * 0.38, 38);
       const control = mid.clone().normalize().multiplyScalar(RADIUS + lift);
 
       const curve = new THREE.QuadraticBezierCurve3(p1, control, p2);
       curves.push(curve);
 
       // Arc Line
-      const points = curve.getPoints(36);
+      const points = curve.getPoints(40);
       const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
       const lineMat = new THREE.LineBasicMaterial({
         color: primaryColor,
         transparent: true,
-        opacity: isDark ? 0.35 : 0.25,
+        opacity: isDark ? 0.45 : 0.35,
       });
       const line = new THREE.Line(lineGeo, lineMat);
       globeGroup.add(line);
 
       // Animated traveling data packet
-      const packetGeo = new THREE.SphereGeometry(1.4, 6, 6);
+      const packetGeo = new THREE.SphereGeometry(1.8, 8, 8);
       const packetMat = new THREE.MeshBasicMaterial({
         color: isDark ? 0xffffff : secondaryColor,
         transparent: true,
-        opacity: 0.95,
+        opacity: 1,
       });
       const packet = new THREE.Mesh(packetGeo, packetMat);
       packet.userData = {
         curveIdx: connIdx,
-        progress: (connIdx * 0.15) % 1,
-        speed: 0.003 + (connIdx % 3) * 0.0015,
+        progress: (connIdx * 0.14) % 1,
+        speed: 0.0035 + (connIdx % 3) * 0.0018,
       };
       packetMeshes.push(packet);
       globeGroup.add(packet);
     });
 
-    // 6. Atmospheric Glow Ring
-    const haloGeo = new THREE.RingGeometry(RADIUS * 1.02, RADIUS * 1.15, 64);
+    // 6. Atmospheric Glow Aura
+    const haloGeo = new THREE.RingGeometry(RADIUS * 1.01, RADIUS * 1.18, 64);
     const haloMat = new THREE.MeshBasicMaterial({
       color: primaryColor,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: isDark ? 0.15 : 0.08,
+      opacity: isDark ? 0.22 : 0.12,
       blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
     const haloMesh = new THREE.Mesh(haloGeo, haloMat);
     scene.add(haloMesh);
 
-    // 7. Interactive Drag & Mouse Inertia Handling
+    // 7. Strictly Scoped Pointer Drag Interaction
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
-    let targetRotationX = 0.25;
-    let targetRotationY = 0;
+    let targetRotationX = 0.22;
+    let targetRotationY = -0.5;
 
     const onPointerDown = (e) => {
       isDragging = true;
-      prevMouseX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-      prevMouseY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      prevMouseX = e.clientX || 0;
+      prevMouseY = e.clientY || 0;
+      if (container.setPointerCapture) {
+        try {
+          container.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      }
     };
 
     const onPointerMove = (e) => {
       if (!isDragging) return;
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      const clientX = e.clientX || 0;
+      const clientY = e.clientY || 0;
 
       const deltaX = clientX - prevMouseX;
       const deltaY = clientY - prevMouseY;
 
-      targetRotationY += deltaX * 0.006;
-      targetRotationX += deltaY * 0.006;
+      targetRotationY += deltaX * 0.008;
+      targetRotationX += deltaY * 0.008;
 
-      // Clamp X rotation to prevent flipping upside down
-      targetRotationX = Math.max(-0.9, Math.min(0.9, targetRotationX));
+      // Prevent flipping upside-down
+      targetRotationX = Math.max(-0.95, Math.min(0.95, targetRotationX));
 
       prevMouseX = clientX;
       prevMouseY = clientY;
     };
 
-    const onPointerUp = () => {
+    const onPointerUp = (e) => {
       isDragging = false;
+      if (container.releasePointerCapture) {
+        try {
+          container.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+      }
     };
 
-    window.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
+    container.addEventListener("pointerdown", onPointerDown);
+    container.addEventListener("pointermove", onPointerMove);
+    container.addEventListener("pointerup", onPointerUp);
+    container.addEventListener("pointercancel", onPointerUp);
 
-    // 8. Responsive Resize Listener
-    const handleResize = () => {
-      if (!container) return;
-      width = container.clientWidth || window.innerWidth;
-      height = container.clientHeight || window.innerHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    };
-    window.addEventListener("resize", handleResize);
+    // 8. ResizeObserver for responsive sizing inside grid column
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width: newW, height: newH } = entry.contentRect;
+        if (newW > 0 && newH > 0) {
+          width = newW;
+          height = newH;
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+        }
+      }
+    });
+    resizeObserver.observe(container);
 
     // 9. Animation Loop
     let animationFrameId;
-    const baseRotationSpeed = shouldReduceMotion ? 0 : 0.0018;
+    const baseSpeed = shouldReduceMotion ? 0 : 0.0022;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
-      // Auto rotation + interactive inertia
       if (!isDragging && !shouldReduceMotion) {
-        targetRotationY += baseRotationSpeed;
+        targetRotationY += baseSpeed;
       }
       globeGroup.rotation.y += (targetRotationY - globeGroup.rotation.y) * 0.08;
       globeGroup.rotation.x += (targetRotationX - globeGroup.rotation.x) * 0.08;
 
-      // Keep halo oriented facing the camera
       haloMesh.lookAt(camera.position);
 
-      // Animate flowing verification data packets along Bézier arcs
       packetMeshes.forEach((packet) => {
         const { curveIdx, speed } = packet.userData;
         const curve = curves[curveIdx];
@@ -395,13 +339,13 @@ const InteractiveGlobeBackground = () => {
 
     animate();
 
-    // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
+      container.removeEventListener("pointerdown", onPointerDown);
+      container.removeEventListener("pointermove", onPointerMove);
+      container.removeEventListener("pointerup", onPointerUp);
+      container.removeEventListener("pointercancel", onPointerUp);
 
       if (container && renderer.domElement) {
         container.removeChild(renderer.domElement);
@@ -417,17 +361,66 @@ const InteractiveGlobeBackground = () => {
   }, [theme, shouldReduceMotion]);
 
   return (
-    <div
-      ref={mountRef}
-      className="fixed inset-0 z-0 pointer-events-auto opacity-50 dark:opacity-60 transition-opacity duration-700 overflow-hidden"
-      style={{
-        maskImage:
-          "radial-gradient(circle at 60% 45%, black 40%, rgba(0,0,0,0.4) 75%, transparent 100%)",
-        WebkitMaskImage:
-          "radial-gradient(circle at 60% 45%, black 40%, rgba(0,0,0,0.4) 75%, transparent 100%)",
-      }}
-    />
+    <div className="relative w-full max-w-[540px] aspect-square mx-auto flex items-center justify-center select-none group">
+      {/* Interactive WebGL Canvas Container */}
+      <div
+        ref={mountRef}
+        className="w-full h-full cursor-grab active:cursor-grabbing touch-none pointer-events-auto relative z-10"
+        title="Click and drag to rotate the verification mesh globe"
+      />
+
+      {/* Atmospheric Radial Backlight */}
+      <div
+        className="absolute inset-0 pointer-events-none rounded-full bg-cyan-500/10 dark:bg-cyan-500/15 blur-3xl -z-10 scale-90 transform-gpu"
+        aria-hidden="true"
+      />
+
+      {/* Top-Left Telemetry HUD Widget */}
+      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20 pointer-events-none font-mono">
+        <div className="bg-stone-50/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/80 dark:border-cyan-500/30 p-2.5 sm:p-3 shadow-xl max-w-[200px] sm:max-w-[230px]">
+          <div className="flex items-center gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-gray-800">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              [GLOBAL_NODES: 48 ACTIVE]
+            </span>
+          </div>
+          <div className="space-y-1 text-[10px]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-500 dark:text-gray-400">Verified:</span>
+              <span className="font-bold text-slate-900 dark:text-cyan-300 tabular-nums">
+                {resumesScanned.toLocaleString()} RESUMES
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-500 dark:text-gray-400">Speed:</span>
+              <span className="font-medium text-slate-700 dark:text-slate-300 tabular-nums">
+                {opsPerSec} ops/sec • 42ms
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom-Right Interactive Drag Pill */}
+      <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-20 pointer-events-none font-mono">
+        <div className="bg-stone-50/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/80 dark:border-cyan-500/30 px-2.5 py-1 text-[9px] text-slate-600 dark:text-cyan-400/80 uppercase tracking-widest flex items-center gap-1.5 shadow-md">
+          <Radio className="w-2.5 h-2.5 animate-pulse text-cyan-500" />
+          <span>[ DRAG TO ROTATE GLOBE ]</span>
+        </div>
+      </div>
+    </div>
   );
+};
+
+/**
+ * InteractiveGlobeBackground
+ * Ambient background version for deep layers. Strictly pointer-events-none.
+ */
+const InteractiveGlobeBackground = () => {
+  return null; // Kept as empty placeholder since HeroInteractiveGlobe is now the main attraction
 };
 
 export default InteractiveGlobeBackground;

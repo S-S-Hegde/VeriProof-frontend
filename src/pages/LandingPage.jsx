@@ -11,6 +11,7 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import TerminalBadge from "../components/TerminalBadge";
+import { HeroInteractiveGlobe } from "../components/3d/InteractiveGlobeBackground";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import {
@@ -294,15 +295,15 @@ export default function Demo() {
 
       <section
         ref={heroSectionRef}
-        className="relative min-h-[100vh] flex flex-col items-center justify-center overflow-hidden -mt-28 px-6"
+        className="relative min-h-[90vh] lg:min-h-[94vh] flex flex-col justify-center overflow-hidden pt-12 pb-16 lg:py-20 px-4 sm:px-6 lg:px-10"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-accent),transparent_60%)] opacity-[0.05]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-accent),transparent_60%)] opacity-[0.05] pointer-events-none" />
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {Array.from({ length: 8 }).map((_, i) => (
             <motion.div
               key={i}
               className="absolute h-px bg-[var(--color-accent)] opacity-[0.06]"
-              style={{ top: `${12 + i * 11}%`, left: 0, right: 0 }}
+              style={{ top: `${10 + i * 11}%`, left: 0, right: 0 }}
               initial={{ scaleX: 0, originX: i % 2 === 0 ? 0 : 1 }}
               animate={{ scaleX: 1 }}
               transition={{
@@ -314,79 +315,102 @@ export default function Demo() {
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}
-          style={shouldReduceMotion ? undefined : { opacity: heroOpacity, filter: heroBlur, y: heroY }}
-          className="text-center relative z-10 max-w-4xl"
-        >
-          <div className="flex justify-center mb-10">
-            <TerminalBadge text="Core_Verified_Archive" icon={Cpu} pulse />
-          </div>
-
-          <TextReveal delay={0.4}>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter leading-[0.85] mb-6">
-              The{" "}
-              <span
-                style={{
-                  WebkitTextStroke: "2px var(--color-text)",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Evidence
-              </span>
-              <br />
-              <span className="text-[var(--color-accent)] not-italic">
-                Protocol.
-              </span>
-            </h1>
-          </TextReveal>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-            className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-12 leading-relaxed"
-          >
-            Traditional ATS systems rely on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims and AI-generated portfolios, VeriProof replaces trust with cryptographic proof—analyzing git commit history, dependency graphs, and code architectures to verify what engineers actually built.
-          </motion.p>
-
+        <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          {/* Left Column: High-impact typography, Market-driven copy, INITIALIZE_SEQUENCE CTA */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.8 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            style={shouldReduceMotion ? undefined : { opacity: heroOpacity, filter: heroBlur, y: heroY }}
+            className="lg:col-span-7 flex flex-col items-start text-left"
           >
-            <Magnetic>
-              <Link
-                to="/register"
-                className="group relative inline-flex items-center gap-4 px-12 py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.3em] uppercase text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all duration-500 shadow-2xl overflow-hidden"
-              >
-                <span className="absolute inset-0 bg-white/10 w-0 group-hover:w-full transition-all duration-500" />
-                <span className="relative z-10">INITIALIZE_SEQUENCE</span>
-                <ArrowDown className="w-4 h-4 relative z-10 group-hover:translate-y-1 transition-transform" />
-              </Link>
-            </Magnetic>
-          </motion.div>
-        </motion.div>
+            <div className="flex items-center gap-3 mb-6">
+              <TerminalBadge text="Core_Verified_Archive // Protocol v4.2" icon={Cpu} pulse />
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Zero_Knowledge
+              </span>
+            </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.2 }}
-          className="absolute bottom-12 flex flex-col items-center gap-3"
-        >
-          <span className="text-[9px] font-mono uppercase tracking-[0.4em] opacity-30">
-            Explore
-          </span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-5 h-8 border border-[var(--color-border)] rounded-full flex justify-center pt-1.5"
-          >
-            <motion.div className="w-1 h-1.5 bg-[var(--color-accent)] rounded-full" />
+            <TextReveal delay={0.2}>
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black italic uppercase tracking-tighter leading-[0.88] mb-6">
+                The{" "}
+                <span
+                  style={{
+                    WebkitTextStroke: "2px var(--color-text)",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  Evidence
+                </span>
+                <br />
+                <span className="text-[var(--color-accent)] not-italic">
+                  Protocol.
+                </span>
+              </h1>
+            </TextReveal>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-xl mb-8 leading-relaxed font-sans"
+            >
+              Traditional ATS systems rely on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims and AI-generated portfolios, VeriProof replaces trust with cryptographic proof—analyzing git commit history, dependency graphs, and code architectures to verify what engineers actually built.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="flex flex-wrap items-center gap-4"
+            >
+              <Magnetic>
+                <Link
+                  to="/register"
+                  className="group relative inline-flex items-center gap-4 px-8 sm:px-10 py-4 sm:py-5 bg-[var(--color-text)] text-[var(--color-bg)] font-bold tracking-[0.25em] uppercase text-xs sm:text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all duration-500 shadow-2xl overflow-hidden"
+                >
+                  <span className="absolute inset-0 bg-white/10 w-0 group-hover:w-full transition-all duration-500" />
+                  <span className="relative z-10">INITIALIZE_SEQUENCE</span>
+                  <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Magnetic>
+
+              <Link
+                to="/about"
+                className="inline-flex items-center gap-2 px-6 py-4 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 transition-colors"
+              >
+                Protocol Specs →
+              </Link>
+            </motion.div>
+
+            {/* Quick trust metrics row */}
+            <div className="grid grid-cols-3 gap-6 pt-8 mt-8 border-t border-[var(--color-border)] w-full max-w-lg">
+              <div>
+                <div className="text-xl sm:text-2xl font-black font-mono text-[var(--color-accent)]">99.98%</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400">Forensic Accuracy</div>
+              </div>
+              <div>
+                <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white">48 Nodes</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400">Global Mesh</div>
+              </div>
+              <div>
+                <div className="text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">&lt; 50ms</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400">ZK Proof Hash</div>
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+
+          {/* Right Column: Interactive 3D WebGL Globe Centerpiece */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="lg:col-span-5 flex items-center justify-center relative w-full"
+          >
+            <HeroInteractiveGlobe />
+          </motion.div>
+        </div>
       </section>
 
       <section className="relative py-32 lg:py-44 px-6 border-t border-[var(--color-border)]">
