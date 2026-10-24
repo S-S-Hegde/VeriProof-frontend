@@ -220,6 +220,15 @@ export default function Demo() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isShutterOpen, setIsShutterOpen] = useState(false);
+  const [scanCount, setScanCount] = useState(14892);
+  const [activeNodes] = useState(48);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setScanCount((prev) => prev + Math.floor(Math.random() * 3));
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   // Smooth Scroll Fade & Blur for hero text block
   const { scrollYProgress: heroScroll } = useScroll({
@@ -299,6 +308,17 @@ export default function Demo() {
         ref={heroSectionRef}
         className="relative min-h-[90vh] lg:min-h-[94vh] flex flex-col justify-center overflow-hidden pt-12 pb-16 lg:py-20 px-4 sm:px-6 lg:px-10"
       >
+        {/* Real-Time Telemetry HUD Overlay */}
+        <div className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-4 bg-slate-900/80 border border-slate-800 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-mono text-cyan-400 shadow-xl pointer-events-auto">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+          </span>
+          <span>GLOBAL_NODES: {activeNodes} ACTIVE</span>
+          <span className="text-slate-600">|</span>
+          <span>RESUMES_VERIFIED: {scanCount.toLocaleString()}</span>
+        </div>
+
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-accent),transparent_60%)] opacity-[0.05] pointer-events-none" />
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {Array.from({ length: 8 }).map((_, i) => (

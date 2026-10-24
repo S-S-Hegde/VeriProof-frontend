@@ -56,7 +56,11 @@ function latLngToVector3(lat, lng, radius) {
  * - Scoped pointer drag-to-rotate interaction (no window event leaks)
  * - Corner live telemetry HUD ticker overlay
  */
-export const HeroInteractiveGlobe = () => {
+export const HeroInteractiveGlobe = ({
+  className = "relative w-full max-w-[540px] aspect-square mx-auto flex items-center justify-center select-none group",
+  showCornerHUD = true,
+  showDragHint = true,
+}) => {
   const mountRef = useRef(null);
   const { theme } = useTheme();
   const shouldReduceMotion = useReducedMotion();
@@ -361,7 +365,7 @@ export const HeroInteractiveGlobe = () => {
   }, [theme, shouldReduceMotion]);
 
   return (
-    <div className="relative w-full max-w-[540px] aspect-square mx-auto flex items-center justify-center select-none group">
+    <div className={className}>
       {/* Interactive WebGL Canvas Container */}
       <div
         ref={mountRef}
@@ -376,41 +380,45 @@ export const HeroInteractiveGlobe = () => {
       />
 
       {/* Top-Left Telemetry HUD Widget */}
-      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20 pointer-events-none font-mono">
-        <div className="bg-stone-50/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/80 dark:border-cyan-500/30 p-2.5 sm:p-3 shadow-xl max-w-[200px] sm:max-w-[230px]">
-          <div className="flex items-center gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-gray-800">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              [GLOBAL_NODES: 48 ACTIVE]
-            </span>
-          </div>
-          <div className="space-y-1 text-[10px]">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500 dark:text-gray-400">Verified:</span>
-              <span className="font-bold text-slate-900 dark:text-cyan-300 tabular-nums">
-                {resumesScanned.toLocaleString()} RESUMES
+      {showCornerHUD && (
+        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20 pointer-events-none font-mono">
+          <div className="bg-stone-50/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/80 dark:border-cyan-500/30 p-2.5 sm:p-3 shadow-xl max-w-[200px] sm:max-w-[230px]">
+            <div className="flex items-center gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-gray-800">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                [GLOBAL_NODES: 48 ACTIVE]
               </span>
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500 dark:text-gray-400">Speed:</span>
-              <span className="font-medium text-slate-700 dark:text-slate-300 tabular-nums">
-                {opsPerSec} ops/sec • 42ms
-              </span>
+            <div className="space-y-1 text-[10px]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500 dark:text-gray-400">Verified:</span>
+                <span className="font-bold text-slate-900 dark:text-cyan-300 tabular-nums">
+                  {resumesScanned.toLocaleString()} RESUMES
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500 dark:text-gray-400">Speed:</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300 tabular-nums">
+                  {opsPerSec} ops/sec • 42ms
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Bottom-Right Interactive Drag Pill */}
-      <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-20 pointer-events-none font-mono">
-        <div className="bg-stone-50/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/80 dark:border-cyan-500/30 px-2.5 py-1 text-[9px] text-slate-600 dark:text-cyan-400/80 uppercase tracking-widest flex items-center gap-1.5 shadow-md">
-          <Radio className="w-2.5 h-2.5 animate-pulse text-cyan-500" />
-          <span>[ DRAG TO ROTATE GLOBE ]</span>
+      {showDragHint && (
+        <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-20 pointer-events-none font-mono">
+          <div className="bg-stone-50/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/80 dark:border-cyan-500/30 px-2.5 py-1 text-[9px] text-slate-600 dark:text-cyan-400/80 uppercase tracking-widest flex items-center gap-1.5 shadow-md">
+            <Radio className="w-2.5 h-2.5 animate-pulse text-cyan-500" />
+            <span>[ DRAG TO ROTATE GLOBE ]</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
