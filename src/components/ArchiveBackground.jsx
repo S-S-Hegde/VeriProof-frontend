@@ -1,13 +1,18 @@
+import React from "react";
+import InteractiveGlobeBackground, { GlobeTelemetryHUD } from "./3d/InteractiveGlobeBackground";
+
 /**
  * ArchiveBackground
- *
- * Only the optimised ForensicShaderBackground WebGL canvas runs here.
- * The Three.js R3F Canvas was removed — running two full WebGL rAF loops
- * simultaneously was the primary source of dropped frames.
+ * Immersive WebGL 3D interactive globe with cryptographic node arcs
+ * and real-time live telemetry HUD ticker overlay.
  */
-import ExperienceLayer from "../effects/ExperienceLayer";
-
-const ArchiveBackground = () => <ExperienceLayer />;
+const ArchiveBackground = () => (
+  <>
+    <InteractiveGlobeBackground />
+    <div className="vp-grid-evolution fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
+    <div className="vp-scan-field fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
+    <GlobeTelemetryHUD />
+  </>
+);
 
 export default ArchiveBackground;
-
