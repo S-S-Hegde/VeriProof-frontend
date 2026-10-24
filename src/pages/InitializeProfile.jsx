@@ -345,83 +345,83 @@ const Register = () => {
 
       {/* ── Post-Google-OAuth: GitHub Username Collection Step ── */}
       {githubStep ? (
-        <div className="flex items-center justify-center min-h-[80vh] px-4">
-          <div className="w-full max-w-md">
-            <div className="p-8 rounded-3xl bg-white dark:bg-[#0c1222]/90 border border-slate-300 dark:border-white/10 backdrop-blur-xl shadow-2xl">
-              <div className="flex items-center gap-2 mb-6">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 text-slate-700 dark:text-gray-300 font-semibold">
-                  <Github className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center justify-center min-h-[70vh] px-4 py-8">
+          <div className="w-full max-w-md space-y-6">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Github className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400">
                   REPOSITORY_INTELLIGENCE_SETUP
                 </span>
               </div>
 
-              <h2 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
+              <h2 className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
                 Add GitHub Handle
               </h2>
-              <p className="text-xs text-slate-600 dark:text-gray-400 font-sans leading-relaxed mb-6">
+              <p className="text-xs text-slate-600 dark:text-gray-400 font-sans leading-relaxed">
                 VeriProof automatically analyzes your top public repositories to build your verified skill profile.
                 Add your GitHub username to activate repository intelligence.
               </p>
+            </div>
 
-              {error && (
-                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-mono">
-                  ⚠ {error}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="oauth-github-username" className="block text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
-                    GitHub Username
-                  </label>
-                  <div className="relative">
-                    <Github className="absolute left-3 top-3 w-4 h-4 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                    <input
-                      id="oauth-github-username"
-                      type="text"
-                      autoComplete="username"
-                      placeholder="octocat"
-                      value={githubUsername}
-                      onChange={(e) => setGithubUsername(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleSaveGithub(); }}
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:border-cyan-400 text-xs transition-colors"
-                    />
-                  </div>
-                  <p className="mt-1.5 text-[10px] font-mono text-slate-500 dark:text-gray-500">
-                    Your GitHub profile URL: github.com/<strong className="text-cyan-400">{githubUsername || "username"}</strong>
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSaveGithub}
-                  disabled={githubSaving}
-                  className="w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-cyan-100 disabled:opacity-50"
-                >
-                  {githubSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ArrowRight className="w-4 h-4" /> Continue to Dashboard</>}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSkipGithub}
-                  className="w-full text-center text-[11px] font-mono text-gray-500 hover:text-gray-300 uppercase tracking-wider flex items-center justify-center gap-1.5 mt-1"
-                >
-                  <SkipForward className="w-3 h-3" /> Skip for now (add later in Settings)
-                </button>
+            {error && (
+              <div className="p-3 border-l-2 border-red-500 bg-red-500/5 text-red-600 dark:text-red-400 text-xs font-mono">
+                ⚠ {error}
               </div>
+            )}
+
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="oauth-github-username" className="block text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
+                  GitHub Username
+                </label>
+                <div className="relative flex items-center">
+                  <Github className="w-4 h-4 text-slate-400 dark:text-gray-500 mr-2 shrink-0" />
+                  <input
+                    id="oauth-github-username"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="octocat"
+                    value={githubUsername}
+                    onChange={(e) => setGithubUsername(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSaveGithub(); }}
+                    className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none transition-colors"
+                  />
+                </div>
+                <p className="mt-2 text-[10px] font-mono text-slate-500 dark:text-gray-400">
+                  Your GitHub profile URL: github.com/<strong className="text-blue-600 dark:text-cyan-400">{githubUsername || "username"}</strong>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveGithub}
+                disabled={githubSaving}
+                className="w-full py-3.5 rounded-none font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer bg-slate-900 hover:bg-slate-800 text-white dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 disabled:opacity-50"
+              >
+                {githubSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ArrowRight className="w-4 h-4" /> Continue to Dashboard</>}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSkipGithub}
+                className="w-full text-center text-xs font-mono text-slate-500 hover:text-slate-900 dark:text-gray-500 dark:hover:text-gray-300 uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <SkipForward className="w-3.5 h-3.5" /> Skip for now (add later in Settings)
+              </button>
             </div>
           </div>
         </div>
       ) : step === 1 ? (
         <div className="py-8 px-4">
           {(oauthError || error) && (
-            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-3 shadow-lg">
-              <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-none border border-amber-500/30 bg-amber-500/5 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3">
+              <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-bold text-amber-300 mb-1 uppercase font-mono tracking-wider">
+                <p className="font-bold text-amber-600 dark:text-amber-300 mb-1 uppercase font-mono tracking-wider">
                   Authentication Notice
                 </p>
-                <p className="text-slate-300 dark:text-gray-300 leading-relaxed">
+                <p className="text-slate-700 dark:text-gray-300 leading-relaxed">
                   {oauthError || error}
                 </p>
               </div>
@@ -431,11 +431,11 @@ const Register = () => {
         </div>
       ) : (
         <AuthShell role={role} mode="register" step={step}>
-          <div className="w-full max-w-md mx-auto">
+          <div className="w-full max-w-lg mx-auto">
             <button
               type="button"
               onClick={handleBackNavigation}
-              className="flex items-center gap-2 mb-6 text-xs font-mono uppercase tracking-wider text-gray-400 hover:text-cyan-400 transition-colors"
+              className="flex items-center gap-2 mb-8 text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-cyan-400 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" /> Back to Role Selection
             </button>

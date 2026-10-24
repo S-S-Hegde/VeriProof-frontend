@@ -163,7 +163,7 @@ const ProcessStep = ({ num, icon: Icon, title, desc, delay }) => (
         <h3 className="text-xl font-black uppercase tracking-tighter mb-3 group-hover:text-[var(--color-accent)] transition-colors duration-500">
           {title}
         </h3>
-        <p className="text-xs opacity-40 leading-relaxed group-hover:opacity-60 transition-opacity duration-500">
+        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
           {desc}
         </p>
       </div>
@@ -187,7 +187,7 @@ const FeatureRow = ({ icon: Icon, label, desc, delay }) => (
       <div className="text-sm font-bold uppercase tracking-widest mb-1 group-hover:text-[var(--color-accent)] transition-colors duration-500">
         {label}
       </div>
-      <div className="text-xs opacity-40 leading-relaxed max-w-sm group-hover:opacity-60 transition-opacity duration-500">
+      <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
         {desc}
       </div>
     </div>
@@ -327,7 +327,7 @@ export default function Demo() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.5 }}
-            className="text-base md:text-lg opacity-50 max-w-xl mx-auto mb-12 leading-relaxed font-light"
+            className="text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto mb-12 leading-relaxed"
           >
             Where cryptographic precision meets architectural storytelling. The
             global truth layer for professional identities.
@@ -480,12 +480,12 @@ export default function Demo() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <div className="border border-[var(--color-border)] bg-black/5 dark:bg-white/5 backdrop-blur-xl overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] bg-white/5 dark:bg-black/10">
-                  <span className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-50">
+              <div className="border border-[var(--color-border)] bg-transparent overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-slate-600 dark:text-slate-300 font-semibold">
                     Live_Network_Load
                   </span>
-                  <span className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]">
+                  <span className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-900 dark:text-white font-bold">
                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                     OPERATIONAL
                   </span>
@@ -500,11 +500,11 @@ export default function Demo() {
                       className={`p-5 text-center ${i < 2 ? "border-r border-[var(--color-border)]" : ""}`}
                     >
                       <div
-                        className={`text-xl md:text-2xl font-black italic tracking-tighter ${m.color}`}
+                        className={`text-xl md:text-2xl font-black italic tracking-tighter ${m.color || "text-slate-900 dark:text-white"}`}
                       >
                         {m.value}
                       </div>
-                      <div className="text-[9px] font-mono uppercase tracking-[0.2em] opacity-40 mt-1">
+                      <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 mt-1 font-semibold">
                         {m.label}
                       </div>
                     </div>
@@ -517,14 +517,14 @@ export default function Demo() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="mt-1 border border-[var(--color-border)] p-6 flex items-start gap-4 hover:bg-[var(--color-accent)]/5 transition-colors duration-500"
+                className="mt-2 border border-[var(--color-border)] p-6 flex items-start gap-4 hover:border-slate-400 dark:hover:border-cyan-400/50 transition-colors duration-500"
               >
                 <CheckCircle2 className="w-5 h-5 text-[var(--color-accent)] mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-widest mb-1">
+                  <div className="text-xs font-bold uppercase tracking-widest mb-1 text-slate-900 dark:text-white">
                     Verification Guarantee
                   </div>
-                  <div className="text-[10px] opacity-40 leading-relaxed">
+                  <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
                     Every proof generated by VeriProof is cryptographically
                     signed and can be independently verified by any third party
                     without requiring access to our systems.

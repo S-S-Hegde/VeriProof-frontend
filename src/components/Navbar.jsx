@@ -226,7 +226,7 @@ const Navbar = () => {
                   className={`relative flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 rounded-[var(--radius-md)] ${
                     active
                       ? "text-[var(--color-bg)]"
-                      : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                      : "text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white"
                   }`}
                 >
                   {active && (

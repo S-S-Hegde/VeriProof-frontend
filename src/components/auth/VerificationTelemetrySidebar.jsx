@@ -6,7 +6,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
   const isRecruiter = role === "recruiter";
 
   return (
-    <div className="h-full w-full flex flex-col justify-between p-5 lg:p-6 relative overflow-hidden bg-gradient-to-b from-sky-50/80 via-blue-50/50 to-white/70 dark:from-[#070a14]/60 dark:via-[#090d1b]/50 dark:to-[#070a14]/60 backdrop-blur-2xl text-slate-900 dark:text-white border-r border-sky-200/80 dark:border-white/5 transition-colors duration-300">
+    <div className="h-full w-full flex flex-col justify-between py-2 relative text-slate-900 dark:text-white transition-colors duration-300">
       {/* Dynamic Background Glows */}
       <div
         className={`absolute -top-24 -left-24 w-96 h-96 rounded-full blur-[120px] pointer-events-none transition-all duration-700 ${

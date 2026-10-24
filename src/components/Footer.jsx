@@ -14,7 +14,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="mt-32 border-t border-[var(--color-border)] relative bg-[var(--color-bg)]/80 backdrop-blur-sm">
+    <footer className="mt-auto border-t border-[var(--color-border)] relative bg-[var(--color-bg)]/90 backdrop-blur-md">
       {/* Gradient fade top border */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--color-accent)]/30 to-transparent" />
 

@@ -2,20 +2,17 @@ import VerificationTelemetrySidebar from "./VerificationTelemetrySidebar";
 
 const AuthShell = ({ children, role = "student", mode = "login", step = 1 }) => {
   return (
-    <div className="w-full max-w-6xl mx-auto flex items-center justify-center py-1 sm:py-2">
-      <div className="w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-sky-200/90 dark:border-cyan-500/20 shadow-[0_20px_50px_rgba(15,42,58,0.08)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.45)] bg-gradient-to-br from-white/95 via-sky-50/80 to-blue-50/70 dark:from-[#070a14]/85 dark:via-[#0c1222]/80 dark:to-[#070a14]/90 backdrop-blur-2xl grid grid-cols-1 lg:grid-cols-12 max-h-[calc(100vh-6.5rem)] transition-colors duration-300">
-        {/* Left Telemetry Column (5 Columns on Desktop) */}
-        <div className="lg:col-span-5 hidden lg:flex flex-col justify-between relative border-r border-sky-200/80 dark:border-white/5 overflow-y-auto">
+    <div className="w-full max-w-6xl mx-auto py-4 sm:py-8 lg:py-12 px-4 sm:px-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+        {/* Left Telemetry Column (5 Columns on Desktop) — Borderless canvas typography */}
+        <div className="lg:col-span-5 hidden lg:flex flex-col justify-between border-r border-slate-200/80 dark:border-gray-800/80 pr-10 lg:pr-12">
           <VerificationTelemetrySidebar role={role} mode={mode} step={step} />
         </div>
 
-        {/* Right Terminal Deck Column (7 Columns on Desktop) */}
-        <div className="lg:col-span-7 flex flex-col items-center justify-center p-3 sm:p-5 lg:p-6 relative bg-gradient-to-br from-white/60 via-sky-50/30 to-blue-50/30 dark:from-[#090d1b]/40 dark:to-[#090d1b]/40 backdrop-blur-xl overflow-y-auto transition-colors duration-300">
-          {/* Subtle Ambient Background Light */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
-
+        {/* Right Terminal Deck Column (7 Columns on Desktop) — Direct background canvas */}
+        <div className="lg:col-span-7 flex flex-col justify-center relative w-full overflow-y-auto">
           {/* Mobile Telemetry Header */}
-          <div className="w-full lg:hidden mb-3 pb-2 border-b border-slate-200 dark:border-white/10 text-center">
+          <div className="w-full lg:hidden mb-6 pb-3 border-b border-slate-200 dark:border-gray-800 text-center">
             <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-blue-600 dark:text-cyan-400 font-bold">
               [ VERIPROOF_IDENTITY_ENGINE ]
             </span>

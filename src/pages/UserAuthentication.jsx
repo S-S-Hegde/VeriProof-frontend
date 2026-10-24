@@ -337,26 +337,26 @@ const Login = () => {
 
       <AuthShell role={role} mode="login">
         {requiresOTP ? (
-          <div className="w-full max-w-md mx-auto">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-4">
-                <KeyRound className="w-4 h-4 text-cyan-400" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-gray-300">
+          <div className="w-full max-w-md mx-auto space-y-8">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 mb-4">
+                <KeyRound className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400">
                   TWO_FACTOR_IDENTITY_AUTH
                 </span>
               </div>
-              <h2 className="text-3xl font-black italic uppercase text-white tracking-tight">
+              <h2 className="text-3xl font-black italic uppercase text-slate-900 dark:text-white tracking-tight">
                 Enter Verification OTP
               </h2>
-              <p className="text-xs text-gray-400 mt-2 font-mono">
+              <p className="text-xs text-slate-600 dark:text-gray-400 mt-2 font-mono">
                 A 6-digit access code was sent to{" "}
-                <strong className="text-white">{otpEmail}</strong>
+                <strong className="text-slate-900 dark:text-white">{otpEmail}</strong>
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-[#0c1222]/80 border border-white/10 backdrop-blur-xl">
+            <div className="space-y-6">
               <form onSubmit={submitOtp} className="space-y-6">
-                <div className="flex justify-center gap-2.5">
+                <div className="flex justify-center gap-3">
                   {otp.map((digit, idx) => (
                     <input
                       key={idx}
@@ -367,19 +367,19 @@ const Login = () => {
                       value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(idx, e)}
-                      className="w-12 h-14 text-center text-2xl font-black font-mono rounded-xl border border-white/10 bg-black/50 text-white focus:border-cyan-400 focus:outline-none transition-colors"
+                      className="w-12 h-14 text-center text-2xl font-black font-mono bg-transparent border-0 border-b-2 border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white focus:border-blue-600 dark:focus:border-cyan-400 focus:outline-none transition-colors"
                     />
                   ))}
                 </div>
 
                 {error && (
-                  <p className="text-xs text-red-400 font-mono text-center">⚠ {error}</p>
+                  <p className="text-xs text-red-500 font-mono text-center">⚠ {error}</p>
                 )}
 
                 <button
                   type="submit"
                   disabled={loading || otp.join("").length !== 6}
-                  className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer shadow-lg"
+                  className="w-full py-3.5 rounded-none bg-slate-900 hover:bg-slate-800 text-white dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Access Code"}
                 </button>
@@ -387,7 +387,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => { setRequiresOTP(false); setOtp(["", "", "", "", "", ""]); setError(""); }}
-                  className="w-full text-center text-[11px] font-mono text-gray-500 hover:text-gray-300 uppercase tracking-wider"
+                  className="w-full text-center text-xs font-mono text-slate-500 hover:text-slate-900 dark:text-gray-500 dark:hover:text-gray-300 uppercase tracking-wider cursor-pointer"
                 >
                   ← Return to Identity Access Terminal
                 </button>

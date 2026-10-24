@@ -22,25 +22,22 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
         {/* CANDIDATE PATHWAY CARD */}
         <motion.div
-          whileHover={{ y: -6, scale: 1.01 }}
+          whileHover={{ y: -4 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => onSelectRole("student")}
-          className="relative p-8 rounded-3xl bg-white dark:bg-[#0d1326] border border-blue-200 dark:border-cyan-500/20 hover:border-blue-400 dark:hover:border-cyan-400/60 transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[380px] overflow-hidden shadow-xl dark:shadow-2xl"
+          className="relative p-8 rounded-none border border-slate-300 dark:border-gray-800 hover:border-blue-600 dark:hover:border-cyan-400 bg-transparent transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[360px]"
         >
-          {/* Subtle cyan glow */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 dark:bg-cyan-500/10 rounded-full blur-[80px] group-hover:bg-blue-500/10 dark:group-hover:bg-cyan-500/20 transition-all duration-500 pointer-events-none" />
-
           <div>
             <div className="flex items-center justify-between mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 dark:bg-cyan-500/10 border border-blue-500/20 dark:border-cyan-500/30 flex items-center justify-center text-blue-600 dark:text-cyan-400 group-hover:scale-110 transition-transform">
-                <Target className="w-7 h-7" />
+              <div className="w-12 h-12 border border-slate-300 dark:border-gray-800 flex items-center justify-center text-blue-600 dark:text-cyan-400 group-hover:border-blue-600 dark:group-hover:border-cyan-400 transition-colors">
+                <Target className="w-6 h-6" />
               </div>
-              <span className="text-xs font-mono uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500/10 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-300 border border-blue-500/20 dark:border-cyan-500/20 font-semibold">
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 font-semibold">
                 PATHWAY // 01
               </span>
             </div>
 
-            <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition-colors">
+            <h2 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition-colors">
               Candidate Pathway
             </h2>
             <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed mb-6 font-sans">
@@ -48,7 +45,7 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
             </p>
 
             {/* Feature Pills */}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center gap-2 text-xs text-slate-800 dark:text-gray-300 font-mono">
                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400 shrink-0" />
                 <span>Ingest Resume &amp; Skills</span>
@@ -64,7 +61,7 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
             </div>
           </div>
 
-          <div className="pt-8 flex items-center justify-between border-t border-slate-200 dark:border-cyan-500/10">
+          <div className="pt-8 flex items-center justify-between border-t border-slate-200 dark:border-gray-800">
             <span className="text-xs font-mono uppercase tracking-wider text-blue-600 dark:text-cyan-400 group-hover:translate-x-1 transition-transform flex items-center gap-2 font-bold">
               Initialize Candidate OAuth <ArrowRight className="w-4 h-4" />
             </span>
@@ -73,25 +70,22 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
 
         {/* RECRUITER PATHWAY CARD */}
         <motion.div
-          whileHover={{ y: -6, scale: 1.01 }}
+          whileHover={{ y: -4 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => onSelectRole("recruiter")}
-          className="relative p-8 rounded-3xl bg-white dark:bg-[#0a1618] border border-emerald-200 dark:border-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-400/60 transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[380px] overflow-hidden shadow-xl dark:shadow-2xl"
+          className="relative p-8 rounded-none border border-slate-300 dark:border-gray-800 hover:border-emerald-600 dark:hover:border-emerald-400 bg-transparent transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[360px]"
         >
-          {/* Subtle emerald glow */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-[80px] group-hover:bg-emerald-500/10 dark:group-hover:bg-emerald-500/20 transition-all duration-500 pointer-events-none" />
-
           <div>
             <div className="flex items-center justify-between mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                <ShieldCheck className="w-7 h-7" />
+              <div className="w-12 h-12 border border-slate-300 dark:border-gray-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:border-emerald-600 dark:group-hover:border-emerald-400 transition-colors">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <span className="text-xs font-mono uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-semibold">
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 font-semibold">
                 PATHWAY // 02
               </span>
             </div>
 
-            <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
+            <h2 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
               Recruiter Pathway
             </h2>
             <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed mb-6 font-sans">
@@ -99,7 +93,7 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
             </p>
 
             {/* Feature Pills */}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center gap-2 text-xs text-slate-800 dark:text-gray-300 font-mono">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>Verify Company Domain Authority</span>
@@ -115,7 +109,7 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
             </div>
           </div>
 
-          <div className="pt-8 flex items-center justify-between border-t border-slate-200 dark:border-emerald-500/10">
+          <div className="pt-8 flex items-center justify-between border-t border-slate-200 dark:border-gray-800">
             <span className="text-xs font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform flex items-center gap-2 font-bold">
               Initialize Recruiter OAuth <ArrowRight className="w-4 h-4" />
             </span>

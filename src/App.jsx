@@ -646,16 +646,16 @@ const AppContent = () => {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen relative overflow-x-hidden">
+      <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-stone-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
         <ArchiveBackground />
 
         <div
-          className={`relative z-10 flex flex-col font-sans min-h-screen transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`relative z-10 flex flex-col flex-grow min-h-screen font-sans transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isAppVisible ? "opacity-100" : "opacity-0"
           }`}
         >
           <Navbar />
-          <main className="flex-grow w-full mx-auto pt-16 sm:pt-20 pb-4 px-2 sm:px-4 lg:px-6 relative z-10 flex flex-col justify-center">
+          <main className="flex-grow flex flex-col w-full mx-auto pt-16 sm:pt-20 pb-6 px-2 sm:px-4 lg:px-6 relative z-10">
             {isAppVisible && <AnimatedRoutes />}
           </main>
           <Footer />
