@@ -541,35 +541,49 @@ const ScrollProgressBar = React.memo(() => {
 const AppContent = () => {
   const { user, isExiting, setIsExiting, logout } = useAuth();
 
-  // Show cinematic intro ONLY once per browser session, and NEVER if already authenticated
-  // NOTE: We check BOTH localStorage (survives OAuth redirects) and sessionStorage.
-  // sessionStorage is cleared when the page navigates away (e.g. Google OAuth redirect),
-  // so without localStorage we'd show the intro again after every login — blocking the UI.
+  // Show cinematic intro once per browser session.
+  // Never show on OAuth redirect routes (/auth/callback) to avoid blocking credential handshakes.
   const [showIntro, setShowIntro] = useState(() => {
-    const isAuthenticated = Boolean(getStoredUser() || user);
-    if (isAuthenticated) {
-      // Persist flag so redirect returns also skip intro
-      localStorage.setItem("vp-intro-seen-permanent", "1");
+    // Purge legacy permanent key so existing browsers can play the intro once per session
+    try {
+      localStorage.removeItem("vp-intro-seen-permanent");
+    } catch (_) {}
+
+    const isAuthCallback =
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/auth/callback");
+
+    if (isAuthCallback) {
+      try {
+        sessionStorage.setItem("vp-session-intro-seen", "true");
+      } catch (_) {}
       return false;
     }
-    const hasSeenBefore =
-      localStorage.getItem("vp-intro-seen-permanent") ||
-      sessionStorage.getItem("vp-session-intro-seen");
-    return !hasSeenBefore;
+
+    const hasSeenSessionIntro = Boolean(
+      typeof window !== "undefined" &&
+        sessionStorage.getItem("vp-session-intro-seen")
+    );
+    return !hasSeenSessionIntro;
   });
 
   const [isAppVisible, setIsAppVisible] = useState(() => {
-    const isAuthenticated = Boolean(getStoredUser() || user);
-    if (isAuthenticated) return true;
+    const isAuthCallback =
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/auth/callback");
+
+    if (isAuthCallback) return true;
+
     return Boolean(
-      localStorage.getItem("vp-intro-seen-permanent") ||
-      sessionStorage.getItem("vp-session-intro-seen")
+      typeof window !== "undefined" &&
+        sessionStorage.getItem("vp-session-intro-seen")
     );
   });
 
   const handleIntroComplete = () => {
-    sessionStorage.setItem("vp-session-intro-seen", "true");
-    localStorage.setItem("vp-intro-seen-permanent", "1");
+    try {
+      sessionStorage.setItem("vp-session-intro-seen", "true");
+    } catch (_) {}
     setShowIntro(false);
     setIsAppVisible(true);
   };

@@ -21,6 +21,9 @@ export const getStoredToken = () => getStoredUser()?.token || "";
 export const persistUserSession = (user) => {
   localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
   localStorage.setItem(LOGIN_TIMESTAMP_KEY, Date.now().toString());
+  try {
+    sessionStorage.setItem("vp-session-intro-seen", "true");
+  } catch (_) {}
 };
 
 export const clearUserSession = () => {
