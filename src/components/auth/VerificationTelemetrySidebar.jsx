@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ShieldCheck, Cpu, Database, CheckCircle2, Lock, GitBranch, Layers, Award, Terminal } from "lucide-react";
 import CryptographicCore3D from "../3d/CryptographicCore3D";
+import TerminalBadge from "../TerminalBadge";
 
 const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step = 1 }) => {
   const isRecruiter = role === "recruiter";
@@ -45,15 +46,15 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
         </div>
 
         {/* Live Forensic Telemetry Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/5 dark:bg-white/[0.03] border border-slate-300 dark:border-white/10 backdrop-blur-md mb-3">
-          <span className="relative flex h-2 w-2">
-            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isRecruiter ? "bg-emerald-500" : "bg-blue-500 dark:bg-cyan-400"}`} />
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${isRecruiter ? "bg-emerald-600" : "bg-blue-600 dark:bg-cyan-500"}`} />
-          </span>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-slate-700 dark:text-gray-300 font-semibold">
-            [ SYSTEM_STATUS: VERIFICATION_NODE_ACTIVE ]
-          </span>
-        </div>
+        <TerminalBadge
+          text="[ SYSTEM_STATUS: VERIFICATION_NODE_ACTIVE ]"
+          pulse
+          className={`mb-3 ${
+            isRecruiter
+              ? "text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+              : ""
+          }`}
+        />
 
         {/* Dynamic Editorial Headline */}
         <motion.div

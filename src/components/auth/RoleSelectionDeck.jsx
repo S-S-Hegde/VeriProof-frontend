@@ -1,15 +1,19 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { UserCircle, ShieldCheck, ArrowRight, Target, CheckCircle2, GitBranch, Terminal } from "lucide-react";
+import TerminalBadge from "../TerminalBadge";
 
 const RoleSelectionDeck = ({ onSelectRole }) => {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/5 dark:bg-white/5 border border-slate-300 dark:border-white/10 text-xs font-mono uppercase tracking-[0.2em] text-blue-600 dark:text-cyan-400 font-semibold">
-          <Terminal className="w-3.5 h-3.5" />
-          <span>SELECT_VERIFICATION_PATHWAY</span>
-        </span>
+      <div className="text-center space-y-3">
+        <TerminalBadge
+          text="SELECT_VERIFICATION_PATHWAY"
+          icon={Terminal}
+          pulse
+        />
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white">
           Enter the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 dark:from-cyan-400 dark:via-blue-500 dark:to-emerald-400">VeriProof</span> Ecosystem
         </h1>
@@ -22,6 +26,10 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
         {/* CANDIDATE PATHWAY CARD */}
         <motion.div
+          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.95 }}
+          whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0, ease: [0.16, 1, 0.3, 1] }}
           whileHover={{ y: -4 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => onSelectRole("student")}
@@ -70,6 +78,10 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
 
         {/* RECRUITER PATHWAY CARD */}
         <motion.div
+          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.95 }}
+          whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           whileHover={{ y: -4 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => onSelectRole("recruiter")}

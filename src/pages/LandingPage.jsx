@@ -6,7 +6,11 @@ import {
   useMotionValue,
   useSpring,
   AnimatePresence,
+  useScroll,
+  useTransform,
+  useReducedMotion,
 } from "framer-motion";
+import TerminalBadge from "../components/TerminalBadge";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import {
@@ -138,61 +142,67 @@ const LiveChart = () => {
   );
 };
 
-const ProcessStep = ({ num, icon: Icon, title, desc, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 40 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.7, delay }}
-    className="group relative"
-  >
-    <div className="hidden lg:block absolute -top-8 left-1/2 w-px h-8 bg-gradient-to-b from-transparent to-[var(--color-border)]" />
-    <div className="border border-[var(--color-border)] p-8 lg:p-10 hover:bg-[var(--color-accent)]/5 transition-all duration-700 relative overflow-hidden">
-      <span className="absolute right-4 bottom-2 text-[80px] font-black italic opacity-[0.03] leading-none pointer-events-none group-hover:opacity-[0.06] transition-opacity duration-700">
-        {num}
-      </span>
-      <div className="relative z-10">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-10 h-10 border border-[var(--color-border)] flex items-center justify-center group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)] transition-all duration-500">
-            <Icon className="w-4 h-4" />
+const ProcessStep = ({ num, icon: Icon, title, desc, index = 0 }) => {
+  const shouldReduceMotion = useReducedMotion();
+  return (
+    <motion.div
+      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.95 }}
+      whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative"
+    >
+      <div className="hidden lg:block absolute -top-8 left-1/2 w-px h-8 bg-gradient-to-b from-transparent to-[var(--color-border)]" />
+      <div className="border border-[var(--color-border)] p-8 lg:p-10 hover:bg-[var(--color-accent)]/5 transition-all duration-700 relative overflow-hidden">
+        <span className="absolute right-4 bottom-2 text-[80px] font-black italic opacity-[0.03] leading-none pointer-events-none group-hover:opacity-[0.06] transition-opacity duration-700">
+          {num}
+        </span>
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-10 h-10 border border-[var(--color-border)] flex items-center justify-center group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)] transition-all duration-500">
+              <Icon className="w-4 h-4" />
+            </div>
+            <span className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-30">
+              {num} //
+            </span>
           </div>
-          <span className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-30">
-            {num} //
-          </span>
+          <h3 className="text-xl font-black uppercase tracking-tighter mb-3 group-hover:text-[var(--color-accent)] transition-colors duration-500">
+            {title}
+          </h3>
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
+            {desc}
+          </p>
         </div>
-        <h3 className="text-xl font-black uppercase tracking-tighter mb-3 group-hover:text-[var(--color-accent)] transition-colors duration-500">
-          {title}
-        </h3>
-        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
-          {desc}
-        </p>
+        <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-[var(--color-accent)] group-hover:w-full transition-all duration-700" />
       </div>
-      <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-[var(--color-accent)] group-hover:w-full transition-all duration-700" />
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
-const FeatureRow = ({ icon: Icon, label, desc, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.6, delay }}
-    className="group flex items-start gap-5 py-6 border-b border-[var(--color-border)] last:border-0 hover:pl-2 transition-all duration-500"
-  >
-    <div className="w-10 h-10 border border-[var(--color-border)] flex items-center justify-center shrink-0 group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)] transition-all duration-500">
-      <Icon className="w-4 h-4" />
-    </div>
-    <div>
-      <div className="text-sm font-bold uppercase tracking-widest mb-1 group-hover:text-[var(--color-accent)] transition-colors duration-500">
-        {label}
+const FeatureRow = ({ icon: Icon, label, desc, index = 0 }) => {
+  const shouldReduceMotion = useReducedMotion();
+  return (
+    <motion.div
+      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.95 }}
+      whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="group flex items-start gap-5 py-6 border-b border-[var(--color-border)] last:border-0 hover:pl-2 transition-all duration-500"
+    >
+      <div className="w-10 h-10 border border-[var(--color-border)] flex items-center justify-center shrink-0 group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)] transition-all duration-500">
+        <Icon className="w-4 h-4" />
       </div>
-      <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
-        {desc}
+      <div>
+        <div className="text-sm font-bold uppercase tracking-widest mb-1 group-hover:text-[var(--color-accent)] transition-colors duration-500">
+          {label}
+        </div>
+        <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
+          {desc}
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const METRICS = [
   { value: "99.98%", label: "Accuracy", color: "text-[var(--color-accent)]" },
@@ -202,9 +212,20 @@ const METRICS = [
 
 export default function Demo() {
   const compRef = useRef(null);
+  const heroSectionRef = useRef(null);
+  const shouldReduceMotion = useReducedMotion();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isShutterOpen, setIsShutterOpen] = useState(false);
+
+  // Smooth Scroll Fade & Blur for hero text block
+  const { scrollYProgress: heroScroll } = useScroll({
+    target: heroSectionRef,
+    offset: ["start start", "end start"],
+  });
+  const heroOpacity = useTransform(heroScroll, [0, 0.75], [1, 0]);
+  const heroBlur = useTransform(heroScroll, [0, 0.75], ["blur(0px)", "blur(8px)"]);
+  const heroY = useTransform(heroScroll, [0, 0.75], [0, -30]);
 
   useEffect(() => {
     if (user) {
@@ -271,7 +292,10 @@ export default function Demo() {
         )}
       </AnimatePresence>
 
-      <section className="relative min-h-[100vh] flex flex-col items-center justify-center overflow-hidden -mt-28 px-6">
+      <section
+        ref={heroSectionRef}
+        className="relative min-h-[100vh] flex flex-col items-center justify-center overflow-hidden -mt-28 px-6"
+      >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-accent),transparent_60%)] opacity-[0.05]" />
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -294,15 +318,11 @@ export default function Demo() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1 }}
+          style={shouldReduceMotion ? undefined : { opacity: heroOpacity, filter: heroBlur, y: heroY }}
           className="text-center relative z-10 max-w-4xl"
         >
           <div className="flex justify-center mb-10">
-            <div className="flex items-center gap-3 px-5 py-2.5 border border-[var(--color-border)] backdrop-blur-md rounded-full">
-              <Cpu className="w-3.5 h-3.5 text-[var(--color-accent)] animate-pulse" />
-              <span className="text-[10px] font-mono uppercase tracking-[0.35em] opacity-70">
-                Core_Verified_Archive
-              </span>
-            </div>
+            <TerminalBadge text="Core_Verified_Archive" icon={Cpu} pulse />
           </div>
 
           <TextReveal delay={0.4}>
@@ -375,17 +395,9 @@ export default function Demo() {
 
         <div className="max-w-7xl mx-auto">
           <div className="mb-20 max-w-3xl">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="flex items-center gap-3 text-[var(--color-accent)] mb-6"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span className="text-[10px] font-mono uppercase tracking-[0.4em]">
-                How_It_Works
-              </span>
-            </motion.div>
+            <div className="mb-6">
+              <TerminalBadge text="How_It_Works" icon={Sparkles} />
+            </div>
             <TextReveal>
               <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.85]">
                 Three Steps To
@@ -403,21 +415,21 @@ export default function Demo() {
               icon={Fingerprint}
               title="Connect Identity"
               desc="Link your GitHub, GitLab, and other code repositories. Our system begins mapping your digital fingerprint across all connected nodes."
-              delay={0}
+              index={0}
             />
             <ProcessStep
               num="02"
               icon={Scan}
               title="Forensic Analysis"
               desc="Neural scanning verifies every commit, pull request, and code contribution. Cross-referencing billions of lines to ensure 100% authenticity."
-              delay={0.15}
+              index={1}
             />
             <ProcessStep
               num="03"
               icon={Shield}
               title="Issue Proof"
               desc="Receive a cryptographically signed VeriProof certificate — an immutable record of your verified skills that recruiters can trust."
-              delay={0.3}
+              index={2}
             />
           </div>
         </div>
@@ -427,17 +439,9 @@ export default function Demo() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
             <div>
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="flex items-center gap-3 text-[var(--color-accent)] mb-6"
-              >
-                <Database className="w-4 h-4" />
-                <span className="text-[10px] font-mono uppercase tracking-[0.4em]">
-                  Evidence_Protocol
-                </span>
-              </motion.div>
+              <div className="mb-6">
+                <TerminalBadge text="Evidence_Protocol" icon={Database} />
+              </div>
               <TextReveal>
                 <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-[0.85] mb-10">
                   The Evidence
@@ -452,43 +456,46 @@ export default function Demo() {
                 icon={Fingerprint}
                 label="Biometric Verification"
                 desc="Hash-based identity validation across distributed nodes with zero-knowledge proofs."
-                delay={0}
+                index={0}
               />
               <FeatureRow
                 icon={Globe}
                 label="Global Sync"
                 desc="Real-time synchronization with primary talent repositories across 47 jurisdictions."
-                delay={0.1}
+                index={1}
               />
               <FeatureRow
                 icon={Layers}
                 label="Neural Archive"
                 desc="Permanent, immutable record of skill manifestations encoded in append-only ledgers."
-                delay={0.2}
+                index={2}
               />
               <FeatureRow
                 icon={Eye}
                 label="Transparency Layer"
                 desc="Every verification decision is auditable. Full traceability from raw commit to final proof."
-                delay={0.3}
+                index={3}
               />
             </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.95 }}
+              whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="border border-[var(--color-border)] bg-transparent overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
-                  <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-slate-600 dark:text-slate-300 font-semibold">
-                    Live_Network_Load
-                  </span>
-                  <span className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-900 dark:text-white font-bold">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    OPERATIONAL
-                  </span>
+                  <TerminalBadge
+                    text="Live_Network_Load"
+                    pulse={false}
+                    className="text-[10px]"
+                  />
+                  <TerminalBadge
+                    text="OPERATIONAL"
+                    pulse
+                    className="text-[10px] text-green-500 border-green-500/30 bg-green-500/5 shadow-[0_0_10px_rgba(34,197,94,0.15)]"
+                  />
                 </div>
                 <div className="h-48 md:h-56 px-4 py-2 relative">
                   <LiveChart />
