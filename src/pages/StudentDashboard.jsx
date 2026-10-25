@@ -330,8 +330,11 @@ const StudentDashboard = () => {
             </div>
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
               <h1
-                className="font-black italic uppercase tracking-tighter leading-[0.85]"
-                style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
+                className="font-black italic uppercase tracking-tighter leading-[0.85] text-slate-900 dark:text-slate-100"
+                style={{
+                  fontSize: "clamp(2.5rem, 6vw, 5rem)",
+                  textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                }}
               >
                 Candidate{" "}
                 <span className="text-[var(--color-accent)] not-italic">
@@ -432,16 +435,16 @@ const StudentDashboard = () => {
                     if (targetPath) navigate(targetPath);
                     else if (stat.id === "02") setIsUploadModalOpen(true);
                   }}
-                  className="border-l border-slate-800 pl-6 group cursor-pointer transition-colors hover:border-cyan-400"
+                  className="border-l border-slate-300 dark:border-slate-800 pl-6 group cursor-pointer transition-colors hover:border-cyan-500 dark:hover:border-cyan-400"
                 >
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
                     <span className="flex items-center gap-2">
-                      <stat.icon className="w-3.5 h-3.5 text-cyan-400" />
+                      <stat.icon className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                       {stat.label}
                     </span>
-                    <span className="text-cyan-400 font-bold">Stat_{stat.id}</span>
+                    <span className="text-cyan-700 dark:text-cyan-400 font-bold">Stat_{stat.id}</span>
                   </div>
-                  <div className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+                  <div className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-slate-900 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
                     {stat.val}
                   </div>
                 </div>
@@ -461,7 +464,10 @@ const StudentDashboard = () => {
             <div className="py-12 border-b border-slate-800/60">
               <div className="flex items-center gap-3 mb-8">
                 <Award className="w-5 h-5 text-[var(--color-accent)]" />
-                <h3 className="text-xl font-black uppercase tracking-tight">
+                <h3
+                  style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                  className="text-xl font-black uppercase tracking-tight text-slate-900 dark:text-slate-100"
+                >
                   Verified_Credentials
                 </h3>
               </div>

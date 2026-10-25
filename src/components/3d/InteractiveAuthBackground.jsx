@@ -312,14 +312,26 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
 
   return (
     <div
-      ref={containerRef}
-      className={`fixed inset-0 z-0 pointer-events-auto overflow-hidden transition-colors duration-500 ${
+      className={`fixed inset-0 z-0 pointer-events-none overflow-hidden transition-colors duration-500 ${
         isDark
-          ? "bg-slate-950/40"
+          ? "bg-slate-950"
           : "bg-gradient-to-br from-slate-50 via-zinc-50 to-amber-50/30"
       }`}
       aria-hidden="true"
-    />
+    >
+      {/* Interactive Three.js particle & lattice network canvas */}
+      <div ref={containerRef} className="absolute inset-0 pointer-events-auto" />
+
+      {/* Subtle Radial Vignette Gradient Layer for Crisp Typography Contrast */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+        style={{
+          background: isDark
+            ? "radial-gradient(circle at center, rgba(2, 6, 23, 0.6) 0%, rgba(2, 6, 23, 0.9) 100%)"
+            : "radial-gradient(circle at center, rgba(248, 250, 252, 0.65) 0%, rgba(241, 245, 249, 0.92) 100%)",
+        }}
+      />
+    </div>
   );
 };
 

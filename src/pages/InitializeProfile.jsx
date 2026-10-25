@@ -346,37 +346,40 @@ const Register = () => {
       {/* ── Post-Google-OAuth: GitHub Username Collection Step ── */}
       {githubStep ? (
         <div className="flex items-center justify-center min-h-[70vh] px-4 py-8">
-          <div className="w-full max-w-md space-y-6">
+          <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.7)] space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Github className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400">
+                <Github className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-700 dark:text-cyan-400 font-semibold">
                   REPOSITORY_INTELLIGENCE_SETUP
                 </span>
               </div>
 
-              <h2 className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
+              <h2
+                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-slate-100 mb-2"
+              >
                 Add GitHub Handle
               </h2>
-              <p className="text-xs text-slate-600 dark:text-gray-400 font-sans leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
                 VeriProof automatically analyzes your top public repositories to build your verified skill profile.
                 Add your GitHub username to activate repository intelligence.
               </p>
             </div>
 
             {error && (
-              <div className="p-3 border-l-2 border-red-500 bg-red-500/5 text-red-600 dark:text-red-400 text-xs font-mono">
+              <div className="p-3 border-l-2 border-red-500 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-mono">
                 ⚠ {error}
               </div>
             )}
 
             <div className="space-y-6">
               <div>
-                <label htmlFor="oauth-github-username" className="block text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1 font-semibold">
+                <label htmlFor="oauth-github-username" className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1 font-semibold">
                   GitHub Username
                 </label>
                 <div className="relative flex items-center">
-                  <Github className="w-4 h-4 text-slate-400 dark:text-gray-500 mr-2 shrink-0" />
+                  <Github className="w-4 h-4 text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     id="oauth-github-username"
                     type="text"
@@ -385,11 +388,11 @@ const Register = () => {
                     value={githubUsername}
                     onChange={(e) => setGithubUsername(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") handleSaveGithub(); }}
-                    className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none transition-colors"
+                    className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none transition-colors"
                   />
                 </div>
-                <p className="mt-2 text-[10px] font-mono text-slate-500 dark:text-gray-400">
-                  Your GitHub profile URL: github.com/<strong className="text-blue-600 dark:text-cyan-400">{githubUsername || "username"}</strong>
+                <p className="mt-2 text-[10px] font-mono text-slate-600 dark:text-slate-300">
+                  Your GitHub profile URL: github.com/<strong className="text-cyan-700 dark:text-cyan-400">{githubUsername || "username"}</strong>
                 </p>
               </div>
 
@@ -405,7 +408,7 @@ const Register = () => {
               <button
                 type="button"
                 onClick={handleSkipGithub}
-                className="w-full text-center text-xs font-mono text-slate-500 hover:text-slate-900 dark:text-gray-500 dark:hover:text-gray-300 uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full text-center text-xs font-mono text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-cyan-400 uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
               >
                 <SkipForward className="w-3.5 h-3.5" /> Skip for now (add later in Settings)
               </button>
@@ -415,13 +418,13 @@ const Register = () => {
       ) : step === 1 ? (
         <div className="py-8 px-4">
           {(oauthError || error) && (
-            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-none border border-amber-500/30 bg-amber-500/5 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3">
+            <div className="max-w-2xl mx-auto mb-6 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-bold text-amber-600 dark:text-amber-300 mb-1 uppercase font-mono tracking-wider">
                   Authentication Notice
                 </p>
-                <p className="text-slate-700 dark:text-gray-300 leading-relaxed">
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
                   {oauthError || error}
                 </p>
               </div>
@@ -435,7 +438,7 @@ const Register = () => {
             <button
               type="button"
               onClick={handleBackNavigation}
-              className="flex items-center gap-2 mb-8 text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-cyan-400 transition-colors cursor-pointer"
+              className="flex items-center gap-2 mb-8 text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-cyan-400 transition-colors cursor-pointer font-semibold"
             >
               <ChevronLeft className="w-4 h-4" /> Back to Role Selection
             </button>

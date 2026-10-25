@@ -345,16 +345,19 @@ const Login = () => {
             <div className="text-center">
               <div className="inline-flex items-center gap-2 mb-4">
                 <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-600 dark:text-slate-400 font-semibold">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-700 dark:text-cyan-400 font-semibold">
                   TWO_FACTOR_IDENTITY_AUTH
                 </span>
               </div>
-              <h2 className="text-3xl font-black italic uppercase text-slate-900 dark:text-white tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+              <h2
+                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                className="text-3xl font-black italic uppercase text-slate-900 dark:text-slate-100 tracking-tight"
+              >
                 Enter Verification OTP
               </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 font-mono drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 font-mono">
                 A 6-digit access code was sent to{" "}
-                <strong className="text-slate-900 dark:text-white">{otpEmail}</strong>
+                <strong className="text-slate-900 dark:text-slate-100">{otpEmail}</strong>
               </p>
             </div>
 
@@ -371,7 +374,7 @@ const Login = () => {
                       value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(idx, e)}
-                      className="w-12 h-14 text-center text-2xl font-black font-mono bg-transparent border-0 border-b-2 border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-white focus:border-cyan-600 dark:focus:border-cyan-400 focus:outline-none transition-colors"
+                      className="w-12 h-14 text-center text-2xl font-black font-mono bg-transparent border-0 border-b-2 border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 focus:border-cyan-600 dark:focus:border-cyan-400 focus:outline-none transition-colors"
                     />
                   ))}
                 </div>

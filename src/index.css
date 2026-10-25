@@ -325,6 +325,16 @@
     border-radius: var(--radius-xl);
   }
 
+  /* ─── High-Contrast Glassmorphic Card Panel ─── */
+  .vp-glass-panel {
+    @apply bg-white/85 dark:bg-slate-950/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.7)] rounded-2xl;
+  }
+
+  /* ─── Subtle Header Shadow for Pop & Contrast ─── */
+  .vp-header-shadow {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+
   /* ─── Surface elevations ─── */
   .vp-surface-1 {
     background: var(--vp-surface-1-bg);
