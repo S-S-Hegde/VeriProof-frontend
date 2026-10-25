@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+// VeriProof WebGL Engine — v5.2 Seamless Unboxed Globe
 import * as THREE from "three";
 import { useTheme } from "../../context/ThemeContext";
 import { useReducedMotion } from "framer-motion";
