@@ -65,7 +65,7 @@ const Magnetic = ({ children, className }) => {
 };
 
 const TextReveal = ({ children, delay = 0 }) => (
-  <div className="overflow-hidden">
+  <div className="overflow-hidden py-1">
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -348,16 +348,16 @@ export default function Demo() {
             style={shouldReduceMotion ? undefined : { opacity: heroOpacity, filter: heroBlur, y: heroY }}
             className="w-full md:w-1/2 flex flex-col items-start text-left z-10"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <TerminalBadge text="SYSTEM_STATUS: SECURE_PROTOCOL_ACTIVE" icon={Cpu} pulse />
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Zero_Knowledge
+            {/* Borderless Status Indicator */}
+            <div className="flex items-center gap-2 mb-4 text-xs font-mono text-cyan-600 dark:text-cyan-400 tracking-wider">
+              <span className="h-2 w-2 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shrink-0" />
+              <span className="font-semibold uppercase tracking-[0.18em]">
+                SYSTEM_STATUS: SECURE_PROTOCOL_ACTIVE // ZERO_KNOWLEDGE
               </span>
             </div>
 
             <TextReveal delay={0.2}>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black italic uppercase tracking-tighter leading-[0.88] mb-6 text-slate-900 dark:text-white">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black italic uppercase tracking-tighter leading-[0.92] mb-6 text-slate-900 dark:text-white">
                 The{" "}
                 <span
                   style={{
