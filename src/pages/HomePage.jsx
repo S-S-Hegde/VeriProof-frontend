@@ -99,8 +99,8 @@ const TextReveal = ({ children, delay = 0, className = "" }) => (
   </div>
 );
 
-const WordStagger = ({ text, delay = 0, className = "" }) => {
-  const words = text.split(" ");
+const WordStagger = ({ text = "", delay = 0, className = "" }) => {
+  const words = typeof text === "string" ? text.split(" ") : [];
   return (
     <span className={className}>
       {words.map((word, i) => (

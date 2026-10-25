@@ -401,10 +401,14 @@ const Settings = () => {
         usn: form.usn,
         batch: form.batch,
         cgpa: form.cgpa,
-        skills: form.skills
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        skills: Array.isArray(form.skills)
+          ? form.skills
+          : typeof form.skills === "string"
+          ? form.skills
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [],
         profileVisibility: form.profileVisibility,
         notifications: { email: form.notifEmail, platform: form.notifPlatform },
         ...(form.newPassword ? { password: form.newPassword } : {}),

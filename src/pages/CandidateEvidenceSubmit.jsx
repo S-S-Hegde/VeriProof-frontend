@@ -71,7 +71,7 @@ const AddProject = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const techArray = technologies
+      const techArray = (typeof technologies === "string" ? technologies : "")
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean);
