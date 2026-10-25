@@ -28,32 +28,106 @@ import PageTransition from "../components/PageTransition";
 import ProjectVerificationModal from "../components/ProjectVerificationModal";
 import CoupleRepositoriesModal from "../components/CoupleRepositoriesModal";
 
+const AnimatedStat = ({ value, className = "" }) => (
+  <motion.span
+    key={String(value)}
+    initial={{ opacity: 0.3, y: -4, scale: 0.95 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ duration: 0.35, ease: "easeOut" }}
+    className={className}
+  >
+    {value}
+  </motion.span>
+);
+
 const ProjectArchivePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSyncingVault, setIsSyncingVault] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState(null);
+  const [vaultMetrics, setVaultMetrics] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTech, setSelectedTech] = useState("all");
   const [verifyingProject, setVerifyingProject] = useState(null);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [isCoupleModalOpen, setIsCoupleModalOpen] = useState(false);
 
-  const fetchMyProjects = useCallback(async () => {
+  // Fetch metrics & projects from Vault API (with fallback to myprojects)
+  const fetchVaultData = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
-      const res = await api.cachedGet("/api/projects/myprojects");
-      setProjects(res.data || []);
+      if (!silent) setLoading(true);
+      const res = await api.get("/api/vault/metrics");
+      if (res.data) {
+        if (Array.isArray(res.data.projects)) {
+          setProjects(res.data.projects);
+        }
+        if (res.data.metrics) {
+          setVaultMetrics(res.data.metrics);
+        }
+      }
     } catch (err) {
-      console.error("Failed to fetch archive projects:", err);
+      console.warn("Vault metrics endpoint unavailable, falling back to cached projects:", err.message);
+      try {
+        const res = await api.cachedGet("/api/projects/myprojects");
+        setProjects(res.data || []);
+      } catch (fallbackErr) {
+        console.error("Failed to fetch archive projects:", fallbackErr);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
+  // Periodic polling: auto-refresh every 5 minutes in background
   useEffect(() => {
-    fetchMyProjects();
-  }, [fetchMyProjects]);
+    fetchVaultData();
+    const interval = setInterval(() => {
+      fetchVaultData(true);
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchVaultData]);
+
+  // Live "SYNC VAULT" Trigger
+  const handleSyncVault = async () => {
+    if (isSyncingVault) return;
+    try {
+      setIsSyncingVault(true);
+      const prevCommits = projects.reduce(
+        (acc, p) => acc + (p.githubStats?.commitsCount || 0),
+        0
+      );
+
+      const res = await api.post("/api/vault/sync");
+      if (res.data) {
+        if (Array.isArray(res.data.projects)) {
+          setProjects(res.data.projects);
+        }
+        if (res.data.metrics) {
+          setVaultMetrics(res.data.metrics);
+          const newCommits = res.data.metrics.totalCommits || 0;
+          const diff = newCommits - prevCommits;
+          setSyncFeedback({
+            type: "success",
+            message: res.data.message || "Live GitHub provenance synced.",
+            diff: diff > 0 ? `+${diff} new commits detected` : "All commits up to date",
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to sync vault with GitHub:", err);
+      setSyncFeedback({
+        type: "error",
+        message: err.response?.data?.message || "Sync failed. Retrying fallback.",
+      });
+    } finally {
+      setIsSyncingVault(false);
+      setTimeout(() => {
+        setSyncFeedback(null);
+      }, 5000);
+    }
+  };
 
   const handleOpenVerify = (project) => {
     setVerifyingProject(project);
@@ -98,18 +172,33 @@ const ProjectArchivePage = () => {
     return matchesSearch && matchesTech;
   });
 
-  const verifiedCount = projects.filter(
-    (p) =>
-      p.isVerified ||
-      p.status === "Verified" ||
-      p.verificationStatus === "Verified" ||
-      Boolean(p.githubStats?.commitsCount > 0)
-  ).length;
+  // Calculate live dynamic metrics
+  const totalRepositories = vaultMetrics?.totalRepositories ?? projects.length;
+  const verifiedCount =
+    vaultMetrics?.verifiedProofs ??
+    projects.filter(
+      (p) =>
+        p.isVerified ||
+        p.status === "Verified" ||
+        p.verificationStatus === "Verified" ||
+        Boolean(p.githubStats?.commitsCount > 0)
+    ).length;
 
-  const totalCommits = projects.reduce(
-    (acc, p) => acc + (p.githubStats?.commitsCount || 0),
-    0
-  );
+  const totalCommits =
+    vaultMetrics?.totalCommits ??
+    projects.reduce(
+      (acc, p) => acc + (p.githubStats?.commitsCount || 0),
+      0
+    );
+
+  const originalityConfidence =
+    vaultMetrics?.originalityConfidence ??
+    (projects.length > 0
+      ? Math.round(
+          projects.reduce((acc, p) => acc + (p.originalityScore || 100), 0) /
+            projects.length
+        )
+      : 100);
 
   return (
     <PageTransition>
@@ -123,6 +212,12 @@ const ProjectArchivePage = () => {
                 <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                   Dual-Source Verified
                 </span>
+                {vaultMetrics?.lastSyncedAt && (
+                  <span className="text-[10px] font-mono text-cyan-400/80 bg-cyan-500/5 px-2 py-0.5 rounded border border-cyan-500/15 hidden sm:inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                    Synced {new Date(vaultMetrics.lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
               </div>
               <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
                 PROJECT_<span className="text-[var(--color-accent)]">ARCHIVE.</span>
@@ -142,15 +237,23 @@ const ProjectArchivePage = () => {
                 <Layers className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Couple Multi-Repo Project</span>
               </button>
+
               <button
-                onClick={fetchMyProjects}
-                disabled={loading}
-                className="vp-btn vp-btn-secondary text-xs py-2.5 px-4 gap-2"
-                title="Sync repositories with latest GitHub analysis"
+                onClick={handleSyncVault}
+                disabled={isSyncingVault || loading}
+                className={`vp-btn vp-btn-secondary text-xs py-2.5 px-4 gap-2 transition-all relative overflow-hidden cursor-pointer ${
+                  isSyncingVault
+                    ? "border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] bg-cyan-950/50 animate-pulse"
+                    : "hover:border-cyan-500/50"
+                }`}
+                title="Sync repositories with live GitHub API commits"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-                <span>Sync Vault</span>
+                <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isSyncingVault ? "animate-spin text-cyan-300" : ""}`} />
+                <span className="font-mono tracking-wider">
+                  {isSyncingVault ? "[ SYNCING_PROVENANCE... ]" : "Sync Vault"}
+                </span>
               </button>
+
               <Link
                 to="/add-project"
                 className="vp-btn vp-btn-accent text-xs py-2.5 px-4 gap-2 shadow-lg"
@@ -161,11 +264,39 @@ const ProjectArchivePage = () => {
             </div>
           </div>
 
+          {/* Sync Feedback Alert */}
+          <AnimatePresence>
+            {syncFeedback && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className={`text-xs font-mono px-4 py-2.5 rounded-lg border flex items-center justify-between gap-3 shadow-md ${
+                  syncFeedback.type === "success"
+                    ? "bg-cyan-950/40 border-cyan-500/40 text-cyan-300"
+                    : "bg-red-950/40 border-red-500/40 text-red-300"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <GitCommit className="w-4 h-4 text-cyan-400" />
+                  <span>{syncFeedback.message}</span>
+                </div>
+                {syncFeedback.diff && (
+                  <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20">
+                    {syncFeedback.diff}
+                  </span>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Metrics KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
             <div className="vp-surface-1 p-5 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
               <p className="vp-label mb-1">TOTAL_REPOSITORIES</p>
-              <p className="text-2xl sm:text-3xl font-black text-white">{projects.length}</p>
+              <p className="text-2xl sm:text-3xl font-black text-white">
+                <AnimatedStat value={totalRepositories} />
+              </p>
               <p className="text-[10px] font-mono text-[var(--color-muted)] mt-1">
                 Extracted & linked
               </p>
@@ -174,11 +305,11 @@ const ProjectArchivePage = () => {
             <div className="vp-surface-1 p-5 rounded-[var(--radius-lg)] border border-emerald-500/20 bg-emerald-500/[0.02]">
               <p className="vp-label-accent mb-1 text-emerald-400">VERIFIED_PROOFS</p>
               <p className="text-2xl sm:text-3xl font-black text-emerald-400">
-                {verifiedCount} / {projects.length}
+                <AnimatedStat value={`${verifiedCount} / ${totalRepositories}`} />
               </p>
               <p className="text-[10px] font-mono text-emerald-500/70 mt-1">
-                {projects.length > 0
-                  ? `${Math.round((verifiedCount / projects.length) * 100)}% Provenance Rate`
+                {totalRepositories > 0
+                  ? `${Math.round((verifiedCount / totalRepositories) * 100)}% Provenance Rate`
                   : "0% Verified"}
               </p>
             </div>
@@ -186,16 +317,18 @@ const ProjectArchivePage = () => {
             <div className="vp-surface-1 p-5 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
               <p className="vp-label mb-1">GIT_COMMIT_VOLUME</p>
               <p className="text-2xl sm:text-3xl font-black text-cyan-400">
-                {totalCommits > 0 ? totalCommits : "Verified"}
+                <AnimatedStat value={totalCommits > 0 ? totalCommits : "0 Commits"} />
               </p>
               <p className="text-[10px] font-mono text-[var(--color-muted)] mt-1">
-                Organic cadence recorded
+                Live GitHub provenance
               </p>
             </div>
 
             <div className="vp-surface-1 p-5 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
               <p className="vp-label mb-1">ORIGINALITY_CONFIDENCE</p>
-              <p className="text-2xl sm:text-3xl font-black text-white">100%</p>
+              <p className="text-2xl sm:text-3xl font-black text-white">
+                <AnimatedStat value={`${originalityConfidence}%`} />
+              </p>
               <p className="text-[10px] font-mono text-emerald-400 mt-1">
                 0% duplicate risk
               </p>
@@ -376,15 +509,21 @@ const ProjectArchivePage = () => {
                         <span className="text-[var(--color-muted)] block text-[9px] uppercase">
                           Git Commits
                         </span>
-                        <span className="text-white font-bold">
-                          {commitsCount > 0 ? `${commitsCount} Commits` : "Multi-Commit"}
+                        <span className="text-white font-bold flex items-center gap-1.5">
+                          <GitCommit className="w-3 h-3 text-cyan-400" />
+                          <AnimatedStat
+                            value={commitsCount > 0 ? `${commitsCount} Commits` : "Multi-Commit"}
+                          />
                         </span>
                       </div>
                       <div>
                         <span className="text-[var(--color-muted)] block text-[9px] uppercase">
                           Originality
                         </span>
-                        <span className="text-emerald-400 font-bold">100% Unique</span>
+                        <span className="text-emerald-400 font-bold flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                          <AnimatedStat value={`${project.originalityScore || 100}% Unique`} />
+                        </span>
                       </div>
                     </div>
                   </div>
