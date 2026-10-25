@@ -340,15 +340,15 @@ const Login = () => {
           <div className="w-full max-w-md mx-auto space-y-8">
             <div className="text-center">
               <div className="inline-flex items-center gap-2 mb-4">
-                <KeyRound className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400">
+                <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-600 dark:text-slate-400 font-semibold">
                   TWO_FACTOR_IDENTITY_AUTH
                 </span>
               </div>
               <h2 className="text-3xl font-black italic uppercase text-slate-900 dark:text-white tracking-tight">
                 Enter Verification OTP
               </h2>
-              <p className="text-xs text-slate-600 dark:text-gray-400 mt-2 font-mono">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 font-mono">
                 A 6-digit access code was sent to{" "}
                 <strong className="text-slate-900 dark:text-white">{otpEmail}</strong>
               </p>
@@ -367,7 +367,7 @@ const Login = () => {
                       value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(idx, e)}
-                      className="w-12 h-14 text-center text-2xl font-black font-mono bg-transparent border-0 border-b-2 border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white focus:border-blue-600 dark:focus:border-cyan-400 focus:outline-none transition-colors"
+                      className="w-12 h-14 text-center text-2xl font-black font-mono bg-transparent border-0 border-b-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-cyan-600 dark:focus:border-cyan-400 focus:outline-none transition-colors"
                     />
                   ))}
                 </div>
@@ -379,7 +379,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading || otp.join("").length !== 6}
-                  className="w-full py-3.5 rounded-none bg-slate-900 hover:bg-slate-800 text-white dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
+                  className="w-full py-3.5 rounded-none font-mono bg-cyan-600 hover:bg-cyan-500 text-white dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer shadow-sm"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Access Code"}
                 </button>
@@ -387,7 +387,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => { setRequiresOTP(false); setOtp(["", "", "", "", "", ""]); setError(""); }}
-                  className="w-full text-center text-xs font-mono text-slate-500 hover:text-slate-900 dark:text-gray-500 dark:hover:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  className="w-full text-center text-xs font-mono text-slate-600 hover:text-cyan-600 dark:text-slate-400 dark:hover:text-cyan-400 uppercase tracking-wider cursor-pointer transition-colors"
                 >
                   ← Return to Identity Access Terminal
                 </button>

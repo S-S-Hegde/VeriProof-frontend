@@ -1,14 +1,18 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { useTheme } from "../../context/ThemeContext";
 
 /**
  * InteractiveAuthBackground
- * Full-viewport interactive Three.js particle & lattice network
- * Renders at fixed inset-0 z-0 with alpha: true, smooth camera parallax,
- * interactive cursor gravity, and glowing cryptographic nodes.
+ * Full-viewport interactive Three.js particle & lattice network.
+ * Supports both:
+ * 1. Dark Theme Base (Deep midnight slate #020617 with Cyber Cyan / Emerald)
+ * 2. Luxury-Tech Light Theme (Multi-dimensional pearl platinum gradient with Deep Cyber Cyan)
  */
 const InteractiveAuthBackground = ({ role = "student" }) => {
   const containerRef = useRef(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const isRecruiter = role === "recruiter";
 
   useEffect(() => {
@@ -38,13 +42,33 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
 
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-    renderer.setClearColor(0x000000, 0); // Completely transparent
+    renderer.setClearColor(0x000000, 0); // Transparent canvas
     container.appendChild(renderer.domElement);
 
-    // Color palette according to role
-    const primaryHex = isRecruiter ? 0x10b981 : 0x06b6d4; // Emerald or Cyan
-    const secondaryHex = isRecruiter ? 0x34d399 : 0x38bdf8; // Light emerald or Light cyan
-    const lineHex = isRecruiter ? 0x059669 : 0x0284c7; // Deep lattice line color
+    // Color palette based on Theme & Role
+    const primaryHex = isDark
+      ? isRecruiter
+        ? 0x10b981 // Cyber Emerald (Dark)
+        : 0x06b6d4 // Cyber Cyan (Dark)
+      : isRecruiter
+      ? 0x059669 // Deep Emerald (Light)
+      : 0x0891b2; // Deep Cyber Cyan (Light)
+
+    const secondaryHex = isDark
+      ? isRecruiter
+        ? 0x34d399
+        : 0x38bdf8
+      : isRecruiter
+      ? 0x10b981
+      : 0x0284c7;
+
+    const lineHex = isDark
+      ? isRecruiter
+        ? 0x059669
+        : 0x0284c7
+      : isRecruiter
+      ? 0x047857
+      : 0x0891b2;
 
     // 3. Generate Cryptographic Lattice Nodes
     const nodeCount = 95;
@@ -67,9 +91,6 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
         x,
         y,
         z,
-        vx: (Math.random() - 0.5) * 0.02,
-        vy: (Math.random() - 0.5) * 0.02,
-        vz: (Math.random() - 0.5) * 0.015,
         phase: Math.random() * Math.PI * 2,
         speed: 0.005 + Math.random() * 0.01,
         amp: 0.5 + Math.random() * 1.5,
@@ -79,31 +100,37 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
       positions[i * 3 + 1] = y;
       positions[i * 3 + 2] = z;
 
-      // Color variation (70% primary, 30% brighter accent)
+      // Color distribution (70% primary, 30% secondary)
       const c = Math.random() > 0.3 ? primaryColor : secondaryColor;
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
     }
 
-    // Circular particle texture for crisp glowing points
+    // Circular particle texture for glowing cryptographic nodes
     const createParticleTexture = () => {
       const canvas = document.createElement("canvas");
       canvas.width = 64;
       canvas.height = 64;
       const ctx = canvas.getContext("2d");
       const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 30);
-      grad.addColorStop(0, "rgba(255, 255, 255, 1)");
-      grad.addColorStop(0.3, "rgba(34, 211, 238, 0.8)");
-      grad.addColorStop(0.7, "rgba(6, 182, 212, 0.25)");
-      grad.addColorStop(1, "rgba(6, 182, 212, 0)");
+      if (isDark) {
+        grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+        grad.addColorStop(0.3, "rgba(34, 211, 238, 0.85)");
+        grad.addColorStop(0.7, "rgba(6, 182, 212, 0.3)");
+        grad.addColorStop(1, "rgba(6, 182, 212, 0)");
+      } else {
+        grad.addColorStop(0, "rgba(8, 145, 178, 1)");
+        grad.addColorStop(0.4, "rgba(14, 116, 144, 0.75)");
+        grad.addColorStop(0.7, "rgba(2, 132, 199, 0.25)");
+        grad.addColorStop(1, "rgba(2, 132, 199, 0)");
+      }
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(32, 32, 30, 0, Math.PI * 2);
       ctx.fill();
 
-      const texture = new THREE.CanvasTexture(canvas);
-      return texture;
+      return new THREE.CanvasTexture(canvas);
     };
 
     const particleTexture = createParticleTexture();
@@ -113,12 +140,12 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
     particlesGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
     const particlesMat = new THREE.PointsMaterial({
-      size: 1.35,
+      size: isDark ? 1.35 : 1.5,
       vertexColors: true,
       map: particleTexture,
       transparent: true,
-      opacity: 0.9,
-      blending: THREE.AdditiveBlending,
+      opacity: isDark ? 0.9 : 0.8,
+      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
       depthWrite: false,
     });
 
@@ -137,8 +164,8 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
     const linesMat = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.45,
-      blending: THREE.AdditiveBlending,
+      opacity: isDark ? 0.45 : 0.25,
+      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
       depthWrite: false,
     });
 
@@ -154,14 +181,12 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
     };
 
     const handleMouseMove = (e) => {
-      // Normalize from -1 to 1
       mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // Handle Window Resize
     const handleResize = () => {
       width = window.innerWidth;
       height = window.innerHeight;
@@ -183,7 +208,7 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
 
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth camera parallax based on mouse
+      // Smooth camera parallax
       mouse.x += (mouse.targetX - mouse.x) * 0.04;
       mouse.y += (mouse.targetY - mouse.y) * 0.04;
 
@@ -191,24 +216,21 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
       camera.position.y = mouse.y * 3.5;
       camera.lookAt(0, 0, 0);
 
-      // Rotate whole lattice subtly
+      // Subtle rotation
       scene.rotation.y = elapsedTime * 0.025;
       scene.rotation.x = Math.sin(elapsedTime * 0.015) * 0.08;
 
       const posArr = particlesGeo.attributes.position.array;
       let lineVertexIdx = 0;
 
-      // Update node physics & organic wave float
       for (let i = 0; i < nodeCount; i++) {
         const n = nodes[i];
 
-        // Harmonic drift
         n.phase += n.speed;
         n.x = n.baseX + Math.sin(n.phase) * n.amp;
         n.y = n.baseY + Math.cos(n.phase * 0.8) * n.amp;
         n.z = n.baseZ + Math.sin(n.phase * 1.2) * (n.amp * 0.6);
 
-        // Interactive cursor repulsion in 3D projection plane
         const cursorWorldX = mouse.x * 22;
         const cursorWorldY = mouse.y * 14;
         const dx = cursorWorldX - n.x;
@@ -227,7 +249,7 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
       }
       particlesGeo.attributes.position.needsUpdate = true;
 
-      // Calculate lattice interconnections
+      // Interconnect nodes
       for (let i = 0; i < nodeCount; i++) {
         const n1 = nodes[i];
         for (let j = i + 1; j < nodeCount; j++) {
@@ -235,12 +257,11 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
           const dist = Math.hypot(n1.x - n2.x, n1.y - n2.y, n1.z - n2.z);
 
           if (dist < distanceThreshold) {
-            const alpha = (1 - dist / distanceThreshold);
+            const alpha = 1 - dist / distanceThreshold;
             const r = baseLineColor.r * alpha;
             const g = baseLineColor.g * alpha;
             const b = baseLineColor.b * alpha;
 
-            // Point 1
             linePositions[lineVertexIdx * 3] = n1.x;
             linePositions[lineVertexIdx * 3 + 1] = n1.y;
             linePositions[lineVertexIdx * 3 + 2] = n1.z;
@@ -250,7 +271,6 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
             lineColors[lineVertexIdx * 3 + 2] = b;
             lineVertexIdx++;
 
-            // Point 2
             linePositions[lineVertexIdx * 3] = n2.x;
             linePositions[lineVertexIdx * 3 + 1] = n2.y;
             linePositions[lineVertexIdx * 3 + 2] = n2.z;
@@ -272,7 +292,6 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
 
     animate();
 
-    // 7. Cleanup
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -289,12 +308,16 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
       linesMat.dispose();
       renderer.dispose();
     };
-  }, [isRecruiter]);
+  }, [isDark, isRecruiter]);
 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-0 pointer-events-auto overflow-hidden bg-slate-950/40"
+      className={`fixed inset-0 z-0 pointer-events-auto overflow-hidden transition-colors duration-500 ${
+        isDark
+          ? "bg-slate-950/40"
+          : "bg-gradient-to-br from-slate-50 via-zinc-50 to-amber-50/30"
+      }`}
       aria-hidden="true"
     />
   );
