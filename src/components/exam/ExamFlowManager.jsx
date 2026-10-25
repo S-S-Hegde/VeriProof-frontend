@@ -452,7 +452,6 @@ export default function ExamFlowManager() {
       window.removeEventListener("copy", handleCopyPaste);
       window.removeEventListener("paste", handleCopyPaste);
       window.removeEventListener("keydown", handleKeyDown);
-      if (eyeOffTimerRef.current) clearInterval(eyeOffTimerRef.current);
     };
   }, [stage, triggerViolation, currentIndex, questions, handleSelectOption, handleNext, handlePrev]);
 

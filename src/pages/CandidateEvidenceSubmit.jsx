@@ -46,6 +46,7 @@ const AddProject = () => {
   );
   const [snippets, setSnippets] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -142,6 +143,11 @@ const AddProject = () => {
 
         <div className="relative">
           <form onSubmit={submitHandler} className="space-y-12">
+            {errorMsg && (
+              <div className="p-4 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono rounded-sm">
+                ⚠️ {errorMsg}
+              </div>
+            )}
             <AnimatePresence mode="wait" custom={currentStep}>
               {currentStep === 1 && (
                 <motion.div

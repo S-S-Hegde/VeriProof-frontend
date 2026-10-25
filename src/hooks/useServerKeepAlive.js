@@ -7,7 +7,7 @@ const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes of inactivity cuts off kee
 export const useServerKeepAlive = (isAuthenticated) => {
   const intervalRef = useRef(null);
   const lastPingRef = useRef(0);
-  const lastActivityRef = useRef(Date.now());
+  const lastActivityRef = useRef(0);
   const [isIdle, setIsIdle] = useState(false);
 
   const [isExamActive, setIsExamActive] = useState(() => localStorage.getItem("veriproof_active_exam") === "true");
@@ -27,6 +27,7 @@ export const useServerKeepAlive = (isAuthenticated) => {
   // Track user activity to determine idle state
   useEffect(() => {
     if (!isAuthenticated) return;
+    lastActivityRef.current = Date.now();
 
     const handleActivity = () => {
       lastActivityRef.current = Date.now();

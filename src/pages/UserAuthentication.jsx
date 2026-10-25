@@ -84,7 +84,9 @@ const Login = () => {
             polling = false;
           }
         }
-      } catch (err) {}
+      } catch {
+        // ping failure ignored
+      }
       
       if (polling) setTimeout(pingServices, 3500);
     };
@@ -94,33 +96,8 @@ const Login = () => {
     return () => { polling = false; };
   }, []);
 
-  // ── Listen for authentication completion from dedicated auth window ────────
-  useEffect(() => {
-    const handleAuthMessage = (event) => {
-      if (event.data?.type === "VERIPROOF_AUTH_SUCCESS" && event.data?.data) {
-        finishLogin(event.data.data);
-      }
-    };
-
-    const handleStorageChange = (e) => {
-      if (e.key === "veriproof_auth_bridge_event" && e.newValue) {
-        try {
-          const { data } = JSON.parse(e.newValue);
-          if (data) finishLogin(data);
-        } catch (_) {}
-      }
-    };
-
-    window.addEventListener("message", handleAuthMessage);
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("message", handleAuthMessage);
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
   // ── finishLogin ───────────────────────────────────────────────────────────
-  const finishLogin = (data) => {
+  const finishLogin = useCallback((data) => {
     persistUserSession(data);
     setUser(data);
 
@@ -143,7 +120,34 @@ const Login = () => {
         { replace: true }
       );
     }, 1_800);
-  };
+  }, [location.state, navigate, setUser]);
+
+  // ── Listen for authentication completion from dedicated auth window ────────
+  useEffect(() => {
+    const handleAuthMessage = (event) => {
+      if (event.data?.type === "VERIPROOF_AUTH_SUCCESS" && event.data?.data) {
+        finishLogin(event.data.data);
+      }
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === "veriproof_auth_bridge_event" && e.newValue) {
+        try {
+          const { data } = JSON.parse(e.newValue);
+          if (data) finishLogin(data);
+        } catch {
+          // ignore parsing error
+        }
+      }
+    };
+
+    window.addEventListener("message", handleAuthMessage);
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("message", handleAuthMessage);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [finishLogin]);
 
   // ── Google OAuth handler ──────────────────────────────────────────────────
   // loginWithGoogle now uses redirect-only flow (no popup).

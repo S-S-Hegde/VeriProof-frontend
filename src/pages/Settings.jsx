@@ -61,6 +61,9 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("Identity");
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const showToast = (type, msg) => {
+    setToast({ type: typeof type === "string" ? type.toLowerCase() : "info", msg });
+  };
   const [systemStatus, setSystemStatus] = useState("Idle");
   const [form, setForm] = useState({
     name: "",

@@ -222,6 +222,7 @@ export default function Home() {
   const compRef = useRef(null);
   const heroRef = useRef(null);
   const statsRef = useRef(null);
+  const [hoveredFeature, setHoveredFeature] = useState(null);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
