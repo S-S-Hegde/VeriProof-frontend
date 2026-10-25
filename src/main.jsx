@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
+import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
 
 // Automatically reload page if a deployment updates chunk hashes, but prevent reload loop
 window.addEventListener("vite:preloadError", () => {
@@ -14,6 +15,8 @@ window.addEventListener("vite:preloadError", () => {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );

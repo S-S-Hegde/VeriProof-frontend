@@ -239,7 +239,7 @@ const Navbar = () => {
             </AnimatePresence>
           </motion.button>
 
-          {user ? (
+          {Boolean(user && (user.token || user._id || user.email)) ? (
             /* ── Profile Dropdown ── */
             <div ref={profileRef} className="relative">
               <motion.button
@@ -257,12 +257,14 @@ const Navbar = () => {
                     />
                   ) : (
                     <span className="text-[10px] font-mono font-bold text-cyan-500">
-                      {(user?.name || user?.email || "U").charAt(0).toUpperCase()}
+                      {user?.name
+                        ? user.name.split(" ").filter(Boolean).map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+                        : (user?.email ? user.email.charAt(0).toUpperCase() : "U")}
                     </span>
                   )}
                 </div>
                 <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-900 dark:text-white hidden sm:block max-w-[100px] truncate">
-                  {user?.name ? user.name.split(" ")[0] : (user?.email ? user.email.split("@")[0] : "User")}
+                  {user?.name ? user.name.split(" ").filter(Boolean)[0] || "User" : (user?.email ? user.email.split("@")[0] : "User")}
                 </span>
                 <ChevronRight
                   className={`w-3 h-3 text-slate-400 transition-transform ${profileOpen ? "rotate-90" : ""}`}

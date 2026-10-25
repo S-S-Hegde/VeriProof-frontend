@@ -202,11 +202,12 @@ const Vignette = () => (
 );
 
 // ─── Text line with per-character reveal ─────────────────────────────────────
-const CharReveal = ({ text, delay = 0, className = "", charClass = "", tag = "span" }) => {
+const CharReveal = ({ text = "", delay = 0, className = "", charClass = "", tag = "span" }) => {
   const Tag = tag;
+  const safeText = typeof text === "string" ? text : String(text || "");
   return (
     <Tag className={className} style={{ display: "inline-block" }}>
-      {text.split("").map((ch, i) => (
+      {safeText.split("").map((ch, i) => (
         <motion.span
           key={i}
           style={{ display: "inline-block", whiteSpace: "pre" }}

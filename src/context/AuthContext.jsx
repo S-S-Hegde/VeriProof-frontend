@@ -139,9 +139,12 @@ export const AuthProvider = ({ children }) => {
     try {
       api.post("/api/keep-alive/release").catch(() => {});
     } catch (_) {}
-    firebaseSignOut();
-    setUser(null);
-  }, [setUser]);
+    try {
+      firebaseSignOut().catch(() => {});
+    } catch (_) {}
+    clearUserSession();
+    setUserState(null);
+  }, []);
 
   const contextValue = useMemo(() => ({
     user,

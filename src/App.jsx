@@ -21,6 +21,7 @@ import CursorTracker from "./components/CursorTracker";
 import PageTransition from "./components/PageTransition";
 import ScrollToTop from "./components/ScrollToTop";
 import Lenis from "lenis";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -641,7 +642,9 @@ const AppContent = () => {
         >
           <Navbar />
           <main className="flex-grow flex flex-col w-full mx-auto pb-6 px-2 sm:px-4 lg:px-6 relative z-10">
-            {isAppVisible && <AnimatedRoutes />}
+            <ErrorBoundary>
+              {isAppVisible && <AnimatedRoutes />}
+            </ErrorBoundary>
           </main>
           <Footer />
         </div>
@@ -652,13 +655,15 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <SkillTreeProvider>
-          <AppContent />
-        </SkillTreeProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <SkillTreeProvider>
+            <AppContent />
+          </SkillTreeProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 
