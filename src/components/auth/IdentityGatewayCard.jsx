@@ -101,12 +101,12 @@ const IdentityGatewayCard = ({
           </span>
         </div>
 
-        <h2 className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
+        <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
           {mode === "login"
             ? "Authenticate Identity"
             : `Initialize ${isRecruiter ? "Recruiter" : "Candidate"} Profile`}
         </h2>
-        <p className="text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-300 font-sans leading-relaxed drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
           Access protected {isRecruiter ? "recruiter" : "candidate"} forensic verification tools via secure OAuth.
         </p>
       </div>
@@ -115,7 +115,7 @@ const IdentityGatewayCard = ({
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-3.5 border-l-2 border-red-500 bg-red-500/5 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2.5"
+          className="mb-6 p-3.5 border-l-2 border-red-500 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-mono flex items-start gap-2.5 backdrop-blur-xs"
         >
           <span className="text-red-500 font-bold shrink-0">⚠</span>
           <span className="leading-relaxed">{error}</span>
@@ -128,7 +128,7 @@ const IdentityGatewayCard = ({
           type="button"
           onClick={onGoogleAuth}
           disabled={googleLoading}
-          className="w-full py-3.5 px-5 rounded-none font-mono text-xs uppercase tracking-wider border border-slate-300 dark:border-slate-700 hover:border-cyan-600 dark:hover:border-cyan-400 bg-white/70 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900/70 text-slate-900 dark:text-slate-100 transition-all flex items-center justify-center gap-3 cursor-pointer group disabled:opacity-50 shadow-xs"
+          className="w-full py-3.5 px-5 rounded-none font-mono text-xs uppercase tracking-wider border border-slate-300 dark:border-slate-700/80 hover:border-cyan-600 dark:hover:border-cyan-400 bg-white/70 dark:bg-slate-900/30 hover:bg-white dark:hover:bg-slate-900/60 text-slate-900 dark:text-slate-100 backdrop-blur-xs transition-all flex items-center justify-center gap-3 cursor-pointer group disabled:opacity-50"
         >
           {googleLoading ? (
             <Loader2 className="w-4 h-4 animate-spin text-cyan-600 dark:text-cyan-400" />
@@ -171,12 +171,12 @@ const IdentityGatewayCard = ({
         )}
       </div>
 
-      {/* Clean Divider */}
+      {/* Clean Borderless Divider */}
       <div className="relative my-8 text-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+          <div className="w-full border-t border-slate-200/60 dark:border-slate-800/80" />
         </div>
-        <span className="relative px-4 bg-white/90 dark:bg-slate-950/80 backdrop-blur-sm text-[10px] font-mono tracking-widest text-slate-500 dark:text-slate-400 uppercase font-semibold">
+        <span className="relative px-4 bg-transparent text-[10px] font-mono tracking-widest text-slate-500 dark:text-slate-400 uppercase font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
           Or With Verified Credentials
         </span>
       </div>
@@ -192,7 +192,7 @@ const IdentityGatewayCard = ({
           <div className="relative">
             <label
               htmlFor="register-fullname"
-              className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-semibold"
+              className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
             >
               Full Name
             </label>
@@ -207,7 +207,7 @@ const IdentityGatewayCard = ({
                 placeholder="Jane Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
+                className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700/80 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -216,7 +216,7 @@ const IdentityGatewayCard = ({
         <div className="relative">
           <label
             htmlFor={`${mode}-email`}
-            className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-semibold"
+            className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
           >
             Email Address
           </label>
@@ -231,7 +231,7 @@ const IdentityGatewayCard = ({
               placeholder="you@domain.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
+              className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700/80 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
             />
           </div>
         </div>
@@ -240,7 +240,7 @@ const IdentityGatewayCard = ({
           <div className="flex items-center justify-between mb-1">
             <label
               htmlFor={`${mode}-password`}
-              className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 font-semibold"
+              className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
             >
               Password
             </label>
@@ -266,7 +266,7 @@ const IdentityGatewayCard = ({
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 pr-8 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
+              className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700/80 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 pr-8 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
             />
             <button
               type="button"
@@ -294,7 +294,7 @@ const IdentityGatewayCard = ({
           <div className="relative">
             <label
               htmlFor="register-confirm-password"
-              className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-semibold"
+              className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
             >
               Confirm Password
             </label>
@@ -309,7 +309,7 @@ const IdentityGatewayCard = ({
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 pr-8 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
+                className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700/80 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 pr-8 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
               />
               <button
                 type="button"
@@ -334,7 +334,7 @@ const IdentityGatewayCard = ({
             <div className="flex items-center justify-between mb-1">
               <label
                 htmlFor="register-github-username"
-                className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 font-semibold"
+                className="block text-[10px] font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
               >
                 GitHub Handle <span className="text-[9px] text-slate-500 dark:text-slate-400 font-normal lowercase">(optional)</span>
               </label>
@@ -349,7 +349,7 @@ const IdentityGatewayCard = ({
                 placeholder="octocat"
                 value={githubUsername}
                 onChange={(e) => setGithubUsername(e.target.value)}
-                className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
+                className="w-full bg-transparent border-0 border-b border-slate-300 dark:border-slate-700/80 focus:border-cyan-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors"
               />
             </div>
           </div>

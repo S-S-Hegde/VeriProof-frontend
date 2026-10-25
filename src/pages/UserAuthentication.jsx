@@ -349,10 +349,10 @@ const Login = () => {
                   TWO_FACTOR_IDENTITY_AUTH
                 </span>
               </div>
-              <h2 className="text-3xl font-black italic uppercase text-slate-900 dark:text-white tracking-tight">
+              <h2 className="text-3xl font-black italic uppercase text-slate-900 dark:text-white tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
                 Enter Verification OTP
               </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 font-mono">
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 font-mono drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
                 A 6-digit access code was sent to{" "}
                 <strong className="text-slate-900 dark:text-white">{otpEmail}</strong>
               </p>
@@ -371,7 +371,7 @@ const Login = () => {
                       value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKey(idx, e)}
-                      className="w-12 h-14 text-center text-2xl font-black font-mono bg-transparent border-0 border-b-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-cyan-600 dark:focus:border-cyan-400 focus:outline-none transition-colors"
+                      className="w-12 h-14 text-center text-2xl font-black font-mono bg-transparent border-0 border-b-2 border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-white focus:border-cyan-600 dark:focus:border-cyan-400 focus:outline-none transition-colors"
                     />
                   ))}
                 </div>
