@@ -67,10 +67,10 @@ const Magnetic = ({ children, className }) => {
 const TextReveal = ({ children, delay = 0 }) => (
   <div className="overflow-hidden">
     <motion.div
-      initial={{ y: "110%" }}
-      whileInView={{ y: 0 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 1, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.8, delay, ease: "easeOut" }}
     >
       {children}
     </motion.div>
@@ -152,7 +152,7 @@ const ProcessStep = ({ num, icon: Icon, title, desc, index = 0 }) => {
       initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.95 }}
       whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.6, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
       className="group relative"
     >
       <div className="hidden lg:block absolute -top-8 left-1/2 w-px h-8 bg-gradient-to-b from-transparent to-[var(--color-border)]" />
@@ -169,10 +169,10 @@ const ProcessStep = ({ num, icon: Icon, title, desc, index = 0 }) => {
               {num} //
             </span>
           </div>
-          <h3 className="text-xl font-black uppercase tracking-tighter mb-3 group-hover:text-[var(--color-accent)] transition-colors duration-500">
+          <h3 className="text-xl font-black uppercase tracking-tighter mb-3 group-hover:text-[var(--color-accent)] transition-colors duration-500 text-slate-900 dark:text-white">
             {title}
           </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
+          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
             {desc}
           </p>
         </div>
@@ -196,10 +196,10 @@ const FeatureRow = ({ icon: Icon, label, desc, index = 0 }) => {
         <Icon className="w-4 h-4" />
       </div>
       <div>
-        <div className="text-sm font-bold uppercase tracking-widest mb-1 group-hover:text-[var(--color-accent)] transition-colors duration-500">
+        <div className="text-sm font-bold uppercase tracking-widest mb-1 group-hover:text-[var(--color-accent)] transition-colors duration-500 text-slate-900 dark:text-white">
           {label}
         </div>
-        <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
+        <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-w-sm group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500 font-sans">
           {desc}
         </div>
       </div>
@@ -267,7 +267,7 @@ export default function Demo() {
   }, [user, navigate]);
 
   return (
-    <div ref={compRef} className="overflow-hidden">
+    <div ref={compRef} className="overflow-x-hidden w-full">
       <AnimatePresence>
         {!isShutterOpen && (
           <>
@@ -304,47 +304,32 @@ export default function Demo() {
         )}
       </AnimatePresence>
 
+      {/* ── Hero Section (Split Layout) ── */}
       <section
         ref={heroSectionRef}
-        className="relative min-h-[90vh] lg:min-h-[94vh] flex flex-col justify-center overflow-hidden pt-12 pb-16 lg:py-20 px-4 sm:px-6 lg:px-10"
+        className="relative min-h-[90vh] lg:min-h-[92vh] flex items-center justify-center overflow-hidden py-12 md:py-16 px-4 sm:px-6 lg:px-8"
       >
         {/* Real-Time Telemetry HUD Overlay */}
-        <div className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-4 bg-slate-900/80 border border-slate-800 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-mono text-cyan-400 shadow-xl pointer-events-auto">
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 hidden md:flex items-center gap-3 bg-slate-900/85 dark:bg-slate-900/85 border border-slate-800 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-mono text-cyan-400 shadow-xl pointer-events-auto">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
           </span>
-          <span>GLOBAL_NODES: {activeNodes} ACTIVE</span>
+          <span className="font-semibold">[GLOBAL_NODES: {activeNodes} ACTIVE]</span>
           <span className="text-slate-600">|</span>
-          <span>RESUMES_VERIFIED: {scanCount.toLocaleString()}</span>
+          <span className="font-bold text-slate-100">RESUMES_VERIFIED: {scanCount.toLocaleString()}</span>
         </div>
 
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-accent),transparent_60%)] opacity-[0.05] pointer-events-none" />
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute h-px bg-[var(--color-accent)] opacity-[0.06]"
-              style={{ top: `${10 + i * 11}%`, left: 0, right: 0 }}
-              initial={{ scaleX: 0, originX: i % 2 === 0 ? 0 : 1 }}
-              animate={{ scaleX: 1 }}
-              transition={{
-                duration: 1.5,
-                delay: 0.8 + i * 0.1,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-            />
-          ))}
-        </div>
 
-        <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
-          {/* Left Column: High-impact typography, Market-driven copy, INITIALIZE_SEQUENCE CTA */}
+        <div className="max-w-7xl mx-auto w-full relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12">
+          {/* Left: Text Column (w-full md:w-1/2) */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
             style={shouldReduceMotion ? undefined : { opacity: heroOpacity, filter: heroBlur, y: heroY }}
-            className="lg:col-span-7 flex flex-col items-start text-left"
+            className="w-full md:w-1/2 flex flex-col items-start text-left z-10"
           >
             <div className="flex items-center gap-3 mb-6">
               <TerminalBadge text="SYSTEM_STATUS: SECURE_PROTOCOL_ACTIVE" icon={Cpu} pulse />
@@ -355,7 +340,7 @@ export default function Demo() {
             </div>
 
             <TextReveal delay={0.2}>
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black italic uppercase tracking-tighter leading-[0.88] mb-6">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black italic uppercase tracking-tighter leading-[0.88] mb-6 text-slate-900 dark:text-white">
                 The{" "}
                 <span
                   style={{
@@ -375,16 +360,16 @@ export default function Demo() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-xl mb-8 leading-relaxed font-sans"
+              transition={{ delay: 0.4 }}
+              className="text-sm md:text-base text-slate-700 dark:text-slate-300 max-w-xl mb-8 leading-relaxed font-sans"
             >
-              Traditional candidate screening relies on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims, AI-generated portfolios, and technical skill fraud, hiring teams are flying blind. VeriProof replaces blind trust with cryptographic proof—analyzing commit history, dependency graphs, and architecture choices to verify what engineers actually built.
+              Traditional ATS screening relies on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims, AI-generated portfolios, and skill fraud, hiring teams are flying blind. VeriProof replaces blind trust with cryptographic proof—analyzing git commit history, dependency graphs, and code architectures to verify what engineers actually built.
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.6 }}
               className="flex flex-wrap items-center gap-4"
             >
               <Magnetic>
@@ -400,7 +385,7 @@ export default function Demo() {
 
               <Link
                 to="/about"
-                className="inline-flex items-center gap-2 px-6 py-4 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-4 text-xs font-mono uppercase tracking-[0.2em] text-slate-700 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 transition-colors"
               >
                 Protocol Specs →
               </Link>
@@ -410,27 +395,31 @@ export default function Demo() {
             <div className="grid grid-cols-3 gap-6 pt-8 mt-8 border-t border-[var(--color-border)] w-full max-w-lg">
               <div>
                 <div className="text-xl sm:text-2xl font-black font-mono text-[var(--color-accent)]">99.98%</div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400">Forensic Accuracy</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400">Forensic Accuracy</div>
               </div>
               <div>
                 <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white">48 Nodes</div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400">Global Mesh</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400">Global Mesh</div>
               </div>
               <div>
                 <div className="text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">&lt; 50ms</div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-gray-400">ZK Proof Hash</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400">ZK Proof Hash</div>
               </div>
             </div>
           </motion.div>
 
-          {/* Right Column: Interactive 3D WebGL Globe Centerpiece */}
+          {/* Right: Globe Column (w-full md:w-1/2 scaling massively) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.4 }}
-            className="lg:col-span-5 flex items-center justify-center relative w-full"
+            transition={{ duration: 2, ease: "easeInOut" }}
+            className="w-full md:w-1/2 flex items-center justify-center relative -mt-6 md:mt-0 overflow-visible"
           >
-            <HeroInteractiveGlobe />
+            <HeroInteractiveGlobe
+              className="relative w-full aspect-square max-w-[460px] md:max-w-[560px] lg:max-w-[680px] mx-auto flex items-center justify-center select-none scale-100 md:scale-110 lg:scale-125"
+              showCornerHUD={false}
+              showDragHint={true}
+            />
           </motion.div>
         </div>
       </section>
@@ -443,7 +432,7 @@ export default function Demo() {
               <TerminalBadge text="Market_Friction // Threat_Matrix" icon={AlertTriangle} />
             </div>
             <TextReveal>
-              <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.88]">
+              <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.88] text-slate-900 dark:text-white">
                 Why The Market Needs
                 <br />
                 <span className="text-[var(--color-accent)] not-italic">
@@ -453,14 +442,14 @@ export default function Demo() {
             </TextReveal>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Card 1: The Resume Inflation Crisis */}
             <motion.div
               initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.96 }}
               whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="group border border-[var(--color-border)] p-8 lg:p-10 hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-500 relative overflow-hidden"
+              className="group border border-[var(--color-border)] p-8 hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-500 relative overflow-hidden"
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 border border-[var(--color-border)] flex items-center justify-center group-hover:border-red-500 group-hover:text-red-500 transition-colors duration-500">
@@ -470,10 +459,10 @@ export default function Demo() {
                   [ PROBLEM // 01 ]
                 </span>
               </div>
-              <h3 className="text-2xl font-black uppercase tracking-tight mb-4 group-hover:text-red-500 transition-colors duration-500">
+              <h3 className="text-xl font-black uppercase tracking-tight mb-4 group-hover:text-red-500 transition-colors duration-500 text-slate-900 dark:text-white">
                 The Resume Inflation Crisis
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
                 Over 70% of engineering applicants embellish technical proficiencies or submit AI-generated code samples that they cannot explain, wasting hundreds of engineering hours in dead-end interviews.
               </p>
               <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-700" />
@@ -485,7 +474,7 @@ export default function Demo() {
               whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="group border border-[var(--color-border)] p-8 lg:p-10 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5 transition-all duration-500 relative overflow-hidden"
+              className="group border border-[var(--color-border)] p-8 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5 transition-all duration-500 relative overflow-hidden"
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 border border-[var(--color-border)] flex items-center justify-center group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)] transition-colors duration-500">
@@ -495,13 +484,38 @@ export default function Demo() {
                   [ SOLUTION // 02 ]
                 </span>
               </div>
-              <h3 className="text-2xl font-black uppercase tracking-tight mb-4 group-hover:text-[var(--color-accent)] transition-colors duration-500">
+              <h3 className="text-xl font-black uppercase tracking-tight mb-4 group-hover:text-[var(--color-accent)] transition-colors duration-500 text-slate-900 dark:text-white">
                 Cryptographic Verification Over Trust
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
                 Instead of trusting static PDF resumes, VeriProof cryptographically binds code provenance directly to candidate profiles, ensuring 100% authenticity before a recruiter ever clicks schedule.
               </p>
               <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-[var(--color-accent)] group-hover:w-full transition-all duration-700" />
+            </motion.div>
+
+            {/* Card 3: Zero-Knowledge Auditing */}
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.96 }}
+              whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="group border border-[var(--color-border)] p-8 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all duration-500 relative overflow-hidden"
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 border border-[var(--color-border)] flex items-center justify-center group-hover:border-emerald-500 group-hover:text-emerald-500 transition-colors duration-500">
+                  <Shield className="w-5 h-5 text-emerald-500" />
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-emerald-500 font-bold">
+                  [ ZERO_KNOWLEDGE // 03 ]
+                </span>
+              </div>
+              <h3 className="text-xl font-black uppercase tracking-tight mb-4 group-hover:text-emerald-500 transition-colors duration-500 text-slate-900 dark:text-white">
+                Zero-Knowledge Proof Ledger
+              </h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+                Recruiters and hiring managers independently verify engineering authenticity and commit provenance without exposing candidates' private proprietary codebases or company intellectual property.
+              </p>
+              <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 group-hover:w-full transition-all duration-700" />
             </motion.div>
           </div>
         </div>

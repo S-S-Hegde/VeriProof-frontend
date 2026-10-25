@@ -591,11 +591,10 @@ const AppContent = () => {
 
     if (!isLowPowerDevice) {
       lenis = new Lenis({
-        lerp: 0.1,
-        duration: 0.8,
+        duration: 1.5,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
-        wheelMultiplier: 1.0,
-        syncTouch: false,
+        lerp: 0.05,
       });
 
       window.__lenis = lenis;
@@ -642,7 +641,7 @@ const AppContent = () => {
           }`}
         >
           <Navbar />
-          <main className="flex-grow flex flex-col w-full mx-auto pt-16 sm:pt-20 pb-6 px-2 sm:px-4 lg:px-6 relative z-10">
+          <main className="flex-grow flex flex-col w-full mx-auto pb-6 px-2 sm:px-4 lg:px-6 relative z-10">
             {isAppVisible && <AnimatedRoutes />}
           </main>
           <Footer />

@@ -366,11 +366,15 @@ export const HeroInteractiveGlobe = ({
 
   return (
     <div className={className}>
-      {/* Interactive WebGL Canvas Container */}
+      {/* Interactive WebGL Canvas Container with Seamless Radial Mask */}
       <div
         ref={mountRef}
         className="w-full h-full cursor-grab active:cursor-grabbing touch-none pointer-events-auto relative z-10"
         title="Click and drag to rotate the verification mesh globe"
+        style={{
+          WebkitMaskImage: "radial-gradient(circle, black 40%, transparent 70%)",
+          maskImage: "radial-gradient(circle, black 40%, transparent 70%)",
+        }}
       />
 
       {/* Atmospheric Radial Backlight */}

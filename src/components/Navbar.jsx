@@ -6,13 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Settings,
-  ShieldCheck,
   Moon,
   Sun,
-  Clock,
-  X,
-  Activity,
-  Wand2,
   FileText,
   Award,
   Info,
@@ -20,23 +15,18 @@ import {
   BarChart3,
   Briefcase,
   Users,
-  HelpCircle,
   GitBranch,
   FolderGit2,
-  MoreHorizontal,
-  Home,
-  User as UserIcon,
   LogOut,
   ChevronRight,
 } from "lucide-react";
 import { cldAvatar } from "../utils/cloudinaryImage";
-
 import ConfirmModal from "./ConfirmModal";
 
 /* ═══════════════════════════════════════════════════
-   VeriProof Navbar v5.0
-   Desktop: Glass bar + pill indicators + forensic status
-   Mobile:  Bottom dock (5 primary) + overflow drawer
+   VeriProof Slim Sticky Navbar
+   Height: h-16 (64px) constrained
+   Unified responsive top header, zero floating docks
    ═══════════════════════════════════════════════════ */
 
 const Navbar = () => {
@@ -44,47 +34,33 @@ const Navbar = () => {
   const { theme, toggleTheme, THEMES } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
   const [time, setTime] = useState(new Date());
   const [profileOpen, setProfileOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const profileRef = useRef(null);
-  const moreRef = useRef(null);
 
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 24);
-    };
-
     const timer = setInterval(() => setTime(new Date()), 1000);
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, []);
 
-  // Close dropdowns on outside click
+  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target))
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
-      if (moreRef.current && !moreRef.current.contains(e.target))
-        setMoreOpen(false);
+      }
     };
     document.addEventListener("pointerdown", handler);
     return () => document.removeEventListener("pointerdown", handler);
   }, []);
 
-  // Close mobile drawer on route change
+  // Close dropdown on route change
   useEffect(() => {
-    setMoreOpen(false);
     setProfileOpen(false);
   }, [location.pathname]);
 
-  // Hide Navbar completely when taking an exam to prevent accidental exits & preserve fullscreen lockdown
+  // Hide Navbar completely when taking an exam to preserve lockdown
   if (location.pathname === "/exams") {
     return null;
   }
@@ -118,7 +94,7 @@ const Navbar = () => {
     location.pathname === "/forgot-password" ||
     location.pathname.startsWith("/reset-password");
 
-  // Primary nav (desktop top bar) — Only for authenticated users outside auth pages
+  // Primary nav — authenticated users outside auth pages
   const primaryNav = !user || isAuthPage || isUnverifiedRecruiter
     ? []
     : isRecruiter
@@ -136,32 +112,6 @@ const Navbar = () => {
         { name: "Project Archive", path: "/project-archive", icon: FolderGit2 },
       ];
 
-  // Mobile dock items — Strictly for authenticated users on workspace pages
-  const showMobileDock = Boolean(user && !isAuthPage && !isUnverifiedRecruiter);
-  const dockItems = showMobileDock
-    ? [
-        { name: "Home", path: "/", icon: Home },
-        ...primaryNav.slice(0, 3),
-        {
-          name: "More",
-          path: null,
-          icon: MoreHorizontal,
-          action: () => setMoreOpen(true),
-        },
-      ]
-    : [];
-
-  // Overflow drawer items (everything not in dock)
-  const overflowNav = [
-    ...(primaryNav.length > 3 ? primaryNav.slice(3) : []),
-    { name: "Analytics", path: "/analytics", icon: BarChart3 },
-    { name: "Settings", path: isRecruiter ? "/recruiter-settings" : "/settings", icon: Settings },
-    { name: "About", path: "/about", icon: Info },
-    { name: "Contact", path: "/contact", icon: Mail },
-    { name: "Support", path: "/support", icon: HelpCircle },
-  ];
-
-  // Profile dropdown items
   const profileActions = [
     { name: "Protocols", path: isRecruiter ? "/recruiter-settings" : "/settings", icon: Settings },
     { name: "Analytics", path: "/analytics", icon: BarChart3 },
@@ -173,470 +123,225 @@ const Navbar = () => {
 
   const logoDestination = !user
     ? "/"
+    : isUnverifiedRecruiter
+    ? "/register"
+    : isRecruiter
+    ? "/recruiter-dashboard"
     : "/dashboard";
 
   return (
     <>
-      {/* ════════════════════════════════════════════
-          DESKTOP NAVBAR
-          ════════════════════════════════════════════ */}
-      <nav
-        className={`fixed top-0 inset-x-0 z-[60] transition-all duration-300 ease-out hidden lg:block ${
-          scrolled
-            ? "py-2.5 bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)] shadow-sm translate-y-0"
-            : "py-2.5 bg-transparent translate-y-2"
-        }`}
-      >
-        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between w-full">
-          {/* ── Left: Logo + Forensic Status ── */}
-          <div className="flex items-center gap-6">
-            <Link to={logoDestination} className="group relative flex items-center">
-              <span className="text-xl font-black italic tracking-tighter uppercase leading-none text-[var(--color-text)]">
-                VeriProof
-                <span className="text-[var(--color-accent)] not-italic">.</span>
-              </span>
-              <motion.div
-                className="absolute -bottom-1 left-0 h-[2px] bg-[var(--color-accent)]"
-                initial={false}
-                animate={{ width: isActive(logoDestination) ? "100%" : "0%" }}
-                whileHover={{ width: "100%" }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              />
-            </Link>
-
-            {/* Forensic status indicators — compact */}
-            <div className="hidden xl:flex items-center gap-4 pl-6 border-l border-[var(--color-border)]">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="vp-status-dot"
-                  style={{ width: 5, height: 5 }}
-                />
-                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">
-                  Live
-                </span>
-              </div>
-              <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
-                {time.toLocaleTimeString([], { hour12: false })} UTC
-              </span>
-            </div>
-          </div>
-
-          {/* ── Center: Nav Links with Pill Indicators (Authenticated Workspace Only) ── */}
-          {primaryNav.length > 0 && (
-            <div className="flex items-center gap-1 rounded-[var(--radius-lg)] bg-[var(--color-bg-sunken)]/50 p-1 border border-[var(--color-border)]">
-              {primaryNav.map((link) => {
-                const Icon = link.icon;
-                const active = isActive(link.path);
-                return (
-                  <Link
-                    key={link.name}
-                    to={link.path}
-                    onClick={(e) => guard(e, link.path)}
-                    className={`relative flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 rounded-[var(--radius-md)] ${
-                      active
-                        ? "text-[var(--color-bg)]"
-                        : "text-slate-600 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white"
-                    }`}
-                  >
-                    {active && (
-                      <motion.div
-                        layoutId="nav-pill"
-                        className="absolute inset-0 bg-[var(--color-text)] rounded-[var(--radius-md)] pointer-events-none"
-                        transition={{
-                          type: "spring",
-                          stiffness: 380,
-                          damping: 30,
-                        }}
-                      />
-                    )}
-                    <span className="relative z-10 flex items-center gap-2">
-                      <Icon className="w-3.5 h-3.5" />
-                      <span className="hidden xl:inline">{link.name}</span>
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ── Right: Theme + Auth/Profile ── */}
-          <div className="flex items-center gap-3">
-            {/* Theme toggle */}
-            <motion.button
-              onClick={toggleTheme}
-              className="relative w-9 h-9 flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text)] transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Toggle theme"
-            >
-              <AnimatePresence mode="wait">
-                {theme === THEMES.DARK ? (
-                  <motion.div
-                    key="sun"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Sun className="w-4 h-4" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="moon"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Moon className="w-4 h-4" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.button>
-
-            {user ? (
-              /* ── Profile dropdown ── */
-              <div ref={profileRef} className="relative">
-                <motion.button
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] hover:border-[var(--color-accent)]/40 transition-colors bg-[var(--color-bg-sunken)]/50"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="w-7 h-7 rounded-[var(--radius-md)] overflow-hidden bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0">
-                    {user.profileImage ? (
-                      <img
-                        src={cldAvatar(user.profileImage)}
-                        alt={user.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-[10px] font-mono font-bold text-[var(--color-accent)]">
-                        {user.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-text)] hidden xl:block max-w-[100px] truncate">
-                    {user.name.split(" ")[0]}
-                  </span>
-                  <ChevronRight
-                    className={`w-3 h-3 text-[var(--color-muted)] transition-transform ${profileOpen ? "rotate-90" : ""}`}
-                  />
-                </motion.button>
-
-                <AnimatePresence>
-                  {profileOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 mt-2 w-60 vp-glass p-2 origin-top-right z-50"
-                    >
-                      {/* User info header */}
-                      <div className="px-3 py-3 mb-1 border-b border-[var(--color-border)]">
-                        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-muted)]">
-                          Logged In As
-                        </p>
-                        <p className="text-sm font-bold uppercase tracking-wider text-[var(--color-text)] truncate mt-0.5">
-                          {user.name}
-                        </p>
-                        <p className="font-mono text-[10px] tracking-wider text-[var(--color-muted)] mt-0.5">
-                          {user.role === "recruiter"
-                            ? "RECRUITER"
-                            : "CANDIDATE"}
-                        </p>
-                      </div>
-
-                      <div className="py-1">
-                        {profileActions.map((item) => {
-                          const Icon = item.icon;
-                          return (
-                            <Link
-                              key={item.name}
-                              to={item.path}
-                              onClick={() => setProfileOpen(false)}
-                              className="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-accent-subtle)] rounded-[var(--radius-md)] transition-colors"
-                            >
-                              <Icon className="w-3.5 h-3.5" />
-                              {item.name}
-                            </Link>
-                          );
-                        })}
-                      </div>
-
-                      <div className="pt-1 mt-1 border-t border-[var(--color-border)]">
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-error)] hover:bg-[var(--color-error)]/8 rounded-[var(--radius-md)] transition-colors"
-                        >
-                          <LogOut className="w-3.5 h-3.5" />
-                          Terminate_Session
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              /* ── Auth buttons ── */
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/login"
-                  className="vp-btn vp-btn-secondary text-[10px] py-2 px-5"
-                >
-                  Sign_In
-                </Link>
-                <Link
-                  to="/register"
-                  className="vp-btn vp-btn-primary text-[10px] py-2 px-5"
-                >
-                  Register
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* ════════════════════════════════════════════
-          MOBILE BOTTOM DOCK (Workspace Only)
-          ════════════════════════════════════════════ */}
-      {showMobileDock && dockItems.length > 0 && (
-        <nav className="fixed bottom-0 inset-x-0 z-[60] lg:hidden">
-          {/* Dock bar */}
-          <div className="mx-3 mb-3 rounded-[var(--radius-2xl)] bg-[var(--vp-glass-bg)] backdrop-blur-2xl border border-[var(--vp-glass-border)] shadow-[0_-4px_32px_rgba(0,0,0,0.12)]">
-            <div className="flex items-center justify-around px-2 py-2">
-              {dockItems.map((item) => {
-                const Icon = item.icon;
-                const active = item.path && isActive(item.path);
-                const isMore = item.name === "More";
-
-                return (
-                  <motion.div key={item.name} whileTap={{ scale: 0.9 }}>
-                    {isMore ? (
-                      <button
-                        onClick={item.action}
-                        className="flex flex-col items-center gap-1 px-3 py-2 text-[var(--color-muted)] active:text-[var(--color-text)] transition-colors"
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="text-[9px] font-bold uppercase tracking-wider">
-                          {item.name}
-                        </span>
-                      </button>
-                    ) : (
-                      <Link
-                        to={item.path}
-                        onClick={(e) => guard(e, item.path)}
-                        className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors relative ${
-                          active
-                            ? "text-[var(--color-accent)]"
-                            : "text-[var(--color-muted)]"
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="text-[9px] font-bold uppercase tracking-wider">
-                          {item.name}
-                        </span>
-                        {active && (
-                          <motion.div
-                            layoutId="dock-indicator"
-                            className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-[var(--color-accent)] pointer-events-none"
-                            transition={{
-                              type: "spring",
-                              stiffness: 400,
-                              damping: 28,
-                            }}
-                          />
-                        )}
-                      </Link>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        </nav>
-      )}
-
-      {/* ════════════════════════════════════════════
-          MOBILE: Minimal top bar (logo + theme + profile)
-          ════════════════════════════════════════════ */}
-      <div
-        className={`fixed top-0 inset-x-0 z-[60] lg:hidden transition-all duration-300 ease-out ${
-          scrolled
-            ? "bg-[var(--vp-glass-bg)] backdrop-blur-2xl border-b border-[var(--vp-glass-border)] shadow-sm"
-            : "bg-transparent"
-        }`}
-      >
-        <div className="flex justify-between items-center w-full px-6 py-4">
-          <Link
-            to={logoDestination}
-            className="text-lg font-black italic tracking-tighter uppercase text-[var(--color-text)]"
-          >
-            VeriProof<span className="text-[var(--color-accent)] not-italic">.</span>
+      {/* ─── Slim Sticky Top Header (h-16) ─── */}
+      <header className="h-16 flex items-center justify-between px-6 border-b border-slate-200/80 dark:border-slate-800/60 bg-stone-50/80 dark:bg-slate-950/80 backdrop-blur-md z-50 sticky top-0 w-full transition-colors duration-200">
+        {/* ── Left: Logo + Forensic Status ── */}
+        <div className="flex items-center gap-6">
+          <Link to={logoDestination} className="group relative flex items-center">
+            <span className="text-xl font-black italic tracking-tighter uppercase leading-none text-slate-900 dark:text-white">
+              VeriProof
+              <span className="text-[var(--color-accent)] not-italic">.</span>
+            </span>
+            <motion.div
+              className="absolute -bottom-1 left-0 h-[2px] bg-[var(--color-accent)]"
+              initial={false}
+              animate={{ width: isActive(logoDestination) ? "100%" : "0%" }}
+              whileHover={{ width: "100%" }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            />
           </Link>
 
-          <div className="flex items-center gap-3">
-            {/* Compact status */}
-            <div className="flex items-center gap-1.5 mr-1">
-              <span className="vp-status-dot" style={{ width: 4, height: 4 }} />
-              <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)] font-semibold">
+          {/* Forensic status indicator */}
+          <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-1.5">
+              <span className="vp-status-dot" style={{ width: 5, height: 5 }} />
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-slate-500 dark:text-slate-400 font-semibold">
                 Live
               </span>
             </div>
-
-            <motion.button
-              onClick={toggleTheme}
-              className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors"
-              whileTap={{ scale: 0.9 }}
-              aria-label="Toggle theme"
-            >
-              {theme === THEMES.DARK ? (
-                <Sun className="w-3.5 h-3.5" />
-              ) : (
-                <Moon className="w-3.5 h-3.5" />
-              )}
-            </motion.button>
-
-            {user ? (
-              <Link
-                to="/settings"
-                className="w-8 h-8 rounded-[var(--radius-md)] overflow-hidden border border-[var(--color-border)] bg-[var(--color-accent)]/10 flex items-center justify-center"
-              >
-                {user.profileImage ? (
-                  <img
-                    src={cldAvatar(user.profileImage)}
-                    alt={user.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-[10px] font-mono font-bold text-[var(--color-accent)]">
-                    {user.name.charAt(0)}
-                  </span>
-                )}
-              </Link>
-            ) : isAuthPage ? (
-              <Link
-                to="/"
-                className="font-mono text-[10px] uppercase tracking-wider text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white"
-              >
-                Home
-              </Link>
-            ) : (
-              <Link
-                to="/login"
-                className="vp-btn vp-btn-primary text-[9px] py-1.5 px-3"
-              >
-                Auth
-              </Link>
-            )}
+            <span className="hidden xl:inline font-mono text-[10px] tracking-[0.15em] uppercase text-slate-400 dark:text-slate-500">
+              {time.toLocaleTimeString([], { hour12: false })} UTC
+            </span>
           </div>
         </div>
-      </div>
 
-      {/* ════════════════════════════════════════════
-          MOBILE: Overflow Drawer (More panel)
-          ════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {moreOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMoreOpen(false)}
-              className="fixed inset-0 z-[65] bg-black/40 backdrop-blur-sm lg:hidden"
-            />
-            {/* Drawer */}
-            <motion.div
-              ref={moreRef}
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 32, stiffness: 300 }}
-              className="fixed bottom-0 inset-x-0 z-[70] lg:hidden rounded-t-[var(--radius-2xl)] bg-[var(--color-bg-raised)] border-t border-[var(--vp-glass-border)] shadow-[0_-8px_40px_rgba(0,0,0,0.2)] max-h-[70vh] overflow-y-auto"
-            >
-              {/* Handle */}
-              <div className="flex justify-center pt-3 pb-2">
-                <div className="w-10 h-1 rounded-full bg-[var(--color-border-strong)]" />
-              </div>
-
-              <div className="px-5 pb-3">
-                <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-[var(--color-muted)] mb-4">
-                  Navigation_Matrix
-                </p>
-              </div>
-
-              <div className="px-3 pb-6">
-                {overflowNav.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.path}
-                      onClick={(e) => {
-                        setMoreOpen(false);
-                        guard(e, item.path);
+        {/* ── Center: Nav Links with Pill Indicators (Desktop Only) ── */}
+        {primaryNav.length > 0 && (
+          <nav className="hidden lg:flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-900/60 p-1 border border-slate-200 dark:border-slate-800/80">
+            {primaryNav.map((link) => {
+              const Icon = link.icon;
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  onClick={(e) => guard(e, link.path)}
+                  className={`relative flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-200 rounded-md ${
+                    active
+                      ? "text-white dark:text-slate-950 font-black"
+                      : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                  }`}
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="nav-pill"
+                      className="absolute inset-0 bg-slate-900 dark:bg-white rounded-md pointer-events-none"
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
                       }}
-                      className={`flex items-center gap-4 px-4 py-3.5 rounded-[var(--radius-lg)] transition-colors ${
-                        active
-                          ? "bg-[var(--color-accent-subtle)] text-[var(--color-accent)]"
-                          : "text-[var(--color-text)] hover:bg-[var(--color-accent-subtle)]"
-                      }`}
-                    >
-                      <Icon className="w-5 h-5 flex-shrink-0" />
-                      <span className="text-sm font-bold uppercase tracking-[0.12em]">
-                        {item.name}
-                      </span>
-                      {active && (
-                        <span
-                          className="ml-auto vp-status-dot"
-                          style={{ width: 5, height: 5 }}
-                        />
-                      )}
-                    </Link>
-                  );
-                })}
-
-                {/* Logout */}
-                {user && (
-                  <button
-                    onClick={() => {
-                      setMoreOpen(false);
-                      handleLogout();
-                    }}
-                    className="w-full flex items-center gap-4 px-4 py-3.5 rounded-[var(--radius-lg)] text-[var(--color-error)] hover:bg-[var(--color-error)]/8 transition-colors mt-2"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    <span className="text-sm font-bold uppercase tracking-[0.12em]">
-                      Terminate_Session
-                    </span>
-                  </button>
-                )}
-              </div>
-
-              {/* System info */}
-              <div className="px-5 py-4 border-t border-[var(--color-border)] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="vp-status-dot"
-                    style={{ width: 4, height: 4 }}
-                  />
-                  <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
-                    Protocol_Online
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{link.name}</span>
                   </span>
-                </div>
-                <span className="font-mono text-[9px] tracking-[0.15em] uppercase text-[var(--color-muted)]">
-                  v5.0.0
-                </span>
-              </div>
-            </motion.div>
-          </>
+                </Link>
+              );
+            })}
+          </nav>
         )}
-      </AnimatePresence>
+
+        {/* ── Right: Theme + Auth / Profile ── */}
+        <div className="flex items-center gap-3">
+          {/* Theme Toggle Button */}
+          <motion.button
+            onClick={toggleTheme}
+            className="w-9 h-9 flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Toggle theme"
+          >
+            <AnimatePresence mode="wait">
+              {theme === THEMES.DARK ? (
+                <motion.div
+                  key="sun"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Sun className="w-4 h-4 text-cyan-400" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="moon"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Moon className="w-4 h-4 text-slate-700" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+
+          {user ? (
+            /* ── Profile Dropdown ── */
+            <div ref={profileRef} className="relative">
+              <motion.button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 hover:border-cyan-400/50 transition-colors bg-slate-100/50 dark:bg-slate-900/50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="w-7 h-7 rounded overflow-hidden bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                  {user.profileImage ? (
+                    <img
+                      src={cldAvatar(user.profileImage)}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[10px] font-mono font-bold text-cyan-500">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-900 dark:text-white hidden sm:block max-w-[100px] truncate">
+                  {user.name.split(" ")[0]}
+                </span>
+                <ChevronRight
+                  className={`w-3 h-3 text-slate-400 transition-transform ${profileOpen ? "rotate-90" : ""}`}
+                />
+              </motion.button>
+
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute right-0 mt-2 w-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-2xl p-2 origin-top-right z-50 font-mono text-xs"
+                  >
+                    <div className="px-3 py-2.5 mb-1 border-b border-slate-200 dark:border-slate-800">
+                      <p className="text-[9px] uppercase tracking-wider text-slate-400">
+                        Session Active
+                      </p>
+                      <p className="font-bold text-slate-900 dark:text-white truncate text-xs mt-0.5">
+                        {user.name}
+                      </p>
+                      <p className="text-[10px] text-cyan-600 dark:text-cyan-400 capitalize">
+                        {user.role} Account
+                      </p>
+                    </div>
+
+                    <div className="space-y-0.5 py-1">
+                      {profileActions.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.name}
+                            to={item.path}
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            {item.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-1 mt-1 border-t border-slate-200 dark:border-slate-800">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        Terminate_Session
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : isAuthPage ? (
+            <Link
+              to="/"
+              className="text-xs font-mono uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 border border-slate-200 dark:border-slate-800 rounded hover:border-cyan-400/50 transition-colors"
+            >
+              ← Home
+            </Link>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="text-xs font-mono font-bold uppercase tracking-wider px-3.5 py-1.5 text-slate-700 dark:text-slate-200 hover:text-cyan-500 transition-colors"
+              >
+                Sign_In
+              </Link>
+              <Link
+                to="/register"
+                className="text-xs font-mono font-bold uppercase tracking-wider px-4 py-1.5 bg-slate-900 text-white dark:bg-cyan-400 dark:text-slate-950 hover:bg-cyan-500 dark:hover:bg-cyan-300 transition-colors shadow-sm"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+        </div>
+      </header>
 
       {/* ─── Logout Confirmation Modal ─── */}
       <ConfirmModal

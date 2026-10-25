@@ -207,7 +207,7 @@ const IdentityGatewayCard = ({
                 placeholder="Jane Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 text-sm text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none transition-colors"
+                className="w-full bg-transparent border-0 border-b border-slate-700 focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -231,7 +231,7 @@ const IdentityGatewayCard = ({
               placeholder="you@domain.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 text-sm text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none transition-colors"
+              className="w-full bg-transparent border-0 border-b border-slate-700 focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none transition-colors"
             />
           </div>
         </div>
@@ -266,7 +266,7 @@ const IdentityGatewayCard = ({
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 pr-8 text-sm text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none transition-colors"
+              className="w-full bg-transparent border-0 border-b border-slate-700 focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 pr-8 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none transition-colors"
             />
             <button
               type="button"
@@ -309,7 +309,7 @@ const IdentityGatewayCard = ({
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 pr-8 text-sm text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none transition-colors"
+                className="w-full bg-transparent border-0 border-b border-slate-700 focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 pr-8 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none transition-colors"
               />
               <button
                 type="button"
@@ -349,7 +349,7 @@ const IdentityGatewayCard = ({
                 placeholder="octocat"
                 value={githubUsername}
                 onChange={(e) => setGithubUsername(e.target.value)}
-                className="w-full bg-transparent border-0 border-b border-gray-300 dark:border-gray-700 focus:border-blue-600 dark:focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 text-sm text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none transition-colors"
+                className="w-full bg-transparent border-0 border-b border-slate-700 focus:border-cyan-400 focus:ring-0 rounded-none px-0 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
