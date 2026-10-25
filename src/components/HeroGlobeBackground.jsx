@@ -56,9 +56,6 @@ export default function HeroGlobeBackground() {
         <span className="text-slate-500">|</span>
         <span className="text-emerald-400">{activeContinent.name}: {activeContinent.scansFormatted} ({activeContinent.veracity})</span>
       </div>
-        <span className="text-slate-500">|</span>
-        <span>RESUMES_VERIFIED: {scanCount.toLocaleString()}</span>
-      </div>
 
       {/* 3. HERO CONTENT CONTAINER (Z-10 to sit above globe) */}
       <main className="relative z-10 flex-grow max-w-7xl mx-auto px-6 pt-24 pb-12 flex flex-col justify-center items-center text-center">
