@@ -549,7 +549,7 @@ const AppContent = () => {
     try {
       localStorage.removeItem("vp-intro-seen-permanent");
       sessionStorage.removeItem("vp-session-intro-seen");
-    } catch (_) {}
+    } catch (_) { }
 
     const isAuthCallback =
       typeof window !== "undefined" &&
@@ -570,7 +570,7 @@ const AppContent = () => {
     try {
       localStorage.removeItem("vp-intro-seen-permanent");
       sessionStorage.removeItem("vp-session-intro-seen");
-    } catch (_) {}
+    } catch (_) { }
     setShowIntro(false);
     setIsAppVisible(true);
   };
@@ -636,9 +636,8 @@ const AppContent = () => {
         <ArchiveBackground />
 
         <div
-          className={`relative z-10 flex flex-col flex-grow min-h-screen font-sans transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            isAppVisible ? "opacity-100" : "opacity-0"
-          }`}
+          className={`relative z-10 flex flex-col flex-grow min-h-screen font-sans transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAppVisible ? "opacity-100" : "opacity-0"
+            }`}
         >
           <Navbar />
           <main className="flex-grow flex flex-col w-full mx-auto pb-6 px-2 sm:px-4 lg:px-6 relative z-10">

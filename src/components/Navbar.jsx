@@ -132,7 +132,7 @@ const Navbar = () => {
   return (
     <>
       {/* ─── Slim Sticky Top Header (h-16) ─── */}
-      <header className="h-16 flex items-center justify-between px-6 border-b border-slate-200/80 dark:border-slate-800/60 bg-stone-50/80 dark:bg-slate-950/80 backdrop-blur-md z-50 sticky top-0 w-full transition-colors duration-200">
+      <header className="h-16 flex items-center justify-between px-6 border-b border-slate-200/90 dark:border-slate-800/60 bg-white/75 dark:bg-slate-950/80 backdrop-blur-md z-50 sticky top-0 w-full transition-colors duration-200">
         {/* ── Left: Logo + Forensic Status ── */}
         <div className="flex items-center gap-6">
           <Link to={logoDestination} className="group relative flex items-center">

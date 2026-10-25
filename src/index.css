@@ -63,14 +63,14 @@
   }
 
   /* ═══════════════ LIGHT THEME ═══════════════
-     Soft alabaster canvas · High-contrast slate typography
+     Soft icy gradient canvas · High-contrast slate typography
      Sharp crisp lines · Minimalist architecture
      ═══════════════════════════════════════════ */
   .theme-light {
-    --color-bg:               #fafaf9; /* stone-50 soft alabaster */
+    --color-bg:               #f8fafc; /* soft icy gradient base */
     --color-bg-raised:        #ffffff;
-    --color-bg-sunken:        #f5f5f4; /* stone-100 */
-    --color-surface-card:     #ffffff;
+    --color-bg-sunken:        #f1f5f9; /* slate-100 */
+    --color-surface-card:     rgba(255, 255, 255, 0.9);
     --color-surface-elevated: #ffffff;
     --color-text:             #0f172a; /* slate-900 high contrast */
     --color-text-secondary:   #334155; /* slate-700 */
@@ -78,7 +78,7 @@
     --color-accent-hover:     #0369a1;
     --color-accent-subtle:    rgba(2, 132, 199, 0.08);
     --color-muted:            #475569; /* slate-600 */
-    --color-border:           #e2e8f0; /* slate-200 sharp crisp line */
+    --color-border:           #cbd5e1; /* slate-300 sharp crisp line */
     --color-border-strong:    #94a3b8; /* slate-400 */
     --color-success:          #059669;
     --color-warning:          #d97706;
@@ -90,7 +90,7 @@
 
     /* Glass surfaces */
     --vp-glass-bg:     rgba(255, 255, 255, 0.88);
-    --vp-glass-border: #e2e8f0;
+    --vp-glass-border: #cbd5e1;
     --vp-glass-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     --vp-glass-blur:   16px;
 
@@ -160,16 +160,17 @@
                 color var(--duration-slower) var(--ease-out-expo);
   }
 
-  /* ─── Light mode: Soft alabaster canvas with sharp crisp boundaries ─── */
+  /* ─── Light mode: Soft directional gradient (slate-100 via white to cyan-50) ─── */
   .theme-light body {
-    background-color: #fafaf9; /* stone-50 */
-    background-image: radial-gradient(circle at 50% 0%, rgba(226, 232, 240, 0.5), transparent 75%);
+    background-color: #f8fafc;
+    background-image: linear-gradient(to bottom right, #f1f5f9, #ffffff, #ecfeff);
+    background-attachment: fixed;
   }
 
   .theme-light .hero-background,
   .theme-light .vp-hero-field {
-    background: #fafaf9;
-    border-bottom: 1px solid #e2e8f0;
+    background: transparent;
+    border-bottom: 1px solid #cbd5e1;
   }
 
   /* ─── Lenis Smooth Scroll Core Rules & 165Hz Hardware Acceleration ─── */

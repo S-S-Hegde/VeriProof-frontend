@@ -172,7 +172,7 @@ const ProcessStep = ({ num, icon: Icon, title, desc, index = 0 }) => {
           <h3 className="text-xl font-black uppercase tracking-tighter mb-3 group-hover:text-[var(--color-accent)] transition-colors duration-500 text-slate-900 dark:text-white">
             {title}
           </h3>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500">
             {desc}
           </p>
         </div>
@@ -199,7 +199,7 @@ const FeatureRow = ({ icon: Icon, label, desc, index = 0 }) => {
         <div className="text-sm font-bold uppercase tracking-widest mb-1 group-hover:text-[var(--color-accent)] transition-colors duration-500 text-slate-900 dark:text-white">
           {label}
         </div>
-        <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-w-sm group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500 font-sans">
+        <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-500 font-sans">
           {desc}
         </div>
       </div>
@@ -361,7 +361,7 @@ export default function Demo() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-sm md:text-base text-slate-700 dark:text-slate-300 max-w-xl mb-8 leading-relaxed font-sans"
+              className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-xl mb-8 leading-relaxed font-sans"
             >
               Traditional ATS screening relies on unverified self-reported resumes and keyword stuffing. In a market flooded with exaggerated claims, AI-generated portfolios, and skill fraud, hiring teams are flying blind. VeriProof replaces blind trust with cryptographic proof—analyzing git commit history, dependency graphs, and code architectures to verify what engineers actually built.
             </motion.p>
@@ -462,7 +462,7 @@ export default function Demo() {
               <h3 className="text-xl font-black uppercase tracking-tight mb-4 group-hover:text-red-500 transition-colors duration-500 text-slate-900 dark:text-white">
                 The Resume Inflation Crisis
               </h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
                 Over 70% of engineering applicants embellish technical proficiencies or submit AI-generated code samples that they cannot explain, wasting hundreds of engineering hours in dead-end interviews.
               </p>
               <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-700" />
@@ -487,7 +487,7 @@ export default function Demo() {
               <h3 className="text-xl font-black uppercase tracking-tight mb-4 group-hover:text-[var(--color-accent)] transition-colors duration-500 text-slate-900 dark:text-white">
                 Cryptographic Verification Over Trust
               </h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
                 Instead of trusting static PDF resumes, VeriProof cryptographically binds code provenance directly to candidate profiles, ensuring 100% authenticity before a recruiter ever clicks schedule.
               </p>
               <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-[var(--color-accent)] group-hover:w-full transition-all duration-700" />
@@ -512,7 +512,7 @@ export default function Demo() {
               <h3 className="text-xl font-black uppercase tracking-tight mb-4 group-hover:text-emerald-500 transition-colors duration-500 text-slate-900 dark:text-white">
                 Zero-Knowledge Proof Ledger
               </h3>
-              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
                 Recruiters and hiring managers independently verify engineering authenticity and commit provenance without exposing candidates' private proprietary codebases or company intellectual property.
               </p>
               <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-emerald-500 group-hover:w-full transition-all duration-700" />
