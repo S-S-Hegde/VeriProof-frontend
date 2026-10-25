@@ -307,7 +307,7 @@ export default function Demo() {
       {/* ── Hero Section (Split Layout) ── */}
       <section
         ref={heroSectionRef}
-        className="relative min-h-[90vh] lg:min-h-[92vh] flex items-center justify-center overflow-hidden py-12 md:py-16 px-4 sm:px-6 lg:px-8"
+        className="relative min-h-[90vh] lg:min-h-[92vh] flex items-center justify-center overflow-visible py-12 md:py-16 px-4 sm:px-6 lg:px-8"
       >
         {/* Real-Time Telemetry HUD Overlay */}
         <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 hidden md:flex items-center gap-3 bg-slate-900/85 dark:bg-slate-900/85 border border-slate-800 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-mono text-cyan-400 shadow-xl pointer-events-auto">
@@ -408,26 +408,18 @@ export default function Demo() {
             </div>
           </motion.div>
 
-          {/* Right: Globe Column (w-full md:w-1/2 scaling massively) */}
+          {/* Right: Globe Column (w-full md:w-1/2 seamless natural flow) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 2, ease: "easeInOut" }}
-            className="w-full md:w-1/2 flex items-center justify-center relative -mt-6 md:mt-0 overflow-visible bg-transparent border-0 shadow-none"
+            transition={{ duration: 1.6, ease: "easeOut" }}
+            className="w-full md:w-1/2 flex items-center justify-center relative overflow-visible bg-transparent border-0 shadow-none"
           >
-            <div 
-              className="relative w-full h-full flex items-center justify-center bg-transparent border-0 shadow-none"
-              style={{ 
-                WebkitMaskImage: 'radial-gradient(circle at center, black 50%, transparent 80%)',
-                maskImage: 'radial-gradient(circle at center, black 50%, transparent 80%)'
-              }}
-            >
-              <HeroInteractiveGlobe
-                className="relative w-full aspect-square max-w-[460px] md:max-w-[560px] lg:max-w-[680px] mx-auto flex items-center justify-center select-none scale-100 md:scale-110 lg:scale-125 bg-transparent border-0 shadow-none"
-                showCornerHUD={false}
-                showDragHint={true}
-              />
-            </div>
+            <HeroInteractiveGlobe
+              className="relative w-full aspect-square max-w-[480px] md:max-w-[560px] lg:max-w-[650px] mx-auto flex items-center justify-center select-none bg-transparent border-0 shadow-none overflow-visible"
+              showCornerHUD={false}
+              showDragHint={true}
+            />
           </motion.div>
         </div>
       </section>

@@ -215,7 +215,7 @@ export const HeroInteractiveGlobe = ({
     // 1. WebGL Renderer with Anti-Aliasing & High Performance
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-    camera.position.z = 265;
+    camera.position.z = 295; // Ample clearance to prevent frustum and canvas edge clipping
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true, // Smooth anti-aliased edges
@@ -588,11 +588,11 @@ export const HeroInteractiveGlobe = ({
       {/* Interactive WebGL Canvas Container with Seamless Radial Mask (The "No Boundaries" Fix) */}
       <div
         ref={mountRef}
-        className="w-full h-full cursor-grab active:cursor-grabbing touch-none pointer-events-auto relative z-10 bg-transparent border-0 shadow-none outline-none"
+        className="w-full h-full cursor-grab active:cursor-grabbing touch-none pointer-events-auto relative z-10 bg-transparent border-0 shadow-none outline-none overflow-visible"
         title="Click and drag to rotate the high-fidelity verification globe"
         style={{
-          WebkitMaskImage: "radial-gradient(circle at center, black 50%, transparent 80%)",
-          maskImage: "radial-gradient(circle at center, black 50%, transparent 80%)",
+          WebkitMaskImage: "radial-gradient(circle at center, black 42%, rgba(0,0,0,0.85) 58%, transparent 74%)",
+          maskImage: "radial-gradient(circle at center, black 42%, rgba(0,0,0,0.85) 58%, transparent 74%)",
         }}
       />
 

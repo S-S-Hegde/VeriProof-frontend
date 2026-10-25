@@ -632,7 +632,7 @@ const AppContent = () => {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-stone-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+      <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-gradient-to-br from-slate-100 via-white to-cyan-50 text-slate-900 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
         <ArchiveBackground />
 
         <div
