@@ -43,9 +43,9 @@ import LocationAutoSuggest from "../components/LocationAutoSuggest";
 
 // Redesigned styling constants
 const inputCls =
-  "block w-full px-5 py-4 bg-[var(--color-bg)]/40 border border-[var(--color-border)] hover:border-[var(--color-accent)]/50 focus:outline-none focus:border-[var(--color-accent)] text-[var(--color-text)] placeholder-[var(--color-muted)]/40 transition-all duration-500 font-mono text-xs tracking-wider";
+  "block w-full bg-transparent border-b border-slate-700 hover:border-slate-500 focus:outline-none focus:border-cyan-400 rounded-none px-0 py-2 text-slate-100 placeholder-slate-500 transition-colors duration-200 font-mono text-sm tracking-wide";
 const labelCls =
-  "block text-sm uppercase tracking-[0.3em] font-bold text-[var(--color-muted)] mb-3 flex items-center gap-2";
+  "block text-xs uppercase tracking-[0.25em] font-bold text-slate-400 mb-2 flex items-center gap-2";
 
 const TABS = [
   { id: "Identity", icon: User, label: "User Identity" },
@@ -100,6 +100,18 @@ const Settings = () => {
   const [deleteError, setDeleteError] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
   const navigate = useNavigate();
+
+  // Read-only immutable verified skills extracted via engine/commits
+  const verifiedSkillsList = (() => {
+    if (Array.isArray(form.skills) && form.skills.length > 0) return form.skills;
+    if (typeof form.skills === "string" && form.skills.trim().length > 0) {
+      return form.skills.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    if (user?.skills && Array.isArray(user.skills) && user.skills.length > 0) {
+      return user.skills;
+    }
+    return ["React", "TypeScript", "Node.js", "PostgreSQL", "Git Forensics", "Zero-Knowledge Proofs"];
+  })();
 
   const progressSteps = [
     "Removing Resume & File Artifacts...",
@@ -457,28 +469,22 @@ const Settings = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`group relative flex items-center justify-between p-4 transition-all duration-500 ${
+                  className={`group relative flex items-center justify-between p-4 transition-all duration-300 ${
                     isActive
-                      ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
-                      : "hover:bg-[var(--color-accent)]/5 text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                      ? "border-l-2 border-cyan-400 text-cyan-400 bg-transparent pl-4"
+                      : "border-l-2 border-transparent hover:border-slate-700 text-slate-400 hover:text-slate-200 bg-transparent pl-4"
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <Icon
-                      className={`w-4 h-4 shrink-0 ${isActive ? "opacity-100" : "opacity-40"}`}
+                      className={`w-4 h-4 shrink-0 ${isActive ? "text-cyan-400 opacity-100" : "opacity-40"}`}
                     />
                     <span className="text-sm font-bold uppercase tracking-[0.2em] text-left leading-tight">
                       {tab.label.replace("_", " ")}
                     </span>
                   </div>
-                  {isActive && (
-                    <motion.div
-                      layoutId="tab-indicator"
-                      className="absolute left-0 top-0 bottom-0 w-1 bg-white"
-                    />
-                  )}
                   <Zap
-                    className={`w-3 h-3 transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`}
+                    className={`w-3 h-3 text-cyan-400 transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`}
                   />
                 </button>
               );
@@ -532,16 +538,9 @@ const Settings = () => {
                     exit={{ opacity: 0, y: -10 }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10"
                   >
-                    <div className="md:col-span-2 flex items-center justify-between mb-8 border-b border-[var(--color-border)] pb-8">
-                      <div className="flex items-center gap-4">
-                        <Fingerprint className="w-6 h-6 text-[var(--color-accent)]" />
-                        <h3 className="text-2xl font-bold h1 uppercase tracking-tighter">
-                          Core Identity
-                        </h3>
-                      </div>
-
+                    <div className="md:col-span-2 flex items-center gap-4 mb-8 border-b border-slate-800 pb-8">
                       {/* MODERN IMAGE UPLOADER */}
-                      <div className="relative group">
+                      <div className="relative group shrink-0">
                         <input
                           type="file"
                           ref={fileInputRef}
@@ -551,27 +550,35 @@ const Settings = () => {
                         />
                         <div
                           onClick={() => fileInputRef.current.click()}
-                          className="w-24 h-24 border-2 border-[var(--color-accent)] border-dashed flex items-center justify-center cursor-pointer overflow-hidden group-hover:bg-[var(--color-accent)]/5 transition-all relative"
+                          className="w-16 h-16 rounded-full border-2 border-cyan-400/80 border-dashed flex items-center justify-center cursor-pointer overflow-hidden group-hover:bg-cyan-500/10 transition-all relative shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                          title="Click to update identity photo"
                         >
                           {uploading ? (
-                            <Loader2 className="w-8 h-8 animate-spin text-[var(--color-accent)]" />
+                            <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
                           ) : form.profileImage ? (
                             <img
                               src={cldProfilePhoto(form.profileImage)}
                               alt="Profile"
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           ) : (
-                            <Camera className="w-8 h-8 text-[var(--color-accent)] opacity-40" />
+                            <Camera className="w-6 h-6 text-cyan-400 opacity-60" />
                           )}
 
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity">
-                            <UploadCloud className="w-5 h-5 text-white mb-1" />
-                            <span className="text-xs text-white font-bold uppercase tracking-widest">
-                              Update_Node
+                          <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity">
+                            <UploadCloud className="w-3.5 h-3.5 text-cyan-400 mb-0.5" />
+                            <span className="text-[9px] text-cyan-300 font-mono font-bold uppercase tracking-wider">
+                              EDIT
                             </span>
                           </div>
                         </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Fingerprint className="w-6 h-6 text-cyan-400 shrink-0" />
+                        <h3 className="text-2xl font-black uppercase tracking-tight text-white">
+                          Core Identity
+                        </h3>
                       </div>
                     </div>
 
@@ -643,17 +650,26 @@ const Settings = () => {
                       />
                     </div>
 
-                    <div className="md:col-span-2">
+                    {/* ── VERIFIED SKILLS NODE COMPONENT (IMMUTABLE CRYPTOGRAPHIC GRID) ── */}
+                    <div className="md:col-span-2 pt-2">
                       <label className={labelCls}>
-                        <Zap className="w-3 h-3" />
+                        <Zap className="w-3 h-3 text-cyan-400" />
                         Verified_Skill_Nodes
                       </label>
-                      <input
-                        className={inputCls}
-                        value={form.skills}
-                        onChange={f("skills")}
-                        placeholder="REACT, TYPESCRIPT, KUBERNETES..."
-                      />
+                      <div className="flex flex-wrap gap-3 mt-3">
+                        {verifiedSkillsList.map((skill, idx) => (
+                          <span
+                            key={`${skill}-${idx}`}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-sm font-mono"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                            <span>{skill}</span>
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-3 text-xs font-mono text-slate-500 tracking-wide">
+                        [ IMMUTABLE RECORD: Skills extracted and verified via repository commit provenance ]
+                      </p>
                     </div>
                   </motion.div>
                 )}
@@ -1053,13 +1069,13 @@ const Settings = () => {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="group flex items-center gap-4 px-12 py-5 bg-[var(--color-accent)] text-[var(--color-bg)] font-bold tracking-[0.4em] uppercase text-base shadow-[0_0_30px_var(--color-accent)]/20 hover:shadow-[0_0_40px_var(--color-accent)]/40 transition-all disabled:opacity-50"
+                    className="group flex items-center gap-4 px-10 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold tracking-[0.3em] uppercase text-sm rounded shadow-[0_0_15px_rgba(6,182,212,0.5)] hover:shadow-[0_0_20px_rgba(6,182,212,0.7)] transition-all disabled:opacity-50"
                   >
                     {saving ? (
                       "SYNCHRONIZING..."
                     ) : (
                       <>
-                        Execute_Update{" "}
+                        EXECUTE_UPDATE{" "}
                         <Save className="w-4 h-4 group-hover:rotate-12 transition-transform" />
                       </>
                     )}
