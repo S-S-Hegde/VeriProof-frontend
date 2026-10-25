@@ -22,53 +22,54 @@ import PageTransition from "./components/PageTransition";
 import ScrollToTop from "./components/ScrollToTop";
 import Lenis from "lenis";
 import ErrorBoundary from "./components/common/ErrorBoundary";
+import lazyRetry from "./utils/lazyRetry";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Lazy load heavy page components with mapped refactored names
-const UserAuthentication = lazy(() => import("./pages/UserAuthentication"));
-const InitializeProfile = lazy(() => import("./pages/InitializeProfile"));
-const AuthCallback = lazy(() => import("./pages/AuthCallback"));
-const PasswordRecovery = lazy(() => import("./pages/PasswordRecovery"));
-const PassphraseReset = lazy(() => import("./pages/ResetPassword"));
-const RoleBasedRouter = lazy(() => import("./pages/RoleBasedRouter"));
-const CandidateEvidenceSubmit = lazy(
+// Lazy load heavy page components with error recovery retry wrapper
+const UserAuthentication = lazyRetry(() => import("./pages/UserAuthentication"));
+const InitializeProfile = lazyRetry(() => import("./pages/InitializeProfile"));
+const AuthCallback = lazyRetry(() => import("./pages/AuthCallback"));
+const PasswordRecovery = lazyRetry(() => import("./pages/PasswordRecovery"));
+const PassphraseReset = lazyRetry(() => import("./pages/ResetPassword"));
+const RoleBasedRouter = lazyRetry(() => import("./pages/RoleBasedRouter"));
+const CandidateEvidenceSubmit = lazyRetry(
   () => import("./pages/CandidateEvidenceSubmit"),
 );
-const ArtifactInspector = lazy(() => import("./pages/ArtifactInspector"));
-const InvestigatorSearchHub = lazy(
+const ArtifactInspector = lazyRetry(() => import("./pages/ArtifactInspector"));
+const InvestigatorSearchHub = lazyRetry(
   () => import("./pages/InvestigatorSearchHub"),
 );
-const CandidateSkillAnalytics = lazy(
+const CandidateSkillAnalytics = lazyRetry(
   () => import("./pages/CandidateSkillAnalytics"),
 );
-const SystemConfiguration = lazy(() => import("./pages/Settings"));
-const RecruiterSettings = lazy(() => import("./pages/RecruiterSettings"));
-const HomePage = lazy(() => import("./pages/HomePage"));
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const BulkScreening = lazy(() => import("./pages/BulkScreening"));
-const JobRolesManager = lazy(() => import("./pages/JobRolesManager"));
-const JobLeaderboard = lazy(() => import("./pages/JobLeaderboard"));
+const SystemConfiguration = lazyRetry(() => import("./pages/Settings"));
+const RecruiterSettings = lazyRetry(() => import("./pages/RecruiterSettings"));
+const HomePage = lazyRetry(() => import("./pages/HomePage"));
+const LandingPage = lazyRetry(() => import("./pages/LandingPage"));
+const BulkScreening = lazyRetry(() => import("./pages/BulkScreening"));
+const JobRolesManager = lazyRetry(() => import("./pages/JobRolesManager"));
+const JobLeaderboard = lazyRetry(() => import("./pages/JobLeaderboard"));
 
-const TermsPage = lazy(() => import("./pages/TermsPage"));
-const SupportPage = lazy(() => import("./pages/SupportPage"));
-const RoadmapPage = lazy(() => import("./pages/RoadmapPage"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const ContactPage = lazy(() => import("./pages/ContactPage"));
+const TermsPage = lazyRetry(() => import("./pages/TermsPage"));
+const SupportPage = lazyRetry(() => import("./pages/SupportPage"));
+const RoadmapPage = lazyRetry(() => import("./pages/RoadmapPage"));
+const AboutPage = lazyRetry(() => import("./pages/AboutPage"));
+const ContactPage = lazyRetry(() => import("./pages/ContactPage"));
 
-const CandidateHub = lazy(() => import("./pages/StudentDashboard"));
-const InvestigatorHub = lazy(() => import("./pages/InvestigatorHub"));
-const Exams = lazy(() => import("./pages/Exams"));
-const SkillTreePage = lazy(() => import("./pages/SkillTreePage"));
-const ResumeUploadPage = lazy(() => import("./pages/ResumeUploadPage"));
-const ProjectArchivePage = lazy(() => import("./pages/ProjectArchivePage"));
-const CertificationsPage = lazy(() => import("./pages/CertificationsPage"));
+const CandidateHub = lazyRetry(() => import("./pages/StudentDashboard"));
+const InvestigatorHub = lazyRetry(() => import("./pages/InvestigatorHub"));
+const Exams = lazyRetry(() => import("./pages/Exams"));
+const SkillTreePage = lazyRetry(() => import("./pages/SkillTreePage"));
+const ResumeUploadPage = lazyRetry(() => import("./pages/ResumeUploadPage"));
+const ProjectArchivePage = lazyRetry(() => import("./pages/ProjectArchivePage"));
+const CertificationsPage = lazyRetry(() => import("./pages/CertificationsPage"));
 
-const CandidateVerificationRequests = lazy(
+const CandidateVerificationRequests = lazyRetry(
   () => import("./pages/VerificationRequests"),
 );
-const VerdictsPage = lazy(() => import("./pages/VerdictsPage"));
-const VerificationPanelPage = lazy(() => import("./pages/VerificationPanel"));
+const VerdictsPage = lazyRetry(() => import("./pages/VerdictsPage"));
+const VerificationPanelPage = lazyRetry(() => import("./pages/VerificationPanel"));
 
 // Smart router for /settings based on role
 const SettingsRouter = () => {

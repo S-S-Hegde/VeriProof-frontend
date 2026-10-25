@@ -22,10 +22,15 @@ export default class ErrorBoundary extends Component {
   };
 
   handleHardReset = () => {
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch (_) {}
+    localStorage.clear();
+    sessionStorage.clear();
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
     window.location.href = "/";
   };
 
