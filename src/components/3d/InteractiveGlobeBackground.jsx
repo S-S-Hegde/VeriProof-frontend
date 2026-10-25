@@ -5,38 +5,191 @@ import { useTheme } from "../../context/ThemeContext";
 import { useReducedMotion } from "framer-motion";
 import { Activity, ShieldCheck, Globe, Wifi, Radio } from "lucide-react";
 
-// Global verification hub coordinates [lat, lng, name]
-const HUBS = [
-  { name: "San Francisco", lat: 37.7749, lng: -122.4194 },
-  { name: "New York", lat: 40.7128, lng: -74.006 },
-  { name: "London", lat: 51.5074, lng: -0.1278 },
-  { name: "Frankfurt", lat: 50.1109, lng: 8.6821 },
-  { name: "Tokyo", lat: 35.6762, lng: 139.6503 },
-  { name: "Singapore", lat: 1.3521, lng: 103.8198 },
-  { name: "Bangalore", lat: 12.9716, lng: 77.5946 },
-  { name: "Sydney", lat: -33.8688, lng: 151.2093 },
-  { name: "São Paulo", lat: -23.5505, lng: -46.6333 },
-  { name: "Dubai", lat: 25.2048, lng: 55.2708 },
-  { name: "Zurich", lat: 47.3769, lng: 8.5417 },
-  { name: "Seoul", lat: 37.5665, lng: 126.978 },
+// 48 Global Verification Hubs Across All 5 Continents
+export const GLOBAL_48_NODES = [
+  // North America (12)
+  { name: "San Francisco", lat: 37.77, lng: -122.42, region: "NA" },
+  { name: "New York", lat: 40.71, lng: -74.01, region: "NA" },
+  { name: "Seattle", lat: 47.61, lng: -122.33, region: "NA" },
+  { name: "Austin", lat: 30.27, lng: -97.74, region: "NA" },
+  { name: "Toronto", lat: 43.65, lng: -79.38, region: "NA" },
+  { name: "Chicago", lat: 41.88, lng: -87.63, region: "NA" },
+  { name: "Boston", lat: 42.36, lng: -71.06, region: "NA" },
+  { name: "Los Angeles", lat: 34.05, lng: -118.24, region: "NA" },
+  { name: "Montreal", lat: 45.50, lng: -73.57, region: "NA" },
+  { name: "Vancouver", lat: 49.28, lng: -123.12, region: "NA" },
+  { name: "Denver", lat: 39.74, lng: -104.99, region: "NA" },
+  { name: "Atlanta", lat: 33.75, lng: -84.39, region: "NA" },
+
+  // Europe (12)
+  { name: "London", lat: 51.51, lng: -0.13, region: "EU" },
+  { name: "Frankfurt", lat: 50.11, lng: 8.68, region: "EU" },
+  { name: "Paris", lat: 48.86, lng: 2.35, region: "EU" },
+  { name: "Amsterdam", lat: 52.37, lng: 4.89, region: "EU" },
+  { name: "Zurich", lat: 47.38, lng: 8.54, region: "EU" },
+  { name: "Dublin", lat: 53.35, lng: -6.26, region: "EU" },
+  { name: "Stockholm", lat: 59.33, lng: 18.07, region: "EU" },
+  { name: "Berlin", lat: 52.52, lng: 13.40, region: "EU" },
+  { name: "Madrid", lat: 40.42, lng: -3.70, region: "EU" },
+  { name: "Milan", lat: 45.46, lng: 9.19, region: "EU" },
+  { name: "Warsaw", lat: 52.23, lng: 21.01, region: "EU" },
+  { name: "Helsinki", lat: 60.17, lng: 24.94, region: "EU" },
+
+  // Asia-Pacific (12)
+  { name: "Tokyo", lat: 35.68, lng: 139.65, region: "APAC" },
+  { name: "Singapore", lat: 1.35, lng: 103.82, region: "APAC" },
+  { name: "Bangalore", lat: 12.97, lng: 77.59, region: "APAC" },
+  { name: "Seoul", lat: 37.57, lng: 126.98, region: "APAC" },
+  { name: "Sydney", lat: -33.87, lng: 151.21, region: "APAC" },
+  { name: "Mumbai", lat: 19.08, lng: 72.88, region: "APAC" },
+  { name: "Hyderabad", lat: 17.39, lng: 78.49, region: "APAC" },
+  { name: "Taipei", lat: 25.03, lng: 121.57, region: "APAC" },
+  { name: "Hong Kong", lat: 22.32, lng: 114.17, region: "APAC" },
+  { name: "Melbourne", lat: -37.81, lng: 144.96, region: "APAC" },
+  { name: "Auckland", lat: -36.85, lng: 174.76, region: "APAC" },
+  { name: "Osaka", lat: 34.69, lng: 135.50, region: "APAC" },
+
+  // Latin America (4)
+  { name: "São Paulo", lat: -23.55, lng: -46.63, region: "LATAM" },
+  { name: "Buenos Aires", lat: -34.60, lng: -58.38, region: "LATAM" },
+  { name: "Mexico City", lat: 19.43, lng: -99.13, region: "LATAM" },
+  { name: "Santiago", lat: -33.45, lng: -70.67, region: "LATAM" },
+
+  // Middle East & Africa (8)
+  { name: "Dubai", lat: 25.20, lng: 55.27, region: "MEA" },
+  { name: "Riyadh", lat: 24.71, lng: 46.68, region: "MEA" },
+  { name: "Tel Aviv", lat: 32.09, lng: 34.78, region: "MEA" },
+  { name: "Doha", lat: 25.29, lng: 51.53, region: "MEA" },
+  { name: "Nairobi", lat: -1.29, lng: 36.82, region: "MEA" },
+  { name: "Cape Town", lat: -33.92, lng: 18.42, region: "MEA" },
+  { name: "Lagos", lat: 6.52, lng: 3.38, region: "MEA" },
+  { name: "Cairo", lat: 30.04, lng: 31.24, region: "MEA" },
 ];
 
-// Active node-to-node cryptographic verification channels
+const HUBS = GLOBAL_48_NODES;
+
+// Active inter-continental & intra-continental verification channels
 const CONNECTIONS = [
-  [0, 1], // SF - NY
-  [1, 2], // NY - London
-  [2, 3], // London - Frankfurt
-  [3, 10], // Frankfurt - Zurich
-  [3, 9], // Frankfurt - Dubai
-  [9, 6], // Dubai - Bangalore
-  [6, 5], // Bangalore - Singapore
-  [5, 4], // Singapore - Tokyo
-  [4, 11], // Tokyo - Seoul
-  [4, 0], // Tokyo - SF
-  [4, 7], // Tokyo - Sydney
-  [5, 7], // Singapore - Sydney
-  [1, 8], // NY - São Paulo
+  // Transatlantic & Transpacific Trunks
+  [0, 24],  // SF - Tokyo
+  [1, 12],  // NY - London
+  [1, 36],  // NY - São Paulo
+  [7, 28],  // LA - Sydney
+  [8, 17],  // Montreal - Dublin
+  [13, 40], // Frankfurt - Dubai
+  [12, 47], // London - Cairo
+  [40, 26], // Dubai - Bangalore
+  [36, 45], // São Paulo - Cape Town
+  // North America Mesh
+  [0, 1],   // SF - NY
+  [0, 2],   // SF - Seattle
+  [2, 9],   // Seattle - Vancouver
+  [3, 5],   // Austin - Chicago
+  [1, 4],   // NY - Toronto
+  [1, 6],   // NY - Boston
+  [3, 38],  // Austin - Mexico City
+  // Europe Mesh
+  [12, 13], // London - Frankfurt
+  [14, 15], // Paris - Amsterdam
+  [13, 16], // Frankfurt - Zurich
+  [18, 23], // Stockholm - Helsinki
+  [19, 22], // Berlin - Warsaw
+  [20, 21], // Madrid - Milan
+  // Asia-Pacific Mesh
+  [24, 27], // Tokyo - Seoul
+  [24, 35], // Tokyo - Osaka
+  [27, 31], // Seoul - Taipei
+  [31, 32], // Taipei - Hong Kong
+  [32, 25], // Hong Kong - Singapore
+  [25, 26], // Singapore - Bangalore
+  [26, 29], // Bangalore - Mumbai
+  [29, 30], // Mumbai - Hyderabad
+  [25, 28], // Singapore - Sydney
+  [28, 33], // Sydney - Melbourne
+  [28, 34], // Sydney - Auckland
+  // Latin America & Middle East/Africa
+  [36, 37], // São Paulo - Buenos Aires
+  [37, 39], // Buenos Aires - Santiago
+  [40, 41], // Dubai - Riyadh
+  [41, 43], // Riyadh - Doha
+  [47, 40], // Cairo - Dubai
+  [47, 46], // Cairo - Lagos
+  [46, 44], // Lagos - Nairobi
+  [44, 45], // Nairobi - Cape Town
 ];
+
+// Continuous predictive metrics engine that NEVER resets back to an arbitrary number on reload
+export function getPredictiveContinentalStats() {
+  const epochAnchor = 1792000000000;
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - epochAnchor) / 1000));
+  // Continuous global predictive proof load
+  const totalScans = 1420800 + Math.floor(elapsedSeconds * 0.12);
+
+  const continents = [
+    {
+      code: "APAC",
+      name: "Asia-Pacific",
+      nodes: 12,
+      scans: Math.round(totalScans * 0.324),
+      scansFormatted: (Math.round(totalScans * 0.324) / 1000).toFixed(1) + "K",
+      pct: "32.4%",
+      veracity: "99.1%",
+      trend: "+18% Surge",
+      status: "Peak Volume",
+      color: "#22d3ee",
+    },
+    {
+      code: "NA",
+      name: "North America",
+      nodes: 12,
+      scans: Math.round(totalScans * 0.283),
+      scansFormatted: (Math.round(totalScans * 0.283) / 1000).toFixed(1) + "K",
+      pct: "28.3%",
+      veracity: "99.5%",
+      trend: "+12% Surge",
+      status: "High Volume",
+      color: "#6366f1",
+    },
+    {
+      code: "EU",
+      name: "Europe",
+      nodes: 12,
+      scans: Math.round(totalScans * 0.232),
+      scansFormatted: (Math.round(totalScans * 0.232) / 1000).toFixed(1) + "K",
+      pct: "23.2%",
+      veracity: "99.8%",
+      trend: "Stable",
+      status: "Active Mesh",
+      color: "#3b82f6",
+    },
+    {
+      code: "LATAM",
+      name: "Latin America",
+      nodes: 4,
+      scans: Math.round(totalScans * 0.090),
+      scansFormatted: (Math.round(totalScans * 0.090) / 1000).toFixed(1) + "K",
+      pct: "9.0%",
+      veracity: "98.7%",
+      trend: "+24% Surge",
+      status: "Accelerating",
+      color: "#10b981",
+    },
+    {
+      code: "MEA",
+      name: "Middle East & Africa",
+      nodes: 8,
+      scans: Math.round(totalScans * 0.071),
+      scansFormatted: (Math.round(totalScans * 0.071) / 1000).toFixed(1) + "K",
+      pct: "7.1%",
+      veracity: "99.2%",
+      trend: "+16% Surge",
+      status: "Emerging",
+      color: "#f59e0b",
+    },
+  ];
+
+  return { totalScans, continents, totalNodes: 48, veracityScore: "99.98%" };
+}
 
 const RADIUS = 100;
 
@@ -190,19 +343,15 @@ export const HeroInteractiveGlobe = ({
   const { theme } = useTheme();
   const shouldReduceMotion = useReducedMotion();
 
-  // Telemetry state
-  const [resumesScanned, setResumesScanned] = useState(14892);
-  const [proofsIssued, setProofsIssued] = useState(6310);
+  // Continental Predictive Telemetry state (persistent epoch-anchored, never resets)
+  const [predictiveStats, setPredictiveStats] = useState(getPredictiveContinentalStats);
   const [opsPerSec, setOpsPerSec] = useState(892);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setResumesScanned((prev) => prev + Math.floor(Math.random() * 3) + 1);
-      if (Math.random() > 0.4) {
-        setProofsIssued((prev) => prev + 1);
-      }
+      setPredictiveStats(getPredictiveContinentalStats());
       setOpsPerSec(870 + Math.floor(Math.random() * 55));
-    }, 2500);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -603,32 +752,40 @@ export const HeroInteractiveGlobe = ({
         aria-hidden="true"
       />
 
-      {/* Top-Left Telemetry HUD Widget */}
+      {/* Top-Left Telemetry HUD Widget — Continental Predictive Analysis */}
       {showCornerHUD && (
         <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20 pointer-events-none font-mono">
-          <div className="bg-white/90 dark:bg-slate-950/85 backdrop-blur-md border border-slate-300/90 dark:border-cyan-500/30 p-2.5 sm:p-3 shadow-xl max-w-[200px] sm:max-w-[230px]">
-            <div className="flex items-center gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-gray-800">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                [GLOBAL_NODES: 48 ACTIVE]
-              </span>
+          <div className="bg-white/95 dark:bg-slate-950/90 backdrop-blur-md border border-slate-300/90 dark:border-cyan-500/30 p-2.5 sm:p-3 shadow-xl max-w-[210px] sm:max-w-[240px]">
+            <div className="flex items-center justify-between gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-gray-800">
+              <div className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  [PREDICTIVE_RADAR]
+                </span>
+              </div>
+              <span className="text-[9px] text-cyan-500 font-semibold">48 NODES</span>
             </div>
-            <div className="space-y-1 text-[10px]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-600 dark:text-gray-400 font-medium">Verified:</span>
-                <span className="font-bold text-slate-900 dark:text-cyan-300 tabular-nums">
-                  {resumesScanned.toLocaleString()} RESUMES
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-600 dark:text-gray-400 font-medium">Speed:</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-300 tabular-nums">
-                  {opsPerSec} ops/sec • 42ms
-                </span>
-              </div>
+            <div className="space-y-1 text-[9px]">
+              {predictiveStats.continents.map((c) => (
+                <div key={c.code} className="flex items-center justify-between gap-1">
+                  <span className="text-slate-600 dark:text-gray-400 font-semibold">{c.code}:</span>
+                  <span className="font-bold text-slate-900 dark:text-cyan-300 tabular-nums">
+                    {c.scansFormatted}
+                  </span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                    {c.veracity}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-1.5 pt-1 border-t border-slate-200 dark:border-gray-800 flex items-center justify-between text-[9px]">
+              <span className="text-slate-500 dark:text-gray-400">Total Proofs:</span>
+              <span className="font-bold text-slate-900 dark:text-white tabular-nums">
+                {predictiveStats.totalScans.toLocaleString()}
+              </span>
             </div>
           </div>
         </div>

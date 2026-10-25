@@ -1,18 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { HeroInteractiveGlobe } from "./3d/InteractiveGlobeBackground";
+import { HeroInteractiveGlobe, getPredictiveContinentalStats } from "./3d/InteractiveGlobeBackground";
 
 export default function HeroGlobeBackground() {
-  const [scanCount, setScanCount] = useState(14892);
-  const [activeNodes, setActiveNodes] = useState(48);
+  const [predictiveData, setPredictiveData] = useState(getPredictiveContinentalStats);
+  const [activeContinentIdx, setActiveContinentIdx] = useState(0);
 
-  // Simulate real-time telemetry increase to make it look live
   useEffect(() => {
-    const interval = setInterval(() => {
-      setScanCount((prev) => prev + Math.floor(Math.random() * 3));
-    }, 3500);
-    return () => clearInterval(interval);
+    const dataInterval = setInterval(() => {
+      setPredictiveData(getPredictiveContinentalStats());
+    }, 2000);
+    const continentInterval = setInterval(() => {
+      setActiveContinentIdx((prev) => (prev + 1) % 5);
+    }, 3200);
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(continentInterval);
+    };
   }, []);
+
+  const activeContinent =
+    predictiveData.continents[activeContinentIdx] || predictiveData.continents[0];
 
   return (
     <div className="relative w-full min-h-screen bg-slate-950 text-slate-100 overflow-hidden flex flex-col justify-between">
@@ -36,13 +44,18 @@ export default function HeroGlobeBackground() {
         </div>
       </div>
 
-      {/* 2. REAL-TIME TELEMETRY HUD OVERLAY */}
+      {/* 2. REAL-TIME CONTINENTAL PREDICTIVE HUD OVERLAY */}
       <div className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-4 bg-slate-900/80 border border-slate-800 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-mono text-cyan-400 shadow-xl pointer-events-auto">
         <span className="flex h-2 w-2 relative">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
         </span>
-        <span>GLOBAL_NODES: {activeNodes} ACTIVE</span>
+        <span>48 CONTINENTAL NODES</span>
+        <span className="text-slate-500">|</span>
+        <span className="text-slate-300 font-bold">TOTAL: {predictiveData.totalScans.toLocaleString()}</span>
+        <span className="text-slate-500">|</span>
+        <span className="text-emerald-400">{activeContinent.name}: {activeContinent.scansFormatted} ({activeContinent.veracity})</span>
+      </div>
         <span className="text-slate-500">|</span>
         <span>RESUMES_VERIFIED: {scanCount.toLocaleString()}</span>
       </div>

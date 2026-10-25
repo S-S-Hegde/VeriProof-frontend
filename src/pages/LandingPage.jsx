@@ -11,7 +11,7 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import TerminalBadge from "../components/TerminalBadge";
-import { HeroInteractiveGlobe } from "../components/3d/InteractiveGlobeBackground";
+import { HeroInteractiveGlobe, getPredictiveContinentalStats } from "../components/3d/InteractiveGlobeBackground";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import {
@@ -220,15 +220,24 @@ export default function Demo() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isShutterOpen, setIsShutterOpen] = useState(false);
-  const [scanCount, setScanCount] = useState(14892);
-  const [activeNodes] = useState(48);
+  const [predictiveData, setPredictiveData] = useState(getPredictiveContinentalStats);
+  const [activeContinentIdx, setActiveContinentIdx] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setScanCount((prev) => prev + Math.floor(Math.random() * 3));
-    }, 3500);
-    return () => clearInterval(interval);
+    const dataInterval = setInterval(() => {
+      setPredictiveData(getPredictiveContinentalStats());
+    }, 2000);
+    const continentInterval = setInterval(() => {
+      setActiveContinentIdx((prev) => (prev + 1) % 5);
+    }, 3200);
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(continentInterval);
+    };
   }, []);
+
+  const activeContinent =
+    predictiveData.continents[activeContinentIdx] || predictiveData.continents[0];
 
   // Smooth Scroll Fade & Blur for hero text block
   const { scrollYProgress: heroScroll } = useScroll({
@@ -309,15 +318,23 @@ export default function Demo() {
         ref={heroSectionRef}
         className="relative min-h-[90vh] lg:min-h-[92vh] flex items-center justify-center overflow-visible py-12 md:py-16 px-4 sm:px-6 lg:px-8"
       >
-        {/* Real-Time Telemetry HUD Overlay */}
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 hidden md:flex items-center gap-3 bg-slate-900/85 dark:bg-slate-900/85 border border-slate-800 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-mono text-cyan-400 shadow-xl pointer-events-auto">
+        {/* Real-Time Continental Predictive Telemetry HUD Overlay */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 hidden md:flex items-center gap-3 bg-slate-900/85 dark:bg-slate-900/85 border border-slate-800 backdrop-blur-md px-4 py-2.5 rounded-lg text-xs font-mono text-cyan-400 shadow-xl pointer-events-auto">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
           </span>
-          <span className="font-semibold">[GLOBAL_NODES: {activeNodes} ACTIVE]</span>
+          <span className="font-semibold text-cyan-300">[CONTINENTAL_PREDICTIVE_MESH: 48 NODES]</span>
           <span className="text-slate-600">|</span>
-          <span className="font-bold text-slate-100">RESUMES_VERIFIED: {scanCount.toLocaleString()}</span>
+          <span className="font-bold text-slate-100">
+            TOTAL: {predictiveData.totalScans.toLocaleString()} PROOFS
+          </span>
+          <span className="text-slate-600">|</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-400 uppercase text-[11px] font-semibold">{activeContinent.name}:</span>
+            <span className="text-emerald-400 font-bold">{activeContinent.scansFormatted}</span>
+            <span className="text-cyan-400/80 text-[10px]">({activeContinent.veracity} forecast)</span>
+          </div>
         </div>
 
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-accent),transparent_60%)] opacity-[0.05] pointer-events-none" />
@@ -399,7 +416,7 @@ export default function Demo() {
               </div>
               <div>
                 <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white">48 Nodes</div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400">Global Mesh</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400">Across 5 Continents</div>
               </div>
               <div>
                 <div className="text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">&lt; 50ms</div>
