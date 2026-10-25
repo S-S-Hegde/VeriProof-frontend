@@ -45,7 +45,7 @@ const SkillProgressPanel = ({ progress, compact = false, candidateId }) => {
   ];
 
   return (
-    <section className="vp-surface-2 p-6 lg:p-8 overflow-hidden">
+    <section className="py-2 bg-transparent">
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
@@ -76,16 +76,16 @@ const SkillProgressPanel = ({ progress, compact = false, candidateId }) => {
       </div>
 
       {/* Stats Mini Grid */}
-      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className="vp-surface-1 p-4 group"
+            className="border-l border-slate-800 pl-4 py-1 group transition-colors hover:border-cyan-400"
           >
-            <stat.icon className="mb-3 h-4 w-4 text-[var(--color-accent)]" />
+            <stat.icon className="mb-2 h-4 w-4 text-[var(--color-accent)]" />
             <p className="vp-label">{stat.label}</p>
             <p className="mt-1 text-xl font-black tracking-tight">{stat.value}</p>
           </motion.div>

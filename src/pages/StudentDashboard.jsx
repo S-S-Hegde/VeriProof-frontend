@@ -46,14 +46,14 @@ const Reveal = ({ children, delay = 0, className = "" }) => (
 );
 
 const SkeletonCard = () => (
-  <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-bg)] p-7 space-y-4 animate-pulse">
-    <div className="h-3 w-24 rounded bg-[var(--color-border)]" />
-    <div className="h-6 w-3/4 rounded bg-[var(--color-border)]" />
-    <div className="h-4 w-full rounded bg-[var(--color-border)]" />
-    <div className="h-4 w-2/3 rounded bg-[var(--color-border)]" />
+  <div className="border-l border-slate-800 pl-6 py-6 space-y-4 animate-pulse">
+    <div className="h-3 w-24 bg-slate-800" />
+    <div className="h-6 w-3/4 bg-slate-800" />
+    <div className="h-4 w-full bg-slate-800" />
+    <div className="h-4 w-2/3 bg-slate-800" />
     <div className="flex gap-2 mt-4">
-      <div className="h-6 w-14 rounded bg-[var(--color-border)]" />
-      <div className="h-6 w-14 rounded bg-[var(--color-border)]" />
+      <div className="h-6 w-14 bg-slate-800" />
+      <div className="h-6 w-14 bg-slate-800" />
     </div>
   </div>
 );
@@ -73,10 +73,10 @@ const GitHubAnalysisBanner = ({ status, hasRepoAnalysis }) => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
-        className={`flex items-center gap-4 px-5 py-4 rounded-[var(--radius-md)] border mb-4 ${
+        className={`flex items-center gap-4 px-4 py-3 border-l-2 mb-4 ${
           isFailed
-            ? "border-red-500/30 bg-red-500/10"
-            : "border-[var(--color-accent)]/30 bg-[var(--color-accent)]/5"
+            ? "border-red-500 bg-red-500/10 text-red-400"
+            : "border-cyan-500 bg-cyan-500/10 text-cyan-400"
         }`}
       >
         <div className="shrink-0">
@@ -320,7 +320,7 @@ const StudentDashboard = () => {
     <>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-12 pb-28 lg:pb-12">
         <Reveal>
-          <div className="mb-12 lg:mb-16">
+          <div className="py-12 border-b border-slate-800/60">
             <div className="flex items-center gap-3 mb-4">
               <Terminal className="w-4 h-4 text-[var(--color-accent)]" />
               <span className="vp-label-accent">
@@ -354,152 +354,146 @@ const StudentDashboard = () => {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-8 lg:mb-16">
-            <div className="lg:col-span-8 space-y-4">
-              {/* GitHub Analysis Banner */}
-              <GitHubAnalysisBanner
-                status={githubAnalysisState}
-                hasRepoAnalysis={workflowState?.hasRepoAnalysis}
-              />
+          <div className="py-12 border-b border-slate-800/60">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-8 space-y-6">
+                {/* GitHub Analysis Banner */}
+                <GitHubAnalysisBanner
+                  status={githubAnalysisState}
+                  hasRepoAnalysis={workflowState?.hasRepoAnalysis}
+                />
 
-              <ResumeStatusCard
-                resumeUrl={resumeUrl}
-                resumeStatus={resumeStatus}
-                analysisState={analysisState}
-                user={{
-                  ...user,
-                  ...profileData,
-                  origin: isInvited ? "recruiter_invited" : (profileData?.origin || user?.origin),
-                }}
-                workflowState={workflowState}
-                onOpenUploadModal={isInvited ? null : () => setIsUploadModalOpen(true)}
-              />
-              <VerificationPipeline
-                workflowState={workflowState}
-                githubAnalysisState={workflowState?.hasRepoAnalysis ? null : githubAnalysisState}
-                onStepClick={(stepId) => {
-                  if (stepId === "resume" || stepId === "analysis") {
-                    if (isInvited) {
-                      const effectiveUrl = resolveFileUrl(resumeUrl || "/uploads/candidate-resumes/verified_resume.pdf");
-                      window.open(effectiveUrl, "_blank");
-                    } else {
-                      setIsUploadModalOpen(true);
-                    }
-                  } else if (stepId === "repo") {
-                    setIsLinkProjectsModalOpen(true);
-                  } else if (stepId === "certs") {
-                    navigate("/certifications");
-                  } else if (stepId === "assessment") {
-                    if (workflowState?.hasExamPassed || workflowState?.isVerificationComplete) {
+                <ResumeStatusCard
+                  resumeUrl={resumeUrl}
+                  resumeStatus={resumeStatus}
+                  analysisState={analysisState}
+                  user={{
+                    ...user,
+                    ...profileData,
+                    origin: isInvited ? "recruiter_invited" : (profileData?.origin || user?.origin),
+                  }}
+                  workflowState={workflowState}
+                  onOpenUploadModal={isInvited ? null : () => setIsUploadModalOpen(true)}
+                />
+                <VerificationPipeline
+                  workflowState={workflowState}
+                  githubAnalysisState={workflowState?.hasRepoAnalysis ? null : githubAnalysisState}
+                  onStepClick={(stepId) => {
+                    if (stepId === "resume" || stepId === "analysis") {
+                      if (isInvited) {
+                        const effectiveUrl = resolveFileUrl(resumeUrl || "/uploads/candidate-resumes/verified_resume.pdf");
+                        window.open(effectiveUrl, "_blank");
+                      } else {
+                        setIsUploadModalOpen(true);
+                      }
+                    } else if (stepId === "repo") {
+                      setIsLinkProjectsModalOpen(true);
+                    } else if (stepId === "certs") {
+                      navigate("/certifications");
+                    } else if (stepId === "assessment") {
+                      if (workflowState?.hasExamPassed || workflowState?.isVerificationComplete) {
+                        navigate("/skill-tree");
+                      } else {
+                        navigate("/exams");
+                      }
+                    } else if (stepId === "verified") {
                       navigate("/skill-tree");
-                    } else {
-                      navigate("/exams");
                     }
-                  } else if (stepId === "verified") {
-                    navigate("/skill-tree");
-                  }
-                }}
-              />
-            </div>
-            <div className="lg:col-span-4">
-              <ProfileCompletionCard
-                user={profileData || user}
-                resumeUrl={resumeUrl}
-                profileImage={profileImage}
-              />
+                  }}
+                />
+              </div>
+              <div className="lg:col-span-4">
+                <ProfileCompletionCard
+                  user={profileData || user}
+                  resumeUrl={resumeUrl}
+                  profileImage={profileImage}
+                />
+              </div>
             </div>
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-12 lg:mb-16">
-          {stats.map((stat, i) => {
-            const targetPath =
-              stat.id === "01"
-                ? "/project-archive"
-                : stat.id === "03"
-                ? "/certifications"
-                : stat.id === "04"
-                ? "/skill-tree"
-                : null;
+        <div className="py-12 border-b border-slate-800/60">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat, i) => {
+              const targetPath =
+                stat.id === "01"
+                  ? "/project-archive"
+                  : stat.id === "03"
+                  ? "/certifications"
+                  : stat.id === "04"
+                  ? "/skill-tree"
+                  : null;
 
-            return (
-              <Reveal key={i} delay={0.2 + i * 0.08}>
-                <motion.div
+              return (
+                <div
+                  key={i}
                   onClick={() => {
                     if (targetPath) navigate(targetPath);
                     else if (stat.id === "02") setIsUploadModalOpen(true);
                   }}
-                  whileHover={{ y: -4, boxShadow: "var(--vp-surface-2-shadow)" }}
-                  className="vp-surface-1 p-6 group cursor-pointer transition-all duration-300 relative overflow-hidden hover:border-[var(--color-accent)]/50"
+                  className="border-l border-slate-800 pl-6 group cursor-pointer transition-colors hover:border-cyan-400"
                 >
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-9 h-9 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] flex items-center justify-center group-hover:bg-[var(--color-accent)] transition-colors">
-                      <stat.icon className="w-4 h-4 text-[var(--color-accent)] group-hover:text-white transition-colors" />
-                    </div>
-                    <span className="vp-label">Stat_{stat.id}</span>
-                  </div>
-                  <p className="vp-label mb-2 flex items-center justify-between">
-                    <span>{stat.label}</span>
-                    <span className="text-[9px] font-mono text-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity">
-                      EXPLORE &rarr;
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+                    <span className="flex items-center gap-2">
+                      <stat.icon className="w-3.5 h-3.5 text-cyan-400" />
+                      {stat.label}
                     </span>
-                  </p>
-                  <p className="text-2xl font-black italic uppercase tracking-tight">
+                    <span className="text-cyan-400 font-bold">Stat_{stat.id}</span>
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white group-hover:text-cyan-300 transition-colors">
                     {stat.val}
-                  </p>
-                </motion.div>
-              </Reveal>
-            );
-          })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <Reveal delay={0.4}>
-          <div className="mb-12 lg:mb-16">
+          <div className="py-12 border-b border-slate-800/60">
             <SkillProgressPanel progress={progress} />
           </div>
         </Reveal>
 
         {certificates.length > 0 && (
           <Reveal delay={0.45}>
-            <div className="mb-12 lg:mb-16">
+            <div className="py-12 border-b border-slate-800/60">
               <div className="flex items-center gap-3 mb-8">
                 <Award className="w-5 h-5 text-[var(--color-accent)]" />
                 <h3 className="text-xl font-black uppercase tracking-tight">
                   Verified_Credentials
                 </h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {certificates.map((cert, idx) => (
                   <motion.div
                     key={idx}
                     whileHover={{ y: -3 }}
-                    className="vp-surface-1 p-7 group relative overflow-hidden"
+                    className="border-l border-slate-800 pl-6 py-2 group relative transition-colors hover:border-cyan-400"
                   >
-                    <div className="absolute -top-12 -right-12 w-24 h-24 bg-[var(--color-accent)] opacity-[0.04] rotate-45 pointer-events-none" />
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="w-10 h-10 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-[var(--color-accent)]" />
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-cyan-400" />
+                        <span className="text-xs font-mono uppercase text-slate-400">{cert.issuer}</span>
                       </div>
-                      <span className="vp-label">
-                        Issue: {new Date(cert.issuedAt).toLocaleDateString()}
+                      <span className="font-mono text-xs text-slate-500">
+                        {new Date(cert.issuedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <h4 className="text-lg font-black uppercase tracking-tight mb-2 group-hover:text-[var(--color-accent)] transition-colors">
+                    <h4 className="text-lg font-black uppercase tracking-tight mb-2 group-hover:text-cyan-400 transition-colors">
                       {cert.title}
                     </h4>
-                    <p className="vp-label mb-5">{cert.issuer}</p>
-                    <div className="flex flex-wrap gap-1.5 mb-6">
+                    <div className="flex flex-wrap gap-1.5 mb-4">
                       {cert.techStack?.map((tech, i) => (
-                        <span key={i} className="vp-tag">
+                        <span key={i} className="text-[10px] font-mono px-2 py-0.5 border border-slate-800 text-slate-300">
                           {tech}
                         </span>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between pt-5 border-t border-[var(--color-border)]">
-                      <span className="vp-label" style={{ fontSize: "8px" }}>
-                        ID: {cert.credentialId}
-                      </span>
-                      <button className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-accent)] hover:opacity-70 transition-opacity">
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-mono text-slate-500">
+                      <span>ID: {cert.credentialId}</span>
+                      <button className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition-colors">
                         Verify <ExternalLink className="w-3 h-3" />
                       </button>
                     </div>
@@ -510,37 +504,37 @@ const StudentDashboard = () => {
           </Reveal>
         )}
 
-        <Reveal delay={0.5}>
-          <div className="flex items-center gap-3 mb-8">
-            <Database className="w-5 h-5 text-[var(--color-accent)]" />
-            <h3 className="text-xl font-black uppercase tracking-tight">
-              Evidence_Archive
-            </h3>
-            {githubAnalysisState?.status === "complete" && projects.length > 0 && (
-              <span className="vp-label text-emerald-400 flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" /> Auto-generated from GitHub
-              </span>
-            )}
-          </div>
-        </Reveal>
+        <div className="py-12">
+          <Reveal delay={0.5}>
+            <div className="flex items-center gap-3 mb-8">
+              <Database className="w-5 h-5 text-[var(--color-accent)]" />
+              <h3 className="text-xl font-black uppercase tracking-tight">
+                Evidence_Archive
+              </h3>
+              {githubAnalysisState?.status === "complete" && projects.length > 0 && (
+                <span className="vp-label text-emerald-400 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3" /> Auto-generated from GitHub
+                </span>
+              )}
+            </div>
+          </Reveal>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        ) : projects.length === 0 ? (
-          <Reveal delay={0.55}>
-            <div className="text-center py-10 sm:py-16 vp-surface-1 relative overflow-hidden">
-              <div className="relative z-10">
-                <Database className="w-10 h-10 mx-auto text-[var(--color-muted)] opacity-20 mb-5" />
-                <h3 className="text-xl font-black italic uppercase tracking-tighter opacity-30 mb-2">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : projects.length === 0 ? (
+            <Reveal delay={0.55}>
+              <div className="text-center py-16 border-l border-slate-800 pl-6 relative">
+                <Database className="w-10 h-10 mx-auto text-slate-700 mb-5" />
+                <h3 className="text-xl font-black uppercase tracking-tighter text-slate-500 mb-2">
                   {githubAnalysisState?.status === "running"
                     ? "Scanning_Repositories"
                     : "Empty_Archive"}
                 </h3>
-                <p className="text-sm text-[var(--color-muted)] mb-8">
+                <p className="text-sm text-slate-400 mb-8 max-w-md mx-auto">
                   {githubAnalysisState?.status === "running"
                     ? `Analyzing ${githubAnalysisState.reposProcessed || 0} / ${githubAnalysisState.totalRepos || 3} repositories...`
                     : workflowState?.isResumeAnalyzed
@@ -560,7 +554,11 @@ const StudentDashboard = () => {
                         ? navigate("/add-project")
                         : null
                     }
-                    className={`vp-btn text-[11px] py-3 px-8 ${workflowState?.isResumeAnalyzed ? "vp-btn-primary" : "bg-[var(--color-bg-sunken)] text-[var(--color-muted)] cursor-not-allowed opacity-50"}`}
+                    className={`px-6 py-2.5 font-mono text-xs uppercase tracking-wider font-bold transition-all ${
+                      workflowState?.isResumeAnalyzed 
+                        ? "bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-sm" 
+                        : "border border-slate-800 text-slate-600 cursor-not-allowed"
+                    }`}
                   >
                     {workflowState?.isResumeAnalyzed
                       ? "Initiate_First_Sync"
@@ -568,10 +566,9 @@ const StudentDashboard = () => {
                   </motion.button>
                 )}
               </div>
-            </div>
-          </Reveal>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            </Reveal>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project, i) => (
               <motion.div
                 key={project._id}
@@ -594,6 +591,7 @@ const StudentDashboard = () => {
             ))}
           </div>
         )}
+      </div>
       </div>
 
       <ResumeUploadModal

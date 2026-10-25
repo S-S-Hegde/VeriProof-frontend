@@ -67,25 +67,22 @@ export const VerificationPipeline = ({ workflowState, githubAnalysisState, onSte
   const isGitHubRunning = githubAnalysisState?.status === "running";
 
   return (
-    <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
-      {/* Decorative accent */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-40" />
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div className="py-4 relative overflow-hidden bg-transparent">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-4 h-4 text-[var(--color-accent)]" />
-            <span className="vp-label-accent">Verification_Pipeline</span>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Shield className="w-4 h-4 text-cyan-400" />
+            <span className="font-mono text-xs uppercase tracking-widest text-cyan-400">[ Verification_Pipeline ]</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">
-            Verification <span className="text-[var(--color-accent)] not-italic">Journey.</span>
+          <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+            Verification <span className="text-cyan-400 not-italic">Journey.</span>
           </h3>
         </div>
         <div className="flex items-center gap-3">
-          <span className="vp-label">{completedCount}/{PIPELINE_STEPS.length} Complete</span>
-          <div className="w-28 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
+          <span className="font-mono text-xs text-slate-400">{completedCount}/{PIPELINE_STEPS.length} Complete</span>
+          <div className="w-28 h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-emerald-500 rounded-full"
+              className="h-full bg-cyan-400 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -108,25 +105,24 @@ export const VerificationPipeline = ({ workflowState, githubAnalysisState, onSte
           return (
             <motion.div
               key={step.id}
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.08 }}
+              transition={{ delay: i * 0.05 }}
               onClick={() => {
                 if (onStepClick) {
                   onStepClick(step.id);
                 }
               }}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              whileHover={{ x: 4 }}
               title={status === "locked" ? `Locked: ${prerequisiteHint}` : `Navigate to ${step.label}`}
-              className={`flex items-start sm:items-center gap-3 p-3 sm:p-4 rounded-[var(--radius-md)] cursor-pointer transition-all duration-300 relative group ${
+              className={`flex items-start sm:items-center gap-3 p-3 border-l-2 cursor-pointer transition-all duration-300 relative group ${
                 status === "complete"
-                  ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+                  ? "border-emerald-500 bg-emerald-500/5 text-emerald-300"
                   : status === "active"
                   ? isRepoStepRunning
-                    ? "bg-blue-500/10 border-2 border-blue-400/60 shadow-md shadow-blue-500/10"
-                    : "bg-[var(--color-accent)]/15 border-2 border-[var(--color-accent)] shadow-md shadow-[var(--color-accent)]/10"
-                  : "bg-[var(--color-bg-sunken)] border border-[var(--color-border)]/60 opacity-50 hover:opacity-80"
+                    ? "border-cyan-400 bg-cyan-500/10 text-cyan-300"
+                    : "border-cyan-400 bg-cyan-500/10 text-cyan-300"
+                  : "border-slate-800 bg-transparent text-slate-500 hover:border-slate-700 hover:text-slate-400"
               }`}
             >
               {/* Status icon */}
@@ -595,9 +591,7 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
     const effectiveResumeUrl = resumeUrl || user?.resumeUrl || "/uploads/candidate-resumes/verified_resume.pdf";
 
     return (
-      <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-30" />
-
+      <div className="py-6 bg-transparent border-l border-slate-800 pl-6 relative">
         <div className="flex items-center gap-2 mb-6">
           <FileText className="w-4 h-4 text-[var(--color-accent)]" />
           <span className="vp-label-accent">{isInvited ? "RECRUITER_INVITED_PROFILE" : "Resume_Status"}</span>
@@ -676,31 +670,27 @@ export const ResumeStatusCard = ({ resumeUrl, resumeStatus, analysisState, user,
 
   // ─── No resume ───
   return (
-    <div className="vp-surface-1 p-6 sm:p-8 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-60" />
-
-      <div className="flex items-center gap-2 mb-2">
-        <AlertCircle className="w-4 h-4 text-[var(--color-accent)]" />
-        <span className="vp-label-accent">Action_Required</span>
+    <div className="border-l-2 border-cyan-500 bg-cyan-500/10 text-cyan-400 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 my-4">
+      <div className="flex items-center gap-3">
+        <AlertCircle className="w-4 h-4 shrink-0 text-cyan-400" />
+        <div>
+          <span className="font-mono text-xs font-bold uppercase tracking-wider block">
+            [ MISSING RESUME // ACTION_REQUIRED ]
+          </span>
+          <p className="text-xs text-slate-300 font-sans mt-0.5">
+            Your candidate profile requires a resume to establish repository claims and activate testing telemetry.
+          </p>
+        </div>
       </div>
-
-      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight mb-3">
-        Missing <span className="text-[var(--color-accent)]">Resume.</span>
-      </h3>
-
-      <p className="text-sm text-[var(--color-muted)] mb-6 max-w-lg leading-relaxed">
-        Your verified candidate profile cannot be built without a resume. Click below to open the Resume Upload modal.
-      </p>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => onOpenUploadModal ? onOpenUploadModal() : navigate("/resume-upload")}
-          className="vp-btn vp-btn-accent text-xs py-3 px-6 gap-2 cursor-pointer shadow-md"
-        >
-          <Upload className="w-4 h-4" /> Go to Resume Upload Page
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => onOpenUploadModal ? onOpenUploadModal() : navigate("/resume-upload")}
+        className="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider rounded transition-all shrink-0 self-start sm:self-auto shadow-sm"
+      >
+        <span className="inline-flex items-center gap-1.5">
+          <Upload className="w-3.5 h-3.5" /> Upload Resume
+        </span>
+      </button>
     </div>
   );
 };
@@ -746,7 +736,7 @@ export const ProfileCompletionCard = ({ user, resumeUrl, profileImage }) => {
   const completedCount = items.filter((i) => i.status === "complete").length;
 
   return (
-    <div className="vp-surface-1 p-6 sm:p-8">
+    <div className="py-6 bg-transparent border-l border-slate-800 pl-6">
       <div className="flex items-center gap-2 mb-6">
         <User className="w-4 h-4 text-[var(--color-accent)]" />
         <span className="vp-label-accent">Profile_Completion</span>
