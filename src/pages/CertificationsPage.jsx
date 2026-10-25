@@ -78,6 +78,33 @@ const PRESET_SUBJECTS = [
   "Blockchain & Web3",
 ];
 
+export const getCertificateProofUrl = (cert) => {
+  if (!cert) return "";
+  if (
+    cert.fileUrl &&
+    (cert.fileUrl.startsWith("http://") ||
+      cert.fileUrl.startsWith("https://") ||
+      cert.fileUrl.startsWith("blob:") ||
+      cert.fileUrl.startsWith("data:"))
+  ) {
+    return cert.fileUrl;
+  }
+  const apiBase = (
+    import.meta.env.VITE_API_BASE_URL ||
+    (import.meta.env.PROD
+      ? "https://veriproof-backend.onrender.com"
+      : "http://localhost:5000")
+  ).replace(/\/$/, "");
+
+  if (cert._id) {
+    return `${apiBase}/api/certificates/${cert._id}/file`;
+  }
+  if (cert.fileUrl) {
+    return resolveFileUrl(cert.fileUrl);
+  }
+  return "";
+};
+
 const CertificationsPage = () => {
   const { user, setUser } = useAuth();
   const [certificates, setCertificates] = useState([]);
@@ -979,7 +1006,7 @@ const CertificationsPage = () => {
                 {/* Card Actions */}
                 <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)] gap-2">
                   <div className="flex items-center gap-2">
-                    {cert.fileUrl && (
+                    {(cert.fileUrl || cert._id) && (
                       <button
                         onClick={() => setPreviewCert(cert)}
                         className="px-3 py-1.5 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] hover:border-[var(--color-accent)] text-[11px] font-mono text-[var(--color-text)] flex items-center gap-1.5 transition-colors"
@@ -1033,63 +1060,135 @@ const CertificationsPage = () => {
                 onClick={(e) => e.stopPropagation()}
                 className="bg-[var(--color-bg-sunken)] border border-[var(--color-border)] rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
               >
-                <div className="p-4 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Award className="w-5 h-5 text-amber-400" />
-                    <div>
-                      <h3 className="text-base font-bold text-white uppercase tracking-tight">
-                        {previewCert.title}
-                      </h3>
-                      <p className="text-xs font-mono text-cyan-400">
-                        {previewCert.issuer} {previewCert.credentialId ? `• ID: ${previewCert.credentialId}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={previewCert.fileUrl ? resolveFileUrl(previewCert.fileUrl) : `/api/certificates/${previewCert._id}/file`}
-                      target="_blank"
-                      rel="noreferrer"
-                      download
-                      className="vp-btn vp-btn-secondary text-xs px-3 py-1.5 gap-1.5"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Download
-                    </a>
-                    <button
-                      onClick={() => setPreviewCert(null)}
-                      className="text-[var(--color-muted)] hover:text-white p-1.5 rounded hover:bg-white/5"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
+                {(() => {
+                  const proofUrl = getCertificateProofUrl(previewCert);
+                  const isPdf =
+                    previewCert.fileUrl?.toLowerCase().endsWith(".pdf") ||
+                    previewCert.fileType?.includes("pdf") ||
+                    (!previewCert.fileType && !previewCert.fileUrl?.match(/\.(png|jpe?g|webp)$/i));
 
-                <div className="flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center bg-black/40 min-h-[400px]">
-                  {previewCert.fileUrl?.toLowerCase().endsWith(".pdf") || previewCert.fileType?.includes("pdf") ? (
-                    <iframe
-                      src={previewCert.fileUrl ? resolveFileUrl(previewCert.fileUrl) : `/api/certificates/${previewCert._id}/file`}
-                      title={previewCert.title}
-                      className="w-full h-[600px] rounded-lg border border-[var(--color-border)]"
-                    />
-                  ) : (
-                    <img
-                      src={previewCert.fileUrl ? resolveFileUrl(previewCert.fileUrl) : `/api/certificates/${previewCert._id}/file`}
-                      alt={previewCert.title}
-                      className="max-h-[600px] w-auto object-contain rounded-lg border border-[var(--color-border)] shadow-lg"
-                      onError={(e) => {
-                        // Fallback to streaming file endpoint
-                        if (!e.target.dataset.retried && previewCert._id) {
-                          e.target.dataset.retried = "true";
-                          const apiBase = (
-                            import.meta.env.VITE_API_BASE_URL ||
-                            (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000")
-                          ).replace(/\/$/, "");
-                          e.target.src = `${apiBase}/api/certificates/${previewCert._id}/file`;
-                        }
-                      }}
-                    />
-                  )}
-                </div>
+                  return (
+                    <>
+                      <div className="p-4 sm:p-6 border-b border-[var(--color-border)] flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <Award className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                          <div className="min-w-0">
+                            <h3 className="text-base font-bold text-white uppercase tracking-tight truncate max-w-md sm:max-w-xl">
+                              {previewCert.title}
+                            </h3>
+                            <p className="text-xs font-mono text-cyan-400 truncate">
+                              {previewCert.issuer} {previewCert.credentialId ? `• ID: ${previewCert.credentialId}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <a
+                            href={proofUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            download
+                            className="vp-btn vp-btn-secondary text-xs px-3 py-1.5 gap-1.5"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Download
+                          </a>
+                          <button
+                            onClick={() => setPreviewCert(null)}
+                            className="text-[var(--color-muted)] hover:text-white p-1.5 rounded hover:bg-white/5"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 overflow-auto p-4 sm:p-6 flex flex-col items-center justify-center bg-black/40 min-h-[420px]">
+                        {isPdf ? (
+                          <div className="w-full h-full flex flex-col items-center">
+                            <object
+                              data={proofUrl}
+                              type="application/pdf"
+                              className="w-full h-[600px] rounded-lg border border-[var(--color-border)] shadow-inner"
+                            >
+                              <iframe
+                                src={proofUrl}
+                                title={previewCert.title}
+                                className="w-full h-[600px] rounded-lg border border-[var(--color-border)]"
+                              />
+                              {/* Fallback state if browser refuses inline plugin rendering */}
+                              <div className="w-full p-8 text-center bg-slate-900/90 border border-slate-800 rounded-xl space-y-4 my-auto">
+                                <FileText className="w-12 h-12 text-cyan-400 mx-auto opacity-75" />
+                                <div>
+                                  <h4 className="text-base font-bold text-white uppercase tracking-tight">
+                                    Preview Document Ready
+                                  </h4>
+                                  <p className="text-xs font-mono text-slate-400 mt-1 max-w-md mx-auto">
+                                    Your browser cannot render this PDF inline. Open in a new tab or download the verified certificate.
+                                  </p>
+                                </div>
+                                <div className="flex items-center justify-center gap-3 pt-2">
+                                  <a
+                                    href={proofUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="vp-btn vp-btn-accent text-xs px-4 py-2 gap-2"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" /> Open in New Tab
+                                  </a>
+                                  <a
+                                    href={proofUrl}
+                                    download={`certificate_${previewCert.credentialId || previewCert._id}.pdf`}
+                                    className="vp-btn vp-btn-secondary text-xs px-4 py-2 gap-2"
+                                  >
+                                    <Download className="w-3.5 h-3.5" /> Download Document
+                                  </a>
+                                </div>
+                              </div>
+                            </object>
+                          </div>
+                        ) : (
+                          <div className="relative max-h-[600px] flex items-center justify-center w-full">
+                            <img
+                              src={proofUrl}
+                              alt={previewCert.title}
+                              className="max-h-[600px] w-auto object-contain rounded-lg border border-[var(--color-border)] shadow-lg"
+                              onError={(e) => {
+                                if (!e.target.dataset.retried && previewCert._id) {
+                                  e.target.dataset.retried = "true";
+                                  const apiBase = (
+                                    import.meta.env.VITE_API_BASE_URL ||
+                                    (import.meta.env.PROD ? "https://veriproof-backend.onrender.com" : "http://localhost:5000")
+                                  ).replace(/\/$/, "");
+                                  e.target.src = `${apiBase}/api/certificates/${previewCert._id}/file`;
+                                } else {
+                                  e.target.style.display = "none";
+                                  const fallbackEl = document.getElementById(`img-fallback-${previewCert._id}`);
+                                  if (fallbackEl) fallbackEl.style.display = "block";
+                                }
+                              }}
+                            />
+                            <div
+                              id={`img-fallback-${previewCert._id}`}
+                              style={{ display: "none" }}
+                              className="p-8 text-center bg-slate-900/90 border border-slate-800 rounded-xl space-y-4"
+                            >
+                              <AlertCircle className="w-10 h-10 text-amber-400 mx-auto" />
+                              <p className="text-xs font-mono text-slate-300">
+                                Unable to render image inline.
+                              </p>
+                              <a
+                                href={proofUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="vp-btn vp-btn-accent text-xs px-4 py-2 gap-2 inline-flex"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" /> Open Direct Image
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </motion.div>
             </motion.div>
           )}
