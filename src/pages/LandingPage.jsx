@@ -413,13 +413,21 @@ export default function Demo() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2, ease: "easeInOut" }}
-            className="w-full md:w-1/2 flex items-center justify-center relative -mt-6 md:mt-0 overflow-visible"
+            className="w-full md:w-1/2 flex items-center justify-center relative -mt-6 md:mt-0 overflow-visible bg-transparent border-0 shadow-none"
           >
-            <HeroInteractiveGlobe
-              className="relative w-full aspect-square max-w-[460px] md:max-w-[560px] lg:max-w-[680px] mx-auto flex items-center justify-center select-none scale-100 md:scale-110 lg:scale-125"
-              showCornerHUD={false}
-              showDragHint={true}
-            />
+            <div 
+              className="relative w-full h-full flex items-center justify-center bg-transparent border-0 shadow-none"
+              style={{ 
+                WebkitMaskImage: 'radial-gradient(circle at center, black 50%, transparent 80%)',
+                maskImage: 'radial-gradient(circle at center, black 50%, transparent 80%)'
+              }}
+            >
+              <HeroInteractiveGlobe
+                className="relative w-full aspect-square max-w-[460px] md:max-w-[560px] lg:max-w-[680px] mx-auto flex items-center justify-center select-none scale-100 md:scale-110 lg:scale-125 bg-transparent border-0 shadow-none"
+                showCornerHUD={false}
+                showDragHint={true}
+              />
+            </div>
           </motion.div>
         </div>
       </section>

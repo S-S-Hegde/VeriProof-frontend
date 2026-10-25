@@ -20,11 +20,17 @@ export default function HeroGlobeBackground() {
       {/* 1. INTERACTIVE 3D GLOBE / SHADER BACKGROUND (Main Attraction) */}
       <div className="absolute inset-0 z-0 opacity-60 pointer-events-auto flex items-center justify-center overflow-hidden">
         {/* Real Three.js / WebGL Globe component */}
-        <div className="w-[500px] h-[500px] sm:w-[650px] sm:h-[650px] lg:w-[850px] lg:h-[850px] relative flex items-center justify-center">
+        <div 
+          className="w-[500px] h-[500px] sm:w-[650px] sm:h-[650px] lg:w-[850px] lg:h-[850px] relative flex items-center justify-center bg-transparent border-0 shadow-none"
+          style={{ 
+            WebkitMaskImage: 'radial-gradient(circle at center, black 50%, transparent 80%)',
+            maskImage: 'radial-gradient(circle at center, black 50%, transparent 80%)'
+          }}
+        >
           <HeroInteractiveGlobe
             showCornerHUD={false}
             showDragHint={true}
-            className="w-full h-full relative"
+            className="w-full h-full relative bg-transparent border-0 shadow-none"
           />
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-500/20 via-indigo-600/30 to-transparent blur-3xl pointer-events-none -z-10" />
         </div>

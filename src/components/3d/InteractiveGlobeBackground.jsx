@@ -181,7 +181,7 @@ function createContinentCoastlineMesh(geojson, isDark) {
  * - Interactive telemetry verification arcs & pulsing radar nodes
  */
 export const HeroInteractiveGlobe = ({
-  className = "relative w-full max-w-[540px] aspect-square mx-auto flex items-center justify-center select-none group",
+  className = "relative w-full max-w-[540px] aspect-square mx-auto flex items-center justify-center select-none group bg-transparent border-0 shadow-none",
   showCornerHUD = true,
   showDragHint = true,
 }) => {
@@ -225,6 +225,9 @@ export const HeroInteractiveGlobe = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
+    renderer.domElement.style.background = "transparent";
+    renderer.domElement.style.outline = "none";
+    renderer.domElement.style.border = "none";
     container.appendChild(renderer.domElement);
 
     // Root globe group
@@ -582,14 +585,14 @@ export const HeroInteractiveGlobe = ({
 
   return (
     <div className={className}>
-      {/* Interactive WebGL Canvas Container with Subtle Radial Mask */}
+      {/* Interactive WebGL Canvas Container with Seamless Radial Mask (The "No Boundaries" Fix) */}
       <div
         ref={mountRef}
-        className="w-full h-full cursor-grab active:cursor-grabbing touch-none pointer-events-auto relative z-10"
+        className="w-full h-full cursor-grab active:cursor-grabbing touch-none pointer-events-auto relative z-10 bg-transparent border-0 shadow-none outline-none"
         title="Click and drag to rotate the high-fidelity verification globe"
         style={{
-          WebkitMaskImage: "radial-gradient(circle, black 48%, transparent 72%)",
-          maskImage: "radial-gradient(circle, black 48%, transparent 72%)",
+          WebkitMaskImage: "radial-gradient(circle at center, black 50%, transparent 80%)",
+          maskImage: "radial-gradient(circle at center, black 50%, transparent 80%)",
         }}
       />
 
