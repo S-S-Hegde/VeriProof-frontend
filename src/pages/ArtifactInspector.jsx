@@ -98,15 +98,15 @@ const ProjectDetails = () => {
               <div className="h-[1px] w-32 bg-ibex-gold/50 mb-8" />
               <div className="flex items-center space-x-4">
                 <div className="h-10 w-10 rounded-full border border-ibex-gold/40 flex items-center justify-center text-ibex-gold font-serif">
-                  {project.user.name.charAt(0)}
+                  {(project?.user?.name || "U").charAt(0)}
                 </div>
                 <p className="text-ibex-muted font-light tracking-wide uppercase text-sm flex items-center">
                   A work by{" "}
                   <span className="text-vp-teal font-medium">
-                    {project.user.name}
+                    {project?.user?.name || "Anonymous"}
                   </span>{" "}
                   <span className="mx-2 text-ibex-gold">|</span> @
-                  {project.user.githubUsername}
+                  {project?.user?.githubUsername || "creator"}
                 </p>
               </div>
             </div>

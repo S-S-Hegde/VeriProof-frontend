@@ -17,6 +17,10 @@ export const TerminalBadge = ({
   const ref = useRef(null);
 
   useEffect(() => {
+    if (!text) {
+      setDisplayText("");
+      return;
+    }
     if (shouldReduceMotion) {
       setDisplayText(text);
       return;
@@ -27,7 +31,7 @@ export const TerminalBadge = ({
     let iteration = 0;
     const interval = setInterval(() => {
       setDisplayText(
-        text
+        (text || "")
           .split("")
           .map((letter, index) => {
             if (index < iteration) {
@@ -39,7 +43,7 @@ export const TerminalBadge = ({
           .join("")
       );
 
-      if (iteration >= text.length) {
+      if (iteration >= (text?.length || 0)) {
         clearInterval(interval);
       }
       iteration += 1 / 2;

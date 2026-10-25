@@ -66,7 +66,7 @@ const RecruiterDashboard = () => {
             <div className="flex items-center gap-4 mb-4">
               <span className="w-8 h-[1px] bg-[var(--color-accent)]" />
               <p className="text-sm font-mono tracking-[0.4em] uppercase text-[var(--color-accent)] font-bold">
-                Recruiter Hub // {user.name?.toUpperCase()}
+                Recruiter Hub // {(user?.name || "RECRUITER").toUpperCase()}
               </p>
             </div>
             <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-4 text-white">

@@ -83,7 +83,10 @@ const Navbar = () => {
     }
   };
 
-  const handleLogout = () => setShowLogoutModal(true);
+  const handleLogout = () => {
+    setProfileOpen(false);
+    setShowLogoutModal(true);
+  };
 
   // ─── AUTH & ROUTE CHECKS ───
   const isRecruiter = user?.role === "recruiter";
@@ -246,20 +249,20 @@ const Navbar = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="w-7 h-7 rounded overflow-hidden bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
-                  {user.profileImage ? (
+                  {user?.profileImage ? (
                     <img
                       src={cldAvatar(user.profileImage)}
-                      alt={user.name}
+                      alt={user?.name || "User Avatar"}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-[10px] font-mono font-bold text-cyan-500">
-                      {user.name.charAt(0).toUpperCase()}
+                      {(user?.name || user?.email || "U").charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
                 <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-900 dark:text-white hidden sm:block max-w-[100px] truncate">
-                  {user.name.split(" ")[0]}
+                  {user?.name ? user.name.split(" ")[0] : (user?.email ? user.email.split("@")[0] : "User")}
                 </span>
                 <ChevronRight
                   className={`w-3 h-3 text-slate-400 transition-transform ${profileOpen ? "rotate-90" : ""}`}
@@ -280,10 +283,10 @@ const Navbar = () => {
                         Session Active
                       </p>
                       <p className="font-bold text-slate-900 dark:text-white truncate text-xs mt-0.5">
-                        {user.name}
+                        {user?.name || user?.email || "Operator"}
                       </p>
                       <p className="text-[10px] text-cyan-600 dark:text-cyan-400 capitalize">
-                        {user.role} Account
+                        {user?.role || "Candidate"} Account
                       </p>
                     </div>
 
@@ -348,6 +351,7 @@ const Navbar = () => {
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
         onConfirm={() => {
+          setProfileOpen(false);
           setShowLogoutModal(false);
           setIsExiting(true);
         }}
