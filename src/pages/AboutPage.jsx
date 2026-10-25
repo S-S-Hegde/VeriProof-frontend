@@ -260,8 +260,7 @@ export default function About() {
                 to="/register"
                 className="group inline-flex items-center gap-3 px-8 sm:px-10 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold tracking-wider text-sm rounded shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:shadow-cyan-400/40 uppercase"
               >
-                <span>START THE AUDIT</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
+                <span>START THE AUDIT -&gt;</span>
               </Link>
             </motion.div>
           </div>

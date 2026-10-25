@@ -9,14 +9,27 @@ export default function CryptographicNodeMesh({ className = "" }) {
 
     const ctx = canvas.getContext("2d");
     let animationFrameId;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    let dpr = window.devicePixelRatio || 1;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
 
-    // Track mouse position
+    const setupCanvasSize = () => {
+      dpr = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+    };
+
+    setupCanvasSize();
+
+    // Track mouse position (viewport coordinates)
     const mouse = {
       x: null,
       y: null,
-      radius: 180,
+      radius: 175,
     };
 
     const handleMouseMove = (e) => {
@@ -30,26 +43,25 @@ export default function CryptographicNodeMesh({ className = "" }) {
     };
 
     const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      setupCanvasSize();
       initNodes();
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseleave", handleMouseLeave);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("mouseleave", handleMouseLeave, { passive: true });
     window.addEventListener("resize", handleResize);
 
-    // Node class representing Git commits & cryptographic blocks
+    // Commit & Hash node representation
     class CommitNode {
       constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.vx = (Math.random() - 0.5) * 0.6;
-        this.vy = (Math.random() - 0.5) * 0.6;
+        this.vx = (Math.random() - 0.5) * 0.55;
+        this.vy = (Math.random() - 0.5) * 0.55;
         this.radius = Math.random() > 0.85 ? 3.5 : 2;
         this.isKeyNode = Math.random() > 0.8;
         this.hash = Math.random().toString(16).substring(2, 8);
-        this.pulse = Math.random() * Math.PI;
+        this.pulse = Math.random() * Math.PI * 2;
       }
 
       update() {
@@ -57,11 +69,11 @@ export default function CryptographicNodeMesh({ className = "" }) {
         this.y += this.vy;
         this.pulse += 0.03;
 
-        // Bounce off edges gently
+        // Bounce gently within bounds
         if (this.x < 0 || this.x > width) this.vx *= -1;
         if (this.y < 0 || this.y > height) this.vy *= -1;
 
-        // Cursor interaction (gentle magnet attraction / link)
+        // Cursor attraction & proximity link
         if (mouse.x !== null && mouse.y !== null) {
           const dx = mouse.x - this.x;
           const dy = mouse.y - this.y;
@@ -70,9 +82,8 @@ export default function CryptographicNodeMesh({ className = "" }) {
           if (dist < mouse.radius) {
             const force = (mouse.radius - dist) / mouse.radius;
             const angle = Math.atan2(dy, dx);
-            // Gentle drift toward mouse
-            this.x += Math.cos(angle) * force * 0.8;
-            this.y += Math.sin(angle) * force * 0.8;
+            this.x += Math.cos(angle) * force * 0.75;
+            this.y += Math.sin(angle) * force * 0.75;
           }
         }
       }
@@ -82,22 +93,21 @@ export default function CryptographicNodeMesh({ className = "" }) {
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.isKeyNode ? "#22d3ee" : "#06b6d4";
         ctx.shadowColor = "#06b6d4";
-        ctx.shadowBlur = this.isKeyNode ? 10 : 4;
+        ctx.shadowBlur = this.isKeyNode ? 8 : 3;
         ctx.fill();
-        ctx.shadowBlur = 0; // reset
+        ctx.shadowBlur = 0;
 
-        // For key nodes, draw subtle pulse ring & hash watermark
+        // Key commit nodes show subtle cryptographic rings & hash tags
         if (this.isKeyNode) {
           const pulseR = this.radius + Math.sin(this.pulse) * 3 + 4;
           ctx.beginPath();
           ctx.arc(this.x, this.y, Math.max(pulseR, this.radius + 1), 0, Math.PI * 2);
-          ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
+          ctx.strokeStyle = "rgba(6, 182, 212, 0.28)";
           ctx.lineWidth = 1;
           ctx.stroke();
 
-          // Occasional hash tag
-          ctx.font = "9px JetBrains Mono, monospace";
-          ctx.fillStyle = "rgba(100, 116, 139, 0.4)";
+          ctx.font = "9px 'JetBrains Mono', monospace";
+          ctx.fillStyle = "rgba(148, 163, 184, 0.5)";
           ctx.fillText(`0x${this.hash}`, this.x + 8, this.y + 3);
         }
       }
@@ -106,22 +116,21 @@ export default function CryptographicNodeMesh({ className = "" }) {
     let nodes = [];
     const initNodes = () => {
       nodes = [];
-      // Dynamic count based on screen size (1 node per ~14000px)
-      const count = Math.min(Math.floor((width * height) / 14000), 90);
+      const count = Math.min(Math.floor((width * height) / 13500), 95);
       for (let i = 0; i < count; i++) {
-        nodes.push(
-          new CommitNode(Math.random() * width, Math.random() * height)
-        );
+        nodes.push(new CommitNode(Math.random() * width, Math.random() * height));
       }
     };
 
     initNodes();
 
-    // Render loop
+    // Render loop with DPR scaling
     const animate = () => {
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      // Connect nodes
+      // Connect inter-node lattice
       const maxDist = 135;
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
@@ -134,6 +143,7 @@ export default function CryptographicNodeMesh({ className = "" }) {
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
+            // slate-700 lines with variable opacity
             ctx.strokeStyle = `rgba(51, 65, 85, ${opacity * 0.45})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
@@ -141,7 +151,7 @@ export default function CryptographicNodeMesh({ className = "" }) {
         }
       }
 
-      // Connect to mouse cursor if nearby
+      // Cursor connection beam
       if (mouse.x !== null && mouse.y !== null) {
         for (let i = 0; i < nodes.length; i++) {
           const dx = mouse.x - nodes[i].x;
@@ -149,17 +159,17 @@ export default function CryptographicNodeMesh({ className = "" }) {
           const dist = Math.hypot(dx, dy);
 
           if (dist < mouse.radius) {
-            const opacity = (1 - dist / mouse.radius) * 0.7;
+            const opacity = (1 - dist / mouse.radius) * 0.75;
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(mouse.x, mouse.y);
             ctx.strokeStyle = `rgba(6, 182, 212, ${opacity})`;
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1.1;
             ctx.stroke();
           }
         }
 
-        // Mouse pointer anchor
+        // Mouse pointer anchor dot
         ctx.beginPath();
         ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2);
         ctx.fillStyle = "#38bdf8";
@@ -169,12 +179,13 @@ export default function CryptographicNodeMesh({ className = "" }) {
         ctx.shadowBlur = 0;
       }
 
-      // Update & draw nodes
+      // Update & render individual nodes
       for (let i = 0; i < nodes.length; i++) {
         nodes[i].update();
         nodes[i].draw();
       }
 
+      ctx.restore();
       animationFrameId = requestAnimationFrame(animate);
     };
 
