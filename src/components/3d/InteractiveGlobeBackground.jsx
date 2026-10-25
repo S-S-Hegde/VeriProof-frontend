@@ -39,6 +39,7 @@ const CONNECTIONS = [
 
 const RADIUS = 100;
 
+// Converts latitude & longitude coordinates to 3D Cartesian Vector3 on sphere
 function latLngToVector3(lat, lng, radius) {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lng + 180) * (Math.PI / 180);
@@ -48,13 +49,136 @@ function latLngToVector3(lat, lng, radius) {
   return new THREE.Vector3(x, y, z);
 }
 
+// Global cache for GeoJSON to prevent redundant network requests across re-renders
+let cachedLandGeoJSON = null;
+
+async function fetchLandGeoJSON() {
+  if (cachedLandGeoJSON) return cachedLandGeoJSON;
+  try {
+    const res = await fetch("/ne_110m_land.geojson");
+    if (!res.ok) throw new Error("Failed to fetch land GeoJSON");
+    cachedLandGeoJSON = await res.json();
+    return cachedLandGeoJSON;
+  } catch (err) {
+    console.warn("Could not load /ne_110m_land.geojson, falling back to procedural:", err);
+    return null;
+  }
+}
+
+/**
+ * Generates high-contrast equirectangular texture map of Earth's continental landmasses.
+ * - Oceans are completely transparent (rgba(0,0,0,0)).
+ * - Continents are filled with glowing cyan/slate (matching #06b6d4 theme).
+ * - Layered with cyber hex/matrix dots over landmasses for high-tech aesthetic.
+ */
+function createContinentTexture(geojson, isDark) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 2048;
+  canvas.height = 1024;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // 1. Transparent ocean baseline
+  ctx.clearRect(0, 0, w, h);
+
+  if (geojson && geojson.features) {
+    // 2. Render continental landmass polygons
+    const landFill = isDark ? "rgba(6, 182, 212, 0.40)" : "rgba(2, 132, 199, 0.32)";
+    const strokeColor = isDark ? "rgba(34, 211, 238, 0.90)" : "rgba(14, 165, 233, 0.85)";
+
+    ctx.fillStyle = landFill;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.5;
+
+    geojson.features.forEach((feature) => {
+      if (!feature.geometry || !feature.geometry.coordinates) return;
+      const rings = feature.geometry.coordinates;
+
+      ctx.beginPath();
+      rings.forEach((ring) => {
+        for (let i = 0; i < ring.length; i++) {
+          const [lng, lat] = ring[i];
+          const x = ((lng + 180) / 360) * w;
+          const y = ((90 - lat) / 180) * h;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+      });
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // 3. High-tech cyber hex / dot grid texture over landmasses only
+    ctx.save();
+    ctx.globalCompositeOperation = "source-atop";
+    ctx.fillStyle = isDark ? "rgba(34, 211, 238, 0.28)" : "rgba(2, 132, 199, 0.22)";
+    const dotStep = 8;
+    for (let y = 0; y < h; y += dotStep) {
+      const offsetX = (Math.floor(y / dotStep) % 2) * (dotStep / 2);
+      for (let x = offsetX; x < w; x += dotStep) {
+        ctx.beginPath();
+        ctx.arc(x, y, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/**
+ * Creates 3D vector lines for continental coastlines from GeoJSON coordinates.
+ * Floats at radius 100.2 for razor-sharp, zero-aliasing boundaries at any angle.
+ */
+function createContinentCoastlineMesh(geojson, isDark) {
+  if (!geojson || !geojson.features) return null;
+
+  const linePositions = [];
+  geojson.features.forEach((feature) => {
+    if (!feature.geometry || !feature.geometry.coordinates) return;
+    feature.geometry.coordinates.forEach((ring) => {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const p1 = latLngToVector3(ring[i][1], ring[i][0], RADIUS * 1.002);
+        const p2 = latLngToVector3(ring[i + 1][1], ring[i + 1][0], RADIUS * 1.002);
+        linePositions.push(p1.x, p1.y, p1.z);
+        linePositions.push(p2.x, p2.y, p2.z);
+      }
+    });
+  });
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(linePositions, 3)
+  );
+
+  const material = new THREE.LineBasicMaterial({
+    color: isDark ? 0x22d3ee : 0x0284c7, // Glowing cyan/slate
+    transparent: true,
+    opacity: isDark ? 0.85 : 0.7,
+    blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
+  });
+
+  return new THREE.LineSegments(geometry, material);
+}
+
 /**
  * HeroInteractiveGlobe
  * The central attraction for the Landing Page Hero section.
- * - Responsive 3D WebGL Fibonacci dot sphere
- * - Dynamic Bézier cryptographic verification arcs
- * - Scoped pointer drag-to-rotate interaction (no window event leaks)
- * - Corner live telemetry HUD ticker overlay
+ * - Smooth High-Fidelity 3D Earth with visible continents (GeoJSON data)
+ * - Anti-aliased WebGL rendering with high-density 64x64 sphere geometry
+ * - Delta-based frame physics independent of monitor refresh rate
+ * - Atmosphere & Depth Glow with soft indigo (#6366f1) halo shader at altitude 0.15
+ * - Interactive telemetry verification arcs & pulsing radar nodes
  */
 export const HeroInteractiveGlobe = ({
   className = "relative w-full max-w-[540px] aspect-square mx-auto flex items-center justify-center select-none group",
@@ -88,13 +212,13 @@ export const HeroInteractiveGlobe = ({
     let width = container.clientWidth || 480;
     let height = container.clientHeight || 480;
 
-    // 1. Three.js Scene, Camera, Renderer
+    // 1. WebGL Renderer with Anti-Aliasing & High Performance
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
     camera.position.z = 265;
 
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: true, // Smooth anti-aliased edges
       alpha: true,
       powerPreference: "high-performance",
     });
@@ -109,78 +233,153 @@ export const HeroInteractiveGlobe = ({
     globeGroup.rotation.y = -0.5;
     scene.add(globeGroup);
 
-    // Dynamic theme styling
     const isDark = theme === "dark";
     const primaryColor = isDark ? 0x22d3ee : 0x0284c7; // Cyan vs Slate Sky
     const secondaryColor = isDark ? 0x6366f1 : 0x3b82f6; // Indigo vs Blue
-    const wireframeOpacity = isDark ? 0.1 : 0.08;
-    const particleOpacity = isDark ? 0.75 : 0.6;
 
-    // 2. Cryptographic Dot Matrix Sphere (1,800 points)
-    const dotsCount = 1800;
-    const dotPositions = new Float32Array(dotsCount * 3);
-    const dotSizes = new Float32Array(dotsCount);
-
-    for (let i = 0; i < dotsCount; i++) {
-      const y = 1 - (i / (dotsCount - 1)) * 2;
-      const radiusAtY = Math.sqrt(1 - y * y);
-      const theta = i * 2.399963229728653; // Golden angle
-
-      const x = Math.cos(theta) * radiusAtY;
-      const z = Math.sin(theta) * radiusAtY;
-
-      dotPositions[i * 3] = x * RADIUS;
-      dotPositions[i * 3 + 1] = y * RADIUS;
-      dotPositions[i * 3 + 2] = z * RADIUS;
-
-      dotSizes[i] = Math.random() * 1.6 + 1.2;
-    }
-
-    const dotGeometry = new THREE.BufferGeometry();
-    dotGeometry.setAttribute("position", new THREE.BufferAttribute(dotPositions, 3));
-    dotGeometry.setAttribute("size", new THREE.BufferAttribute(dotSizes, 1));
-
-    const dotMaterial = new THREE.PointsMaterial({
-      color: primaryColor,
-      size: 2.2,
+    // 2. Base Spherical Body (High-Density 64x64 Geometry for perfect curvature)
+    // Dark translucent sphere provides realistic occlusion and depth
+    const baseSphereGeo = new THREE.SphereGeometry(RADIUS * 0.995, 64, 64);
+    const baseSphereMat = new THREE.MeshBasicMaterial({
+      color: isDark ? 0x030712 : 0xf8fafc,
       transparent: true,
-      opacity: particleOpacity,
-      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
+      opacity: isDark ? 0.75 : 0.6,
     });
-    const dotPoints = new THREE.Points(dotGeometry, dotMaterial);
-    globeGroup.add(dotPoints);
+    const baseSphereMesh = new THREE.Mesh(baseSphereGeo, baseSphereMat);
+    globeGroup.add(baseSphereMesh);
 
-    // 3. Subtle Wireframe Latitude/Longitude Cage
-    const wireGeometry = new THREE.SphereGeometry(RADIUS * 0.995, 36, 24);
-    const wireMaterial = new THREE.MeshBasicMaterial({
+    // 3. Subtle Cryptographic Longitude/Latitude Wireframe Grid
+    const gridGeo = new THREE.SphereGeometry(RADIUS * 0.998, 48, 24);
+    const gridMat = new THREE.MeshBasicMaterial({
       color: secondaryColor,
       wireframe: true,
       transparent: true,
-      opacity: wireframeOpacity,
+      opacity: isDark ? 0.08 : 0.06,
     });
-    const wireMesh = new THREE.Mesh(wireGeometry, wireMaterial);
-    globeGroup.add(wireMesh);
+    const gridMesh = new THREE.Mesh(gridGeo, gridMat);
+    globeGroup.add(gridMesh);
 
-    // 4. Verification Hub Nodes
+    // 4. Atmosphere & Depth Glow
+    // Requirement: showAtmosphere=true, atmosphereColor="#6366f1" (indigo), atmosphereAltitude=0.15
+    const atmosphereGeo = new THREE.SphereGeometry(RADIUS * 1.15, 64, 64);
+    const atmosphereMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        uniform vec3 uColor;
+        void main() {
+          // Soft atmospheric limb halo on dark side and rim
+          float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.2);
+          intensity = clamp(intensity, 0.0, 1.0);
+          gl_FragColor = vec4(uColor, intensity * 0.9);
+        }
+      `,
+      uniforms: {
+        uColor: { value: new THREE.Color("#6366f1") }, // Indigo atmosphere
+      },
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      transparent: true,
+      depthWrite: false,
+    });
+    const atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat);
+    scene.add(atmosphereMesh);
+
+    // Inner Surface Fresnel Rim Glow (adds spherical 3D volume)
+    const rimGeo = new THREE.SphereGeometry(RADIUS * 1.006, 64, 64);
+    const rimMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        uniform vec3 uColor;
+        void main() {
+          float intensity = pow(1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
+          gl_FragColor = vec4(uColor, intensity * 0.6);
+        }
+      `,
+      uniforms: {
+        uColor: { value: new THREE.Color(isDark ? "#22d3ee" : "#3b82f6") },
+      },
+      blending: THREE.AdditiveBlending,
+      side: THREE.FrontSide,
+      transparent: true,
+      depthWrite: false,
+    });
+    const rimMesh = new THREE.Mesh(rimGeo, rimMat);
+    globeGroup.add(rimMesh);
+
+    // 5. Continents Mesh & Vector Coastlines
+    let continentMesh = null;
+    let coastlineMesh = null;
+    let continentTexture = null;
+
+    const setupContinents = (geojsonData) => {
+      if (!geojsonData) return;
+
+      // Continental surface texture map (high-contrast cyan continents, transparent oceans)
+      continentTexture = createContinentTexture(geojsonData, isDark);
+      if (continentTexture) {
+        const landGeo = new THREE.SphereGeometry(RADIUS, 64, 64);
+        const landMat = new THREE.MeshBasicMaterial({
+          map: continentTexture,
+          transparent: true,
+          opacity: 0.96,
+          side: THREE.DoubleSide,
+          blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
+          depthWrite: false,
+        });
+        continentMesh = new THREE.Mesh(landGeo, landMat);
+        globeGroup.add(continentMesh);
+      }
+
+      // 3D vector coastlines for razor-sharp continental definition
+      coastlineMesh = createContinentCoastlineMesh(geojsonData, isDark);
+      if (coastlineMesh) {
+        globeGroup.add(coastlineMesh);
+      }
+    };
+
+    // Load GeoJSON data immediately from cache or public directory
+    fetchLandGeoJSON().then((data) => {
+      setupContinents(data);
+    });
+
+    // 6. Global Verification Hub Nodes
     const hubPoints = HUBS.map((hub) => latLngToVector3(hub.lat, hub.lng, RADIUS));
     const hubGroup = new THREE.Group();
+    const pulsingRings = [];
 
-    hubPoints.forEach((pos) => {
-      // Outer ping ring
-      const ringGeo = new THREE.RingGeometry(1.4, 2.6, 16);
+    hubPoints.forEach((pos, idx) => {
+      // Outer pulsating radar ring
+      const ringGeo = new THREE.RingGeometry(1.2, 2.4, 24);
       const ringMat = new THREE.MeshBasicMaterial({
         color: primaryColor,
         side: THREE.DoubleSide,
         transparent: true,
         opacity: isDark ? 0.85 : 0.7,
+        blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
       });
       const ringMesh = new THREE.Mesh(ringGeo, ringMat);
       ringMesh.position.copy(pos);
       ringMesh.lookAt(0, 0, 0);
+      ringMesh.userData = { phase: (idx * 0.25) % Math.PI };
+      pulsingRings.push(ringMesh);
       hubGroup.add(ringMesh);
 
       // Inner glowing core
-      const coreGeo = new THREE.SphereGeometry(1.6, 8, 8);
+      const coreGeo = new THREE.SphereGeometry(1.6, 16, 16);
       const coreMat = new THREE.MeshBasicMaterial({
         color: isDark ? 0xffffff : primaryColor,
         transparent: true,
@@ -192,7 +391,7 @@ export const HeroInteractiveGlobe = ({
     });
     globeGroup.add(hubGroup);
 
-    // 5. Curved Arcs & Flowing Data Packets
+    // 7. Sweeping Telemetry Verification Arcs & Flowing Data Packets
     const curves = [];
     const packetMeshes = [];
 
@@ -208,19 +407,20 @@ export const HeroInteractiveGlobe = ({
       const curve = new THREE.QuadraticBezierCurve3(p1, control, p2);
       curves.push(curve);
 
-      // Arc Line
-      const points = curve.getPoints(40);
+      // Sweeping Arc Line
+      const points = curve.getPoints(48);
       const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
       const lineMat = new THREE.LineBasicMaterial({
         color: primaryColor,
         transparent: true,
-        opacity: isDark ? 0.45 : 0.35,
+        opacity: isDark ? 0.55 : 0.4,
+        blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
       });
       const line = new THREE.Line(lineGeo, lineMat);
       globeGroup.add(line);
 
-      // Animated traveling data packet
-      const packetGeo = new THREE.SphereGeometry(1.8, 8, 8);
+      // Traveling cryptographic data packet
+      const packetGeo = new THREE.SphereGeometry(1.9, 12, 12);
       const packetMat = new THREE.MeshBasicMaterial({
         color: isDark ? 0xffffff : secondaryColor,
         transparent: true,
@@ -236,19 +436,7 @@ export const HeroInteractiveGlobe = ({
       globeGroup.add(packet);
     });
 
-    // 6. Atmospheric Glow Aura
-    const haloGeo = new THREE.RingGeometry(RADIUS * 1.01, RADIUS * 1.18, 64);
-    const haloMat = new THREE.MeshBasicMaterial({
-      color: primaryColor,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: isDark ? 0.22 : 0.12,
-      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
-    });
-    const haloMesh = new THREE.Mesh(haloGeo, haloMat);
-    scene.add(haloMesh);
-
-    // 7. Strictly Scoped Pointer Drag Interaction
+    // 8. Strictly Scoped Pointer Drag Interaction
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
@@ -298,7 +486,7 @@ export const HeroInteractiveGlobe = ({
     container.addEventListener("pointerup", onPointerUp);
     container.addEventListener("pointercancel", onPointerUp);
 
-    // 8. ResizeObserver for responsive sizing inside grid column
+    // 9. ResizeObserver for responsive sizing
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width: newW, height: newH } = entry.contentRect;
@@ -313,26 +501,40 @@ export const HeroInteractiveGlobe = ({
     });
     resizeObserver.observe(container);
 
-    // 9. Animation Loop
+    // 10. Frame-Delta Physics Animation Loop (Independent of screen refresh rate)
     let animationFrameId;
-    const baseSpeed = shouldReduceMotion ? 0 : 0.0022;
+    const clock = new THREE.Clock();
+    const autoRotateSpeed = 0.5; // per requirement
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
+      const delta = Math.min(clock.getDelta(), 0.1);
+
+      // Auto-rotation tied to frame delta
       if (!isDragging && !shouldReduceMotion) {
-        targetRotationY += baseSpeed;
+        targetRotationY += autoRotateSpeed * 0.35 * delta;
       }
-      globeGroup.rotation.y += (targetRotationY - globeGroup.rotation.y) * 0.08;
-      globeGroup.rotation.x += (targetRotationX - globeGroup.rotation.x) * 0.08;
 
-      haloMesh.lookAt(camera.position);
+      // Smooth lerp physics
+      const lerpFactor = Math.min(1.0, delta * 9);
+      globeGroup.rotation.y += (targetRotationY - globeGroup.rotation.y) * lerpFactor;
+      globeGroup.rotation.x += (targetRotationX - globeGroup.rotation.x) * lerpFactor;
 
+      // Animate pulsing radar rings at verification hubs
+      pulsingRings.forEach((ring) => {
+        ring.userData.phase += delta * 2.2;
+        const scale = 1.0 + Math.sin(ring.userData.phase) * 0.35;
+        ring.scale.set(scale, scale, 1);
+        ring.material.opacity = (isDark ? 0.85 : 0.65) * (0.6 + 0.4 * Math.sin(ring.userData.phase));
+      });
+
+      // Animate traveling data packets
       packetMeshes.forEach((packet) => {
         const { curveIdx, speed } = packet.userData;
         const curve = curves[curveIdx];
         if (curve) {
-          packet.userData.progress = (packet.userData.progress + speed) % 1;
+          packet.userData.progress = (packet.userData.progress + speed * (delta * 60)) % 1;
           const pos = curve.getPoint(packet.userData.progress);
           packet.position.copy(pos);
         }
@@ -343,6 +545,7 @@ export const HeroInteractiveGlobe = ({
 
     animate();
 
+    // 11. Cleanup and resource disposal
     return () => {
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
@@ -355,25 +558,38 @@ export const HeroInteractiveGlobe = ({
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      dotGeometry.dispose();
-      dotMaterial.dispose();
-      wireGeometry.dispose();
-      wireMaterial.dispose();
-      haloGeo.dispose();
-      haloMat.dispose();
+
+      baseSphereGeo.dispose();
+      baseSphereMat.dispose();
+      gridGeo.dispose();
+      gridMat.dispose();
+      atmosphereGeo.dispose();
+      atmosphereMat.dispose();
+      rimGeo.dispose();
+      rimMat.dispose();
+
+      if (continentTexture) continentTexture.dispose();
+      if (continentMesh) {
+        continentMesh.geometry.dispose();
+        continentMesh.material.dispose();
+      }
+      if (coastlineMesh) {
+        coastlineMesh.geometry.dispose();
+        coastlineMesh.material.dispose();
+      }
     };
   }, [theme, shouldReduceMotion]);
 
   return (
     <div className={className}>
-      {/* Interactive WebGL Canvas Container with Seamless Radial Mask */}
+      {/* Interactive WebGL Canvas Container with Subtle Radial Mask */}
       <div
         ref={mountRef}
         className="w-full h-full cursor-grab active:cursor-grabbing touch-none pointer-events-auto relative z-10"
-        title="Click and drag to rotate the verification mesh globe"
+        title="Click and drag to rotate the high-fidelity verification globe"
         style={{
-          WebkitMaskImage: "radial-gradient(circle, black 40%, transparent 70%)",
-          maskImage: "radial-gradient(circle, black 40%, transparent 70%)",
+          WebkitMaskImage: "radial-gradient(circle, black 48%, transparent 72%)",
+          maskImage: "radial-gradient(circle, black 48%, transparent 72%)",
         }}
       />
 
