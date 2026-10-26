@@ -346,7 +346,7 @@ const Register = () => {
       {/* ── Post-Google-OAuth: GitHub Username Collection Step ── */}
       {githubStep ? (
         <div className="flex items-center justify-center min-h-[70vh] px-4 py-8">
-          <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.7)] space-y-6">
+          <div className="w-full max-w-md space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Github className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />

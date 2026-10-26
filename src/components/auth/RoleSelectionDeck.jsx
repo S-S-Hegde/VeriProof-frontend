@@ -36,7 +36,7 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
           whileHover={{ y: -4 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => onSelectRole("student")}
-          className="relative p-8 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 hover:border-cyan-500/80 dark:hover:border-cyan-400 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.7)] transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[360px]"
+          className="relative p-8 rounded-none border border-slate-300 dark:border-slate-800 hover:border-blue-600 dark:hover:border-cyan-400 bg-transparent transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[360px]"
         >
           <div>
             <div className="flex items-center justify-between mb-6">
@@ -91,7 +91,7 @@ const RoleSelectionDeck = ({ onSelectRole }) => {
           whileHover={{ y: -4 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => onSelectRole("recruiter")}
-          className="relative p-8 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 hover:border-emerald-600 dark:hover:border-emerald-400 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.7)] transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[360px]"
+          className="relative p-8 rounded-none border border-slate-300 dark:border-slate-800 hover:border-emerald-600 dark:hover:border-emerald-400 bg-transparent transition-all duration-300 cursor-pointer group flex flex-col justify-between min-h-[360px]"
         >
           <div>
             <div className="flex items-center justify-between mb-6">
