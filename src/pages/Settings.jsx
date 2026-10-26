@@ -209,53 +209,62 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      setSystemStatus("Fetching_Data...");
-      try {
-        const { data } = await api.get("/api/users/profile");
-        setForm({
-          name: data.name || "",
-          email: data.email || "",
-          bio: data.bio || "",
-          phone: data.phone || "",
-          location: data.location || "",
-          website: data.website || "",
-          linkedin: data.linkedin || "",
-          twitter: data.twitter || "",
-          instagram: data.instagram || "",
-          githubUsername: data.githubUsername || "",
-          college: data.college || "",
-          branch: data.branch || "",
-          usn: data.usn || "",
-          batch: data.batch || "",
-          cgpa: data.cgpa || "",
-          skills: (data.skills || []).join(", "),
-          profileVisibility: data.profileVisibility || "public",
-          notifEmail: data.notifications?.email ?? true,
-          notifPlatform: data.notifications?.platform ?? true,
+    let isMounted = true;
+    setSystemStatus("Fetching_Data...");
+
+    api.get("/api/users/profile")
+      .then(({ data }) => {
+        if (!isMounted) return;
+        const nodes = data.nodes || {};
+        setForm((prev) => ({
+          ...prev,
+          name: data.name || prev.name || "",
+          email: data.email || prev.email || "",
+          bio: data.bio || prev.bio || "",
+          phone: data.phone || prev.phone || "",
+          location: data.location || prev.location || "",
+          website: nodes.website ?? data.website ?? prev.website ?? "",
+          linkedin: nodes.linkedin ?? data.linkedin ?? prev.linkedin ?? "",
+          twitter: nodes.twitter ?? data.twitter ?? prev.twitter ?? "",
+          instagram: nodes.instagram ?? data.instagram ?? prev.instagram ?? "",
+          githubUsername: nodes.githubUsername ?? nodes.github ?? data.githubUsername ?? prev.githubUsername ?? "",
+          college: data.college || prev.college || "",
+          branch: data.branch || prev.branch || "",
+          usn: data.usn || prev.usn || "",
+          batch: data.batch || prev.batch || "",
+          cgpa: data.cgpa || prev.cgpa || "",
+          skills: Array.isArray(data.skills) ? data.skills.join(", ") : (data.skills || prev.skills || ""),
+          profileVisibility: data.profileVisibility || prev.profileVisibility || "public",
+          notifEmail: data.notifications?.email ?? prev.notifEmail,
+          notifPlatform: data.notifications?.platform ?? prev.notifPlatform,
           newPassword: "",
           confirmPassword: "",
-          profileImage: data.profileImage || "",
-          resumeUrl: data.resumeUrl || "",
-          resumeStatus: data.resumeStatus || "Not_Found",
-        });
+          profileImage: data.profileImage || prev.profileImage || "",
+          resumeUrl: data.resumeUrl || prev.resumeUrl || "",
+          resumeStatus: data.resumeStatus || prev.resumeStatus || "Not_Found",
+        }));
         setUser((prev) => ({
           ...prev,
           profileImage: data.profileImage || prev?.profileImage || "",
         }));
         setSystemStatus("Sync_Complete");
-      } catch (err) {
+      })
+      .catch((err) => {
+        if (!isMounted) return;
         setSystemStatus("Sync_Error");
+        console.error("Failed to fetch node telemetry", err);
         if (err.response?.status === 401 || err.response?.status === 404) {
           logout();
           localStorage.clear();
           sessionStorage.clear();
           navigate("/", { replace: true });
         }
-      }
+      });
+
+    return () => {
+      isMounted = false;
     };
-    fetchProfile();
-  }, [user?.token]);
+  }, []);
 
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
@@ -399,6 +408,14 @@ const Settings = () => {
         twitter: form.twitter,
         instagram: form.instagram,
         githubUsername: form.githubUsername,
+        nodes: {
+          website: form.website,
+          linkedin: form.linkedin,
+          twitter: form.twitter,
+          instagram: form.instagram,
+          githubUsername: form.githubUsername,
+          github: form.githubUsername,
+        },
         college: form.college,
         branch: form.branch,
         usn: form.usn,

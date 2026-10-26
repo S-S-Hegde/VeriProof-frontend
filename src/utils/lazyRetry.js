@@ -8,15 +8,19 @@ import React from "react";
  * @param {Function} componentImport Dynamic import function, e.g. () => import('./pages/Dashboard')
  * @returns {React.LazyExoticComponent}
  */
-export const lazyRetry = (componentImport) =>
+export const lazyRetry = (componentImport, timeoutMs = 1500) =>
   React.lazy(async () => {
     try {
-      const component = await componentImport();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Dynamic chunk import timeout")), timeoutMs)
+      );
+      const component = await Promise.race([componentImport(), timeoutPromise]);
       // Clear the reload flag on successful chunk load so future deployments can retry
       sessionStorage.removeItem("retry_chunk_reload");
+      sessionStorage.removeItem("vp_loading_fallback_triggered");
       return component;
     } catch (error) {
-      // If chunk load fails, force a hard reload to get the latest assets
+      // If chunk load fails or stalls beyond 1.5s, force a hard reload once to get the latest assets
       const isStale = sessionStorage.getItem("retry_chunk_reload");
       if (!isStale) {
         sessionStorage.setItem("retry_chunk_reload", "true");
@@ -24,9 +28,13 @@ export const lazyRetry = (componentImport) =>
         // Return a never-resolving promise to hold React rendering while the window reloads
         return new Promise(() => {});
       } else {
-        // If already retried once and still failing, clear guard and propagate error to ErrorBoundary
+        // If already retried once and still failing, attempt direct import without race timeout
         sessionStorage.removeItem("retry_chunk_reload");
-        throw error;
+        try {
+          return await componentImport();
+        } catch (finalErr) {
+          throw finalErr;
+        }
       }
     }
   });

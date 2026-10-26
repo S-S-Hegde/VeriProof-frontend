@@ -81,31 +81,45 @@ const SettingsRouter = () => {
   );
 };
 
-// Premium Forensic Loading Screen with Glowing Halo Effect
-const LoadingScreen = () => (
-  <div className="flex min-h-[65vh] w-full items-center justify-center bg-[var(--color-bg,#0a0e1a)] select-none">
-    <div className="flex flex-col items-center gap-7">
-      <div className="relative w-16 h-16 flex items-center justify-center">
-        {/* Glowing Halo Aura */}
-        <div className="halo-aura" />
-        {/* Outer Orbit Ring */}
-        <div className="halo-ring-outer" />
-        {/* Inner Spinning Ring */}
-        <div className="halo-ring-inner" />
-        {/* Central Core Pulse */}
-        <div className="w-3 h-3 rounded-full bg-[var(--color-accent,#6b8aff)] shadow-[0_0_12px_var(--color-accent,#6b8aff)] animate-ping opacity-75" />
-      </div>
-      <div className="flex flex-col items-center gap-1.5">
-        <p className="vp-label-accent tracking-[0.25em] font-mono text-xs uppercase animate-pulse">
-          Initializing_Protocol...
-        </p>
-        <span className="text-[10px] font-mono tracking-widest text-[var(--color-muted)] opacity-60 uppercase">
-          VeriProof OS // Node Synchronization
-        </span>
+// Premium Forensic Loading Screen with Glowing Halo Effect & 1.5s Max Fallback Timeout
+const LoadingScreen = ({ fallbackTimeout = 1500 }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const isRetried = sessionStorage.getItem("vp_loading_fallback_triggered");
+      if (!isRetried) {
+        sessionStorage.setItem("vp_loading_fallback_triggered", "true");
+        window.location.reload();
+      }
+    }, fallbackTimeout);
+
+    return () => clearTimeout(timer);
+  }, [fallbackTimeout]);
+
+  return (
+    <div className="flex min-h-[65vh] w-full items-center justify-center bg-[var(--color-bg,#0a0e1a)] select-none">
+      <div className="flex flex-col items-center gap-7">
+        <div className="relative w-16 h-16 flex items-center justify-center">
+          {/* Glowing Halo Aura */}
+          <div className="halo-aura" />
+          {/* Outer Orbit Ring */}
+          <div className="halo-ring-outer" />
+          {/* Inner Spinning Ring */}
+          <div className="halo-ring-inner" />
+          {/* Central Core Pulse */}
+          <div className="w-3 h-3 rounded-full bg-[var(--color-accent,#6b8aff)] shadow-[0_0_12px_var(--color-accent,#6b8aff)] animate-ping opacity-75" />
+        </div>
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="vp-label-accent tracking-[0.25em] font-mono text-xs uppercase animate-pulse">
+            Initializing_Protocol...
+          </p>
+          <span className="text-[10px] font-mono tracking-widest text-[var(--color-muted)] opacity-60 uppercase">
+            VeriProof OS // Node Synchronization
+          </span>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
