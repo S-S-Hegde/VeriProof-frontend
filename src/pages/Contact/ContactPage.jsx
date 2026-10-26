@@ -47,14 +47,14 @@ export default function ContactPage() {
 
   return (
     <main
-      className={`relative min-h-screen transition-colors duration-300 overflow-x-hidden ${
+      className={`relative min-h-screen transition-colors duration-300 overflow-x-hidden pl-[14px] lg:pl-[28px] ${
         isDarkMode
           ? "bg-[#050816] text-[#e9eef5]"
           : "bg-[#f4f7fb] text-[#0a0f24]"
       }`}
     >
-      {/* Decorative vertical ruler on desktop / top line on mobile */}
-      <Ruler activeField={activeField} progress={formProgress} />
+      {/* Decorative vertical ruler tracking focused field at all sizes */}
+      <Ruler tagContainerId="intake-tag-container" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-24 pb-24 sm:pt-28 sm:pb-32">
         {/* Asymmetric 55/45 grid on desktop, single column on mobile */}

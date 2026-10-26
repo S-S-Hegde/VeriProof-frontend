@@ -77,6 +77,7 @@ export function RuledField({
         {/* Base ruled line (printed paper baseline) */}
         <div
           aria-hidden="true"
+          data-ruled-line="true"
           className="absolute bottom-0 left-0 right-0 h-[1px] bg-[#0a0f24]/20 pointer-events-none"
         />
 

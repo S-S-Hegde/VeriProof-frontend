@@ -101,6 +101,7 @@ export function IntakeTag({
       {/* ─── PHYSICAL INTAKE TAG CONTAINER ─── */}
       <motion.div
         ref={tagRef}
+        id="intake-tag-container"
         initial={
           prefersReduced
             ? { opacity: 0 }
@@ -133,6 +134,11 @@ export function IntakeTag({
                   : { type: "spring", stiffness: 220, damping: 22 },
               }
         }
+        onAnimationComplete={() => {
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("intake-tag-animation-complete"));
+          }
+        }}
         className={`relative w-full rounded-sm p-6 sm:p-9 text-[#0a0f24] transition-shadow duration-300 ${
           isDarkMode
             ? "bg-[#e9eef5] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_1px_rgba(255,255,255,0.1)]"
