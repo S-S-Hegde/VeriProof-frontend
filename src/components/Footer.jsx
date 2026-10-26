@@ -115,11 +115,11 @@ const Footer = () => {
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-[var(--color-accent)]" />
                 <span className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--color-text)]">
-                  Cryptographic Trust
+                  Forensic Verification
                 </span>
               </div>
               <p className="text-[11px] text-[var(--color-muted)] leading-relaxed">
-                All candidate claims are cryptographically verified through repository commit provenance, live coding assessments, and credential audits.
+                Candidate claims are checked against repository history, live assessments and credential evidence.
               </p>
             </div>
           </div>
