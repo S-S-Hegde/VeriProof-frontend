@@ -33,6 +33,9 @@ import {
   Clock,
   Check,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
 } from "lucide-react";
 
 export const getCertificateProofUrl = (cert) => {
@@ -150,6 +153,62 @@ export default function CertificationsPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [certToDelete, setCertToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fix Details modal
+  const [fixingCert, setFixingCert] = useState(null);
+  const [fixFormData, setFixFormData] = useState({
+    title: "",
+    issuer: "",
+    recipient_name: "",
+    issueDate: "",
+    credentialId: "",
+  });
+  const [isSavingFix, setIsSavingFix] = useState(false);
+
+  // Collapsible extras map: { [certId]: boolean }
+  const [expandedExtras, setExpandedExtras] = useState({});
+  const toggleExtra = (id) =>
+    setExpandedExtras((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const openFixModal = (cert) => {
+    setFixingCert(cert);
+    setFixFormData({
+      title: cert.title_as_printed || cert.title || "",
+      issuer: cert.issuer_as_printed || cert.issuer || "",
+      recipient_name: cert.recipient_name || cert.recipient_as_printed || "",
+      issueDate: cert.issueDate ? String(cert.issueDate).split("T")[0] : "",
+      credentialId: cert.credentialId || cert.identifiers?.[0]?.value || "",
+    });
+  };
+
+  const handleSaveFix = async () => {
+    if (!fixingCert) return;
+    setIsSavingFix(true);
+    try {
+      await api.put(`/api/certificates/${fixingCert._id}`, fixFormData);
+      setFixingCert(null);
+      await fetchCertificates();
+      setNotification("Certificate details updated and queued for re-verification.");
+      setTimeout(() => setNotification(""), 5000);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update certificate details.");
+    } finally {
+      setIsSavingFix(false);
+    }
+  };
+
+  const handleManualConfirm = async (certId) => {
+    const reason = window.prompt("Reason for manual confirmation (e.g. Verified official university transcript):");
+    if (!reason) return;
+    try {
+      await api.post(`/api/certificates/${certId}/manual-confirm`, { reason });
+      await fetchCertificates();
+      setNotification("Certificate marked as manually confirmed.");
+      setTimeout(() => setNotification(""), 5000);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to manually confirm certificate.");
+    }
+  };
 
   const [notification, setNotification] = useState("");
   const fileInputRef = useRef(null);
@@ -449,15 +508,31 @@ export default function CertificationsPage() {
                 className="relative flex flex-col justify-between p-6 rounded-lg border border-[#0a0f24]/10 dark:border-white/10 bg-white/50 dark:bg-slate-900/40 backdrop-blur-sm hover:border-[#00d4ff]/40 transition-all duration-200 group"
               >
                 <div>
-                  {/* Top Status & Type */}
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <StatusChip
-                      status={cert.verificationStatus}
-                      reason={cert.verificationReason}
-                      checkedAt={cert.checkedAt}
-                    />
+                  {/* Top Status, Confidence & Type */}
+                  <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <StatusChip
+                        status={cert.verificationStatus}
+                        reason={cert.verificationReason}
+                        checkedAt={cert.checkedAt}
+                      />
+                      {((cert.extraction_confidence !== undefined && cert.extraction_confidence < 0.7) ||
+                        (cert.ungrounded_fields && cert.ungrounded_fields.length > 0)) && (
+                        <span
+                          className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-mono shrink-0"
+                          title={
+                            cert.ungrounded_fields?.length
+                              ? `Ungrounded fields nulled: ${cert.ungrounded_fields.join(", ")}`
+                              : "Low extraction confidence"
+                          }
+                        >
+                          Low Confidence
+                          {cert.ungrounded_fields?.length ? ` (${cert.ungrounded_fields.length} ungrounded)` : ""}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[10px] font-mono text-[#0a0f24]/50 dark:text-slate-500 uppercase">
-                      {cert.certificate_type || "Certificate"}
+                      {cert.document_type || cert.certificate_type || "Certificate"}
                     </span>
                   </div>
 
@@ -469,7 +544,17 @@ export default function CertificationsPage() {
                   {/* Issuer as printed */}
                   <p className="text-xs font-mono text-[#0a0f24]/70 dark:text-slate-400 mt-1">
                     {cert.issuer_as_printed || cert.issuer || "Not stated on certificate"}
+                    {cert.issuer_canonical && cert.issuer_canonical !== (cert.issuer_as_printed || cert.issuer) && (
+                      <span className="text-slate-500 text-[10px] ml-1">({cert.issuer_canonical})</span>
+                    )}
                   </p>
+
+                  {/* Recipient Name as printed */}
+                  {(cert.recipient_name || cert.recipient_as_printed) && (
+                    <p className="text-[11px] font-mono text-[#0a0f24]/60 dark:text-slate-400 mt-1">
+                      Recipient: <span className="font-semibold text-[#0a0f24] dark:text-slate-200">{cert.recipient_name || cert.recipient_as_printed}</span>
+                    </p>
+                  )}
 
                   {/* Dates: Issue date + Upload date */}
                   <div className="mt-4 pt-3 border-t border-[#0a0f24]/10 dark:border-white/10 flex items-center justify-between text-[11px] font-mono">
@@ -500,8 +585,21 @@ export default function CertificationsPage() {
                     </div>
                   </div>
 
-                  {/* Credential ID / Roll Number */}
-                  {cert.credentialId && (
+                  {/* Identifiers with printed labels (Universal schema) */}
+                  {cert.identifiers && cert.identifiers.length > 0 ? (
+                    <div className="mt-3 space-y-1 text-[11px] font-mono">
+                      {cert.identifiers.map((id, i) => (
+                        <div key={i} className="flex justify-between items-baseline gap-2">
+                          <span className="text-[#0a0f24]/50 dark:text-slate-500 text-[9px] uppercase truncate">
+                            {id.label_as_printed || id.label || "Identifier"}
+                          </span>
+                          <span className="font-bold text-[#00a3c4] break-all select-all text-right">
+                            {id.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : cert.credentialId ? (
                     <div className="mt-3 text-[11px] font-mono">
                       <span className="text-[#0a0f24]/50 dark:text-slate-500 block text-[9px] uppercase">
                         {cert.credentialId.startsWith("NPTEL") ? "Roll No" : "Credential ID"}
@@ -510,10 +608,27 @@ export default function CertificationsPage() {
                         {cert.credentialId}
                       </span>
                     </div>
-                  )}
+                  ) : null}
 
-                  {/* Key Scores for NPTEL / Proctored Credentials */}
-                  {cert.score_details?.consolidated_score && (
+                  {/* Scores with printed labels (Universal schema) */}
+                  {cert.scores && cert.scores.length > 0 ? (
+                    <div className="mt-3 p-2.5 rounded bg-[#0a0f24]/[0.03] dark:bg-white/[0.03] border border-[#0a0f24]/10 dark:border-white/10 font-mono text-[11px] space-y-1">
+                      {cert.scores.map((sc, i) => (
+                        <div key={i} className="flex justify-between items-center text-[10px]">
+                          <span className="text-[#0a0f24]/70 dark:text-slate-400">{sc.label_as_printed || sc.label || "Score"}:</span>
+                          <span className="text-[#00d4ff] font-bold">
+                            {sc.value}{sc.max ? `/${sc.max}` : ""}{sc.unit ? ` ${sc.unit}` : ""}
+                          </span>
+                        </div>
+                      ))}
+                      {cert.grade_or_level && (
+                        <div className="flex justify-between items-center text-[10px] pt-1 border-t border-[#0a0f24]/10 dark:border-white/10">
+                          <span className="text-amber-500 dark:text-amber-400">Honours / Grade:</span>
+                          <span className="text-amber-500 dark:text-amber-400 font-bold">{cert.grade_or_level}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : cert.score_details?.consolidated_score ? (
                     <div className="mt-3 p-2.5 rounded bg-[#0a0f24]/[0.03] dark:bg-white/[0.03] border border-[#0a0f24]/10 dark:border-white/10 font-mono text-[11px] space-y-1">
                       <div className="flex justify-between items-center font-bold">
                         <span>Consolidated Score:</span>
@@ -535,6 +650,30 @@ export default function CertificationsPage() {
                         </div>
                       )}
                     </div>
+                  ) : null}
+
+                  {/* Extras in Collapsible List (Universal schema) */}
+                  {cert.extras && cert.extras.length > 0 && (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleExtra(cert._id)}
+                        className="flex items-center gap-1 text-[10px] font-mono text-[#0a0f24]/60 dark:text-slate-400 hover:text-[#00d4ff] transition-colors cursor-pointer"
+                      >
+                        <span>{expandedExtras[cert._id] ? "Hide" : "Show"} more printed details ({cert.extras.length})</span>
+                        {expandedExtras[cert._id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                      {expandedExtras[cert._id] && (
+                        <div className="mt-1.5 p-2 rounded bg-[#0a0f24]/[0.03] dark:bg-white/[0.02] border border-[#0a0f24]/10 dark:border-white/10 text-[10px] font-mono space-y-1">
+                          {cert.extras.map((ex, idx) => (
+                            <div key={idx} className="flex justify-between gap-2">
+                              <span className="text-[#0a0f24]/60 dark:text-slate-400 truncate">{ex.label_as_printed}:</span>
+                              <span className="text-[#0a0f24] dark:text-slate-200 text-right break-words font-medium">{ex.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* Derived Tags (Strictly from title keywords) */}
@@ -551,7 +690,7 @@ export default function CertificationsPage() {
                     </div>
                   )}
 
-                  {/* Separate Resume Cross-Check Chip (Section 8) */}
+                  {/* Separate Resume Cross-Check Chip */}
                   <div className="mt-3">
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium ${
@@ -571,18 +710,25 @@ export default function CertificationsPage() {
                     </span>
                   </div>
 
-                  {/* XP Earned Reason */}
+                  {/* XP Earned & Reason */}
                   <div className="mt-3 text-[10px] font-mono text-[#0a0f24]/50 dark:text-slate-400 flex items-center justify-between">
                     <span>Evidence Score:</span>
                     <strong className="text-[#00d4ff] font-bold">
                       +{cert.xpAwarded || 0} XP
                     </strong>
                   </div>
+
+                  {/* Verification Status Reason */}
+                  {cert.verificationReason && (
+                    <div className="mt-2 text-[10px] font-mono text-[#0a0f24]/60 dark:text-slate-400 italic">
+                      Reason: {cert.verificationReason}
+                    </div>
+                  )}
                 </div>
 
                 {/* Card Action Footer */}
-                <div className="mt-5 pt-3 border-t border-[#0a0f24]/10 dark:border-white/10 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <div className="mt-5 pt-3 border-t border-[#0a0f24]/10 dark:border-white/10 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <button
                       type="button"
                       onClick={() => setSelectedDrawerCert(cert)}
@@ -600,16 +746,47 @@ export default function CertificationsPage() {
                     >
                       <Eye className="w-3 h-3" /> View Proof
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => openFixModal(cert)}
+                      className="px-2 py-1 text-xs font-mono rounded border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 transition-colors cursor-pointer flex items-center gap-1"
+                      title="Fix extracted details"
+                    >
+                      <Edit3 className="w-3 h-3" /> Fix Details
+                    </button>
+                    {(user?.role === "recruiter" || user?.role === "admin") && cert.verificationStatus !== "ISSUER_CONFIRMED" && (
+                      <button
+                        type="button"
+                        onClick={() => handleManualConfirm(cert._id)}
+                        className="px-2 py-1 text-xs font-mono rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 transition-colors cursor-pointer"
+                        title="Recruiter Manual Confirmation"
+                      >
+                        Confirm Manually
+                      </button>
+                    )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteRequest(cert._id)}
-                    className="p-1 text-[#0a0f24]/40 dark:text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
-                    title="Remove from ledger"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {cert.verification_urls && cert.verification_urls.length > 0 && (
+                      <a
+                        href={cert.verification_urls[0]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-[#0a0f24]/40 dark:text-slate-500 hover:text-[#00d4ff] transition-colors"
+                        title="Open issuer verification page"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRequest(cert._id)}
+                      className="p-1 text-[#0a0f24]/40 dark:text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                      title="Remove from ledger"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -873,7 +1050,60 @@ export default function CertificationsPage() {
                     </div>
                   )}
 
-                  {/* Audit Log Box */}
+                  {/* Identifiers (Universal Schema) */}
+                  {selectedDrawerCert.identifiers && selectedDrawerCert.identifiers.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-500 uppercase block">Identifiers</span>
+                      {selectedDrawerCert.identifiers.map((id, idx) => (
+                        <div key={idx} className="flex justify-between text-[11px]">
+                          <span className="text-slate-400">{id.label_as_printed}:</span>
+                          <code className="text-[#00d4ff] font-bold">{id.value}</code>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Scores (Universal Schema) */}
+                  {selectedDrawerCert.scores && selectedDrawerCert.scores.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-500 uppercase block">Scores & Assessments</span>
+                      {selectedDrawerCert.scores.map((sc, idx) => (
+                        <div key={idx} className="flex justify-between text-[11px]">
+                          <span className="text-slate-400">{sc.label_as_printed}:</span>
+                          <span className="text-emerald-400 font-bold">
+                            {sc.value}{sc.max ? `/${sc.max}` : ""}{sc.unit ? ` ${sc.unit}` : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Extras (Universal Schema) */}
+                  {selectedDrawerCert.extras && selectedDrawerCert.extras.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-500 uppercase block">
+                        Additional Printed Details ({selectedDrawerCert.extras.length})
+                      </span>
+                      <div className="p-2.5 rounded bg-white/[0.02] border border-white/10 space-y-1 max-h-40 overflow-y-auto">
+                        {selectedDrawerCert.extras.map((ex, idx) => (
+                          <div key={idx} className="flex justify-between text-[10px]">
+                            <span className="text-slate-400">{ex.label_as_printed}:</span>
+                            <span className="text-slate-200 text-right">{ex.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ungrounded Fields Nulled */}
+                  {selectedDrawerCert.ungrounded_fields && selectedDrawerCert.ungrounded_fields.length > 0 && (
+                    <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400">
+                      <span className="font-bold block uppercase mb-1">Ungrounded Fields Nulled:</span>
+                      {selectedDrawerCert.ungrounded_fields.join(", ")}
+                    </div>
+                  )}
+
+                  {/* Audit Verification Log */}
                   <div className="p-4 rounded bg-white/5 border border-white/10 space-y-2 mt-6">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
                       Audit Verification Log
@@ -887,6 +1117,24 @@ export default function CertificationsPage() {
                     <div className="text-[10px] text-slate-400">
                       Method: {selectedDrawerCert.extraction_method || "template"}
                     </div>
+                    {selectedDrawerCert.verification_audit && selectedDrawerCert.verification_audit.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-white/10 space-y-2">
+                        <span className="text-[9px] uppercase tracking-wider text-slate-400 block">Audit Trail Entries:</span>
+                        {selectedDrawerCert.verification_audit.map((entry, idx) => (
+                          <div key={idx} className="p-2 rounded bg-black/30 border border-white/5 text-[10px] space-y-0.5">
+                            <div className="flex justify-between text-slate-400">
+                              <span>Strategy: {entry.strategy}</span>
+                              <span>{entry.time ? new Date(entry.time).toLocaleTimeString() : ""}</span>
+                            </div>
+                            <div className="text-slate-300">Host: {entry.host || "N/A"}</div>
+                            <div className={`font-bold ${entry.result === "ISSUER_CONFIRMED" ? "text-emerald-400" : entry.result === "REJECTED" ? "text-rose-400" : "text-sky-400"}`}>
+                              Result: {entry.result}
+                            </div>
+                            <div className="text-slate-400 italic">{entry.reason}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -977,6 +1225,155 @@ export default function CertificationsPage() {
                       </button>
                     </div>
                   )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* ── FIX DETAILS MODAL (SIDE-BY-SIDE WITH PDF) ── */}
+        <AnimatePresence>
+          {fixingCert && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="relative w-full max-w-5xl h-[85vh] bg-[#0a0f24] border border-white/15 rounded-lg flex flex-col text-white shadow-2xl overflow-hidden"
+              >
+                {/* Header */}
+                <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 shrink-0">
+                  <div>
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-[#00d4ff] flex items-center gap-2">
+                      <Edit3 className="w-4 h-4" /> Correct Certificate Details
+                    </h3>
+                    <p className="text-[11px] font-mono text-slate-400 mt-0.5">
+                      Side-by-side verification: Compare values against the original document. User edits are marked as source &ldquo;user_corrected&rdquo;.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setFixingCert(null)}
+                    disabled={isSavingFix}
+                    className="text-slate-400 hover:text-white p-1"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Body: Side by Side */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 min-h-0 overflow-hidden">
+                  {/* Left: Original Document Preview */}
+                  <div className="h-full bg-black/40 rounded border border-white/10 overflow-hidden flex flex-col">
+                    <div className="px-3 py-1.5 bg-white/5 border-b border-white/10 text-[11px] font-mono text-slate-400 flex items-center justify-between shrink-0">
+                      <span>Original Document Evidence</span>
+                      <a
+                        href={getCertificateProofUrl(fixingCert)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#00d4ff] hover:underline flex items-center gap-1 text-[10px]"
+                      >
+                        Open Full <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                    <div className="flex-1 min-h-0 bg-black/60">
+                      <iframe
+                        src={getCertificateProofUrl(fixingCert)}
+                        title="Document Evidence"
+                        className="w-full h-full border-0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Right: Editable Form */}
+                  <div className="h-full overflow-y-auto p-4 bg-white/[0.02] rounded border border-white/10 space-y-4 font-mono text-xs">
+                    <div className="p-3 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] leading-relaxed">
+                      Saving corrections will preserve original extracted facts in history and queue this credential for truthful re-verification.
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase text-slate-400 block font-semibold">
+                        Certificate Title
+                      </label>
+                      <input
+                        type="text"
+                        value={fixFormData.title}
+                        onChange={(e) => setFixFormData({ ...fixFormData, title: e.target.value })}
+                        className="w-full px-3 py-2 rounded bg-black/40 border border-white/15 text-white focus:border-[#00d4ff] focus:outline-none text-xs font-mono"
+                        placeholder="e.g. Machine Learning Specialization"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase text-slate-400 block font-semibold">
+                        Issuing Authority / Vendor
+                      </label>
+                      <input
+                        type="text"
+                        value={fixFormData.issuer}
+                        onChange={(e) => setFixFormData({ ...fixFormData, issuer: e.target.value })}
+                        className="w-full px-3 py-2 rounded bg-black/40 border border-white/15 text-white focus:border-[#00d4ff] focus:outline-none text-xs font-mono"
+                        placeholder="e.g. Stanford Online / Coursera"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase text-slate-400 block font-semibold">
+                        Recipient Name (As Printed)
+                      </label>
+                      <input
+                        type="text"
+                        value={fixFormData.recipient_name}
+                        onChange={(e) => setFixFormData({ ...fixFormData, recipient_name: e.target.value })}
+                        className="w-full px-3 py-2 rounded bg-black/40 border border-white/15 text-white focus:border-[#00d4ff] focus:outline-none text-xs font-mono"
+                        placeholder="e.g. John Doe"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase text-slate-400 block font-semibold">
+                          Issue Date
+                        </label>
+                        <input
+                          type="date"
+                          value={fixFormData.issueDate}
+                          onChange={(e) => setFixFormData({ ...fixFormData, issueDate: e.target.value })}
+                          className="w-full px-3 py-2 rounded bg-black/40 border border-white/15 text-white focus:border-[#00d4ff] focus:outline-none text-xs font-mono"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase text-slate-400 block font-semibold">
+                          Credential ID / Serial
+                        </label>
+                        <input
+                          type="text"
+                          value={fixFormData.credentialId}
+                          onChange={(e) => setFixFormData({ ...fixFormData, credentialId: e.target.value })}
+                          className="w-full px-3 py-2 rounded bg-black/40 border border-white/15 text-white focus:border-[#00d4ff] focus:outline-none text-xs font-mono"
+                          placeholder="e.g. ABC-123456"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t border-white/10 flex items-center justify-end gap-3 shrink-0">
+                  <button
+                    onClick={() => setFixingCert(null)}
+                    disabled={isSavingFix}
+                    className="px-4 py-2 font-mono text-xs text-slate-300 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveFix}
+                    disabled={isSavingFix}
+                    className="px-5 py-2 font-mono text-xs uppercase tracking-wider font-bold bg-[#00d4ff] text-[#050816] rounded hover:bg-[#38bdf8] transition-colors disabled:opacity-50"
+                  >
+                    {isSavingFix ? "Saving & Re-verifying..." : "Save Corrections"}
+                  </button>
                 </div>
               </motion.div>
             </div>
