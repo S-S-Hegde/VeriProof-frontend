@@ -606,7 +606,7 @@ export default function RecruiterSettings() {
                         value={form.company}
                         onChange={handleInputChange}
                         className={inputCls}
-                        placeholder="e.g. Infosys Technologies / SDMIT Labs"
+                        placeholder="e.g. Acme Technologies / Global Labs"
                       />
                     </div>
 

@@ -602,7 +602,7 @@ export default function CertificationsPage() {
                   ) : cert.credentialId ? (
                     <div className="mt-3 text-[11px] font-mono">
                       <span className="text-[#0a0f24]/50 dark:text-slate-500 block text-[9px] uppercase">
-                        {cert.credentialId.startsWith("NPTEL") ? "Roll No" : "Credential ID"}
+                        Credential / ID
                       </span>
                       <span className="font-bold text-[#00a3c4] break-all select-all">
                         {cert.credentialId}
@@ -854,7 +854,7 @@ export default function CertificationsPage() {
                     Drop PDF / Image certificates here, or browse
                   </p>
                   <p className="text-xs font-mono text-slate-400 mt-1">
-                    Accepts 4 golden fixtures, Infosys Springboard, NPTEL, university degrees
+                    Universal support: Any issuer, credential, degree, or digital badge
                   </p>
                 </div>
 
