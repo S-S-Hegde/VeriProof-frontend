@@ -5,7 +5,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
   const isRecruiter = role === "recruiter";
 
   return (
-    <div className="h-full w-full flex flex-col justify-between py-2 relative text-slate-900 dark:text-white transition-colors duration-300">
+    <div className="w-full flex flex-col justify-start relative text-slate-900 dark:text-white transition-colors duration-300">
       {/* Dynamic Background Glows */}
       <div
         className={`absolute -top-24 -left-24 w-96 h-96 rounded-full blur-[120px] pointer-events-none transition-all duration-700 ${
@@ -20,7 +20,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
 
       {/* Header / Brand Telemetry */}
       <div className="relative z-10">
-        <div className="flex items-center gap-2.5 mb-4">
+        <div className="flex items-center gap-2.5 mb-3">
           <div className="w-8 h-8 flex items-center justify-center">
             <Terminal className={`w-5 h-5 ${isRecruiter ? "text-emerald-700 dark:text-emerald-400" : "text-cyan-700 dark:text-cyan-400"}`} />
           </div>
@@ -38,7 +38,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
         </div>
 
         {/* Live Forensic Telemetry - Clean Borderless Tag */}
-        <div className="flex items-center gap-2 mb-6 text-[11px] font-mono tracking-widest text-amber-700 dark:text-amber-400 font-semibold">
+        <div className="flex items-center gap-2 mb-4 text-[11px] font-mono tracking-widest text-amber-700 dark:text-amber-400 font-semibold">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
           <span>SYSTEM_STATUS: VERIFICATION_NODE_ACTIVE</span>
         </div>
@@ -49,7 +49,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="space-y-3 max-w-lg mb-8"
+          className="space-y-2.5 max-w-lg mb-6"
         >
           <h1
             className="text-3xl sm:text-4xl lg:text-5xl font-black italic uppercase tracking-tighter leading-[0.95] text-slate-900 dark:text-slate-100"
@@ -74,14 +74,14 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
       </div>
 
       {/* Mid Section: Feature Nodes / Journey Cues */}
-      <div className="relative z-10 my-4 space-y-3 max-w-md">
-        <div className="text-[10px] font-mono uppercase tracking-widest text-cyan-700 dark:text-cyan-400 mb-2 font-semibold">
+      <div className="relative z-10 mb-6 space-y-2.5 max-w-md">
+        <div className="text-[10px] font-mono uppercase tracking-widest text-cyan-700 dark:text-cyan-400 mb-1.5 font-semibold">
           [ {isRecruiter ? "RECRUITER_VERIFICATION_NODES" : "CANDIDATE_EVIDENCE_PIPELINE"} ]
         </div>
 
         {isRecruiter ? (
           <>
-            <div className="flex items-start gap-3 py-2 bg-transparent">
+            <div className="flex items-start gap-3 py-1.5 bg-transparent">
               <div className="p-1 text-emerald-700 dark:text-emerald-400 mt-0.5 shrink-0">
                 <ShieldCheck className="w-4 h-4" />
               </div>
@@ -91,7 +91,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
               </div>
             </div>
 
-            <div className="flex items-start gap-3 py-2 bg-transparent">
+            <div className="flex items-start gap-3 py-1.5 bg-transparent">
               <div className="p-1 text-emerald-700 dark:text-emerald-400 mt-0.5 shrink-0">
                 <Cpu className="w-4 h-4" />
               </div>
@@ -103,7 +103,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
           </>
         ) : (
           <>
-            <div className="flex items-start gap-3 py-2 bg-transparent">
+            <div className="flex items-start gap-3 py-1.5 bg-transparent">
               <div className="p-1 text-cyan-700 dark:text-cyan-400 mt-0.5 shrink-0">
                 <GitBranch className="w-4 h-4" />
               </div>
@@ -113,7 +113,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
               </div>
             </div>
 
-            <div className="flex items-start gap-3 py-2 bg-transparent">
+            <div className="flex items-start gap-3 py-1.5 bg-transparent">
               <div className="p-1 text-cyan-700 dark:text-cyan-400 mt-0.5 shrink-0">
                 <Layers className="w-4 h-4" />
               </div>
@@ -127,7 +127,7 @@ const VerificationTelemetrySidebar = ({ role = "student", mode = "login", step =
       </div>
 
       {/* Footer Metrics */}
-      <div className="relative z-10 pt-6 border-t border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between text-slate-600 dark:text-slate-300 font-mono text-[10px]">
+      <div className="relative z-10 pt-4 border-t border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between text-slate-600 dark:text-slate-400 font-mono text-[10px]">
         <div className="flex items-center gap-1.5">
           <Lock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
           <span>FIREBASE_AUTH_SECURED</span>

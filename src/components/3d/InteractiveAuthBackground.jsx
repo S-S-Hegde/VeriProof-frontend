@@ -41,7 +41,7 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
     }
 
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setClearColor(0x000000, 0); // Transparent canvas
     container.appendChild(renderer.domElement);
 
@@ -70,8 +70,8 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
       ? 0x047857
       : 0x0891b2;
 
-    // 3. Generate Cryptographic Lattice Nodes
-    const nodeCount = 95;
+    // 3. Generate Cryptographic Lattice Nodes (Optimized count for 60fps responsiveness)
+    const nodeCount = 60;
     const nodes = [];
     const positions = new Float32Array(nodeCount * 3);
     const colors = new Float32Array(nodeCount * 3);
@@ -249,14 +249,19 @@ const InteractiveAuthBackground = ({ role = "student" }) => {
       }
       particlesGeo.attributes.position.needsUpdate = true;
 
-      // Interconnect nodes
+      // Interconnect nodes with fast squared distance cutoff
+      const maxDistSq = distanceThreshold * distanceThreshold;
       for (let i = 0; i < nodeCount; i++) {
         const n1 = nodes[i];
         for (let j = i + 1; j < nodeCount; j++) {
           const n2 = nodes[j];
-          const dist = Math.hypot(n1.x - n2.x, n1.y - n2.y, n1.z - n2.z);
+          const dx = n1.x - n2.x;
+          const dy = n1.y - n2.y;
+          const dz = n1.z - n2.z;
+          const distSq = dx * dx + dy * dy + dz * dz;
 
-          if (dist < distanceThreshold) {
+          if (distSq < maxDistSq) {
+            const dist = Math.sqrt(distSq);
             const alpha = 1 - dist / distanceThreshold;
             const r = baseLineColor.r * alpha;
             const g = baseLineColor.g * alpha;

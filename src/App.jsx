@@ -81,20 +81,8 @@ const SettingsRouter = () => {
   );
 };
 
-// Premium Forensic Loading Screen with Glowing Halo Effect & 1.5s Max Fallback Timeout
-const LoadingScreen = ({ fallbackTimeout = 1500 }) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const isRetried = sessionStorage.getItem("vp_loading_fallback_triggered");
-      if (!isRetried) {
-        sessionStorage.setItem("vp_loading_fallback_triggered", "true");
-        window.location.reload();
-      }
-    }, fallbackTimeout);
-
-    return () => clearTimeout(timer);
-  }, [fallbackTimeout]);
-
+// Premium Forensic Loading Screen with Glowing Halo Effect
+const LoadingScreen = () => {
   return (
     <div className="flex min-h-[65vh] w-full items-center justify-center bg-[var(--color-bg,#0a0e1a)] select-none">
       <div className="flex flex-col items-center gap-7">
@@ -557,36 +545,53 @@ const ScrollProgressBar = React.memo(() => {
 const AppContent = () => {
   const { user, isExiting, setIsExiting, logout } = useAuth();
 
-  // Show cinematic intro once per browser session.
-  // Show cinematic intro on boot/load.
-  // Never show on OAuth redirect routes (/auth/callback) to avoid blocking credential handshakes.
+  // Show cinematic intro once per session, only on landing root ('/').
+  // Never block auth routes (/login, /register, etc.) or repeated visits in the same session.
   const [showIntro, setShowIntro] = useState(() => {
-    // Purge any legacy flags so the intro is never permanently blocked
+    if (typeof window === "undefined") return false;
+    const path = window.location.pathname;
+
+    const isAuthRoute =
+      path === "/login" ||
+      path === "/register" ||
+      path.startsWith("/auth") ||
+      path === "/forgot-password" ||
+      path.startsWith("/reset-password");
+
+    if (isAuthRoute) return false;
+
     try {
-      localStorage.removeItem("vp-intro-seen-permanent");
-      sessionStorage.removeItem("vp-session-intro-seen");
-    } catch (_) { }
+      const sessionSeen = sessionStorage.getItem("vp-session-intro-seen");
+      if (sessionSeen) return false;
+    } catch (_) {}
 
-    const isAuthCallback =
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/auth/callback");
-
-    return !isAuthCallback;
+    return path === "/";
   });
 
   const [isAppVisible, setIsAppVisible] = useState(() => {
-    const isAuthCallback =
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/auth/callback");
+    if (typeof window === "undefined") return true;
+    const path = window.location.pathname;
 
-    return Boolean(isAuthCallback);
+    const isAuthRoute =
+      path === "/login" ||
+      path === "/register" ||
+      path.startsWith("/auth") ||
+      path === "/forgot-password" ||
+      path.startsWith("/reset-password");
+
+    if (isAuthRoute) return true;
+
+    try {
+      if (sessionStorage.getItem("vp-session-intro-seen")) return true;
+    } catch (_) {}
+
+    return path !== "/";
   });
 
   const handleIntroComplete = () => {
     try {
-      localStorage.removeItem("vp-intro-seen-permanent");
-      sessionStorage.removeItem("vp-session-intro-seen");
-    } catch (_) { }
+      sessionStorage.setItem("vp-session-intro-seen", "true");
+    } catch (_) {}
     setShowIntro(false);
     setIsAppVisible(true);
   };
