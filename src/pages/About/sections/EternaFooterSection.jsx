@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { WordSlideUp } from "../components/WordReveal";
@@ -79,7 +79,7 @@ export default function EternaFooterSection({
             <div className="h-6 w-6 rounded-full border border-purple-500/50 bg-gradient-to-tr from-cyan-400 via-purple-500 to-amber-400 p-[2px]">
               <div className="h-full w-full rounded-full bg-[#13101c]" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-white font-mono">
+            <span className="text-lg font-bold tracking-tight text-white">
               VERIPROOF
             </span>
           </div>
@@ -95,19 +95,30 @@ export default function EternaFooterSection({
             onClick={onOpenJoinTeam}
             className="rounded-xl border border-white/20 bg-white/5 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10 hover:border-white/30 cursor-pointer active:scale-95 transition-all"
           >
-            Join the mesh
+            Join VeriProof
           </button>
         </motion.div>
 
-        {/* Central Bold Statement with Word-by-Word Reveal */}
-        <div className="space-y-4">
+        {/* Central Closing CTA (Slot I) */}
+        <div className="space-y-6 pt-4">
           <h2 className="text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-gradient-eterna">
-            <WordSlideUp text="Nothing is impossible" delay={0.1} />
+            <WordSlideUp text="Verify the truth." delay={0.1} />
           </h2>
+          <p className="text-base sm:text-xl text-white/65 font-light max-w-xl mx-auto leading-relaxed">
+            Stop guessing which resume is real. Let the evidence speak.
+          </p>
+          <div className="pt-2 flex justify-center">
+            <Link
+              to="/register"
+              className="btn-eterna-gradient inline-flex items-center gap-2 rounded-full px-9 py-3.5 text-sm sm:text-base font-medium text-white shadow-xl cursor-pointer hover:scale-105 active:scale-95 transition-all"
+            >
+              <span>Start the audit</span>
+            </Link>
+          </div>
         </div>
 
         {/* 3 Interactive Modal Trigger Squares with Staggered Entrance */}
-        <div className="flex items-center justify-center gap-5 sm:gap-6">
+        <div className="flex items-center justify-center gap-5 sm:gap-6 pt-6">
           {/* Einstein Icon: Wisdom we build by */}
           <motion.button
             initial={{ opacity: 0, y: 20 }}
@@ -124,7 +135,7 @@ export default function EternaFooterSection({
               <span className="text-2xl sm:text-3xl block filter drop-shadow group-hover:scale-110 transition-transform">
                 🧠
               </span>
-              <span className="text-[10px] block font-mono text-white/50 group-hover:text-white transition-colors mt-0.5">
+              <span className="text-[10px] block text-white/50 group-hover:text-white transition-colors mt-0.5">
                 Wisdom
               </span>
             </div>
@@ -144,13 +155,13 @@ export default function EternaFooterSection({
           >
             <div className="text-center">
               <div className="h-6 w-6 sm:h-7 sm:w-7 mx-auto rounded-full border-2 border-cyan-400 border-t-purple-500 border-r-amber-400 group-hover:rotate-180 transition-transform duration-700" />
-              <span className="text-[10px] block font-mono text-white/50 group-hover:text-white transition-colors mt-1">
+              <span className="text-[10px] block text-white/50 group-hover:text-white transition-colors mt-1">
                 Protocol
               </span>
             </div>
           </motion.button>
 
-          {/* Butterfly Icon: Proof and Effect */}
+          {/* Lightning Icon: Proof and Effect */}
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -166,7 +177,7 @@ export default function EternaFooterSection({
               <span className="text-2xl sm:text-3xl block filter drop-shadow group-hover:scale-110 transition-transform">
                 ⚡
               </span>
-              <span className="text-[10px] block font-mono text-white/50 group-hover:text-white transition-colors mt-0.5">
+              <span className="text-[10px] block text-white/50 group-hover:text-white transition-colors mt-0.5">
                 Effects
               </span>
             </div>
@@ -182,7 +193,7 @@ export default function EternaFooterSection({
           className="border-t border-white/10 pt-10 space-y-4"
         >
           <p className="text-xs sm:text-sm text-white/60 font-light">
-            When every commit is cryptographically proven, absolute trust must appear.
+            When claims are cross-checked against real code and live problem-solving, true skill speaks for itself.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/40">

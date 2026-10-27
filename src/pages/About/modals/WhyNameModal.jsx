@@ -12,7 +12,7 @@ const SLIDES = [
   },
   {
     icon: GitBranch,
-    top: "Dazzling graphs of verified commits form seamless cryptographic connections, adapt dynamically, and provide transparency across repositories.",
+    top: "Dazzling graphs of verified commits form seamless verifiable connections, adapt dynamically, and provide transparency across repositories.",
     titleHighlight: "Veri",
     titleRest: "Proof",
     bottom: "Our engine cross-checks claims against code, inherently flags contradictions, detects scaffolding, and establishes harmony between candidates and hiring teams."
@@ -65,8 +65,8 @@ export default function WhyNameModal({ isOpen, onClose }) {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-5">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-cyan-400">
-                [ THE_FOUNDATION ]
+              <span className="text-xs uppercase tracking-widest text-cyan-400 font-medium">
+                The Foundation
               </span>
               <h3 className="text-xl font-medium tracking-tight mt-1">
                 Why the name <span className="text-gradient-eterna">VeriProof?</span>

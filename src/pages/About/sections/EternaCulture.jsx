@@ -1,6 +1,6 @@
 ﻿import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Users } from "lucide-react";
+import { ChevronDown, Sliders } from "lucide-react";
 import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
 
 // Botanical flower SVG icons matching EternaCloud accordion icons
@@ -12,14 +12,6 @@ function FlowerIcon1() {
       <ellipse cx="24" cy="37" rx="5" ry="8" fill="#7C3AED" opacity="0.85" />
       <ellipse cx="11" cy="24" rx="8" ry="5" fill="#6D28D9" opacity="0.88" />
       <ellipse cx="37" cy="24" rx="8" ry="5" fill="#6D28D9" opacity="0.85" />
-      <ellipse cx="14.6" cy="14.6" rx="5.5" ry="7.5" fill="#5B21B6" opacity="0.8"
-        transform="rotate(-45 14.6 14.6)" />
-      <ellipse cx="33.4" cy="33.4" rx="5.5" ry="7.5" fill="#5B21B6" opacity="0.78"
-        transform="rotate(-45 33.4 33.4)" />
-      <ellipse cx="33.4" cy="14.6" rx="5.5" ry="7.5" fill="#4C1D95" opacity="0.8"
-        transform="rotate(45 33.4 14.6)" />
-      <ellipse cx="14.6" cy="33.4" rx="5.5" ry="7.5" fill="#4C1D95" opacity="0.78"
-        transform="rotate(45 14.6 33.4)" />
       <circle cx="24" cy="24" r="5.5" fill="#FCD34D" />
     </svg>
   );
@@ -42,50 +34,53 @@ function FlowerIcon2() {
 function FlowerIcon3() {
   return (
     <svg viewBox="0 0 48 48" fill="none" className="w-10 h-10 shrink-0">
-      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#4C1D95" opacity="0.9" transform="rotate(0 24 24)" />
-      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#5B21B6" opacity="0.85" transform="rotate(60 24 24)" />
-      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#6D28D9" opacity="0.82" transform="rotate(120 24 24)" />
-      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#7C3AED" opacity="0.80" transform="rotate(180 24 24)" />
-      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#8B5CF6" opacity="0.78" transform="rotate(240 24 24)" />
-      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#A78BFA" opacity="0.75" transform="rotate(300 24 24)" />
+      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#4C1D95" opacity="0.9" />
+      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#6D28D9" opacity="0.82" transform="rotate(60 24 24)" />
+      <ellipse cx="24" cy="10" rx="5" ry="9" fill="#7C3AED" opacity="0.80" transform="rotate(120 24 24)" />
       <circle cx="24" cy="24" r="6" fill="#F59E0B" />
       <circle cx="24" cy="24" r="3" fill="#FCD34D" />
     </svg>
   );
 }
 
-export default function EternaCulture() {
-  const [openIndex, setOpenIndex] = useState(-1);
+function FlowerIcon4() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" className="w-10 h-10 shrink-0">
+      <circle cx="24" cy="24" r="8" fill="#5B21B6" opacity="0.8" />
+      <circle cx="24" cy="24" r="5" fill="#8B5CF6" opacity="0.9" />
+      <circle cx="24" cy="24" r="3" fill="#FCD34D" />
+    </svg>
+  );
+}
 
-  const pillars = [
+export default function EternaCulture() {
+  const [openIndex, setOpenIndex] = useState(0);
+
+  const items = [
     {
       icon: <FlowerIcon1 />,
-      title: "We verify what code actually does",
-      paragraphs: [
-        "Our mission is not about corporate bureaucracy. We are here to fundamentally revolutionize how engineers prove their capabilities. Together we're building a world where verified code speaks louder than self-proclaimed resume titles.",
-        "We liberate developers from keyword filters and blind ATS screening. Great engineering is defined by architectural integrity and authentic problem solving. Open-source, tamper-proof, and peer-defendable.",
-      ],
+      title: "No lookup answers",
+      desc: "Every multiple-choice question passes three quality passes: similar option lengths, matched jargon, no absurd distractors, shuffled positions.",
     },
     {
       icon: <FlowerIcon2 />,
-      title: "We treasure deep engineering craft",
-      paragraphs: [
-        "Curious minds who love compilers, distributed systems, and clean code shape the future. We eliminate resume noise so researchers and builders can focus on algorithms, cryptographic proof, and real systems.",
-        "We honor genuine authorship and celebrate builders who dive into the details.",
-      ],
+      title: "Signals, not a pass/fail flag",
+      desc: "Tab switches, failed trap questions, overconfident wrong answers and guessing patterns each add to the score, in the browser only.",
     },
     {
       icon: <FlowerIcon3 />,
-      title: "Truth and autonomy is the way",
-      paragraphs: [
-        "Building software is a craft. Our platform is architected to elevate authentic skill without surveillance or privacy intrusion. We verify the code artifact, not your webcam or keystroke pacing.",
-        "Transparent metrics, zero-knowledge proofs, and complete developer dignity.",
-      ],
+      title: "Privacy-light integrity",
+      desc: "Integrity checks use in-browser event telemetry. No video, no screen recording.",
+    },
+    {
+      icon: <FlowerIcon4 />,
+      title: "Evidence you can inspect",
+      desc: "Recruiters see where a number came from, not only the number.",
     },
   ];
 
   return (
-    <section id="section-culture" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <section id="section-different" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="text-center space-y-5 mb-14 max-w-3xl mx-auto">
         <motion.div
@@ -96,29 +91,28 @@ export default function EternaCulture() {
           className="flex justify-center"
         >
           <span className="eterna-pill-badge">
-            <Users className="h-3.5 w-3.5 text-violet-300" />
-            Our Community
+            Why It Is Different
           </span>
         </motion.div>
 
         <h2 className="text-3xl sm:text-5xl font-normal tracking-tight text-white leading-tight">
-          <WordSlideUp text="Our community is world-class," delay={0.1} />
+          <WordSlideUp text="Signals that transcend" delay={0.1} />
           <br />
           <span className="text-gradient-eterna">
-            <WordSlideUp text="our expansion is boundless!" delay={0.25} />
+            <WordSlideUp text="standard candidate testing." delay={0.25} />
           </span>
         </h2>
 
         <FadeInParagraph delay={0.35}>
           <p className="text-base sm:text-lg text-white/60 font-light">
-            We&apos;re not corporate, just intentional. Authentic engineering happens with transparency, open protocols, and freedom.
+            We replace guessing and generic quizzes with verifiable telemetry from candidate code and live reasoning.
           </p>
         </FadeInParagraph>
       </div>
 
       {/* Interactive Accordion */}
       <div className="space-y-3.5">
-        {pillars.map((p, idx) => {
+        {items.map((p, idx) => {
           const isOpen = openIndex === idx;
           return (
             <motion.div
@@ -171,10 +165,8 @@ export default function EternaCulture() {
                     transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-7 pt-1 border-t border-white/5 space-y-4 text-sm sm:text-base text-white/65 font-light leading-relaxed pl-20">
-                      {p.paragraphs.map((para, i) => (
-                        <p key={i}>{para}</p>
-                      ))}
+                    <div className="px-6 pb-7 pt-1 border-t border-white/5 space-y-4 text-sm sm:text-base text-white/70 font-light leading-relaxed pl-20">
+                      <p>{p.desc}</p>
                     </div>
                   </motion.div>
                 )}
@@ -192,45 +184,17 @@ export default function EternaCulture() {
         transition={{ duration: 0.85 }}
         className="mt-28 text-center flex flex-col items-center gap-10"
       >
-        {/* Hanging flower botanical */}
         <div className="botanical-float">
           <svg viewBox="0 0 60 90" fill="none" className="w-14 h-20 mx-auto">
             <line x1="30" y1="2" x2="30" y2="42" stroke="#4C1D95" strokeWidth="1.2" opacity="0.55" />
-            <line x1="30" y1="20" x2="18" y2="14" stroke="#5B21B6" strokeWidth="1" opacity="0.5" />
-            <circle cx="18" cy="12" r="3" fill="#F59E0B" filter="url(#hf1)" />
-            <line x1="30" y1="28" x2="42" y2="22" stroke="#5B21B6" strokeWidth="1" opacity="0.5" />
-            <circle cx="42" cy="20" r="2.5" fill="#A78BFA" filter="url(#hf1)" />
-            <ellipse cx="30" cy="54" rx="7" ry="10" fill="url(#hpf1)" opacity="0.92" />
-            <ellipse cx="30" cy="54" rx="7" ry="10" fill="url(#hpf2)" opacity="0.88"
-              transform="rotate(60 30 54)" />
-            <ellipse cx="30" cy="54" rx="7" ry="10" fill="url(#hpf1)" opacity="0.85"
-              transform="rotate(120 30 54)" />
-            <ellipse cx="30" cy="54" rx="7" ry="10" fill="url(#hpf2)" opacity="0.82"
-              transform="rotate(180 30 54)" />
-            <ellipse cx="30" cy="54" rx="7" ry="10" fill="url(#hpf1)" opacity="0.80"
-              transform="rotate(240 30 54)" />
-            <ellipse cx="30" cy="54" rx="7" ry="10" fill="url(#hpf2)" opacity="0.78"
-              transform="rotate(300 30 54)" />
             <circle cx="30" cy="54" r="6" fill="#F59E0B" className="star-node-pulse" />
             <circle cx="30" cy="54" r="3.5" fill="#FCD34D" />
-            <defs>
-              <linearGradient id="hpf1" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#7C3AED" /><stop offset="100%" stopColor="#8B5CF6" />
-              </linearGradient>
-              <linearGradient id="hpf2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6D28D9" /><stop offset="100%" stopColor="#A78BFA" />
-              </linearGradient>
-              <filter id="hf1" x="-150%" y="-150%" width="400%" height="400%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-              </filter>
-            </defs>
           </svg>
         </div>
 
         <div className="text-2xl sm:text-4xl md:text-5xl font-normal text-white leading-tight max-w-3xl mx-auto">
           <WordSlideUp
-            text="At VeriProof, we empower engineers to prove their craft, own their credentials, and build an extraordinary career."
+            text="At VeriProof, we believe in skill you can inspect, evidence you can audit, and hiring without blind trust."
             delay={0.1}
           />
         </div>

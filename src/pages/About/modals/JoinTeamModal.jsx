@@ -73,8 +73,8 @@ export default function JoinTeamModal({ isOpen, onClose }) {
           {/* Header */}
           <div className="flex items-start justify-between border-b border-white/10 pb-5">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-purple-400">
-                [ JOIN_VERIPROOF ]
+              <span className="text-xs uppercase tracking-widest text-purple-400 font-medium">
+                Join VeriProof
               </span>
               <h2 className="text-2xl font-medium tracking-tight mt-1">
                 Tell us <span className="text-gradient-eterna">your story</span> :)

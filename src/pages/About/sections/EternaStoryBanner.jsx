@@ -6,7 +6,7 @@ import { WordSlideUp } from "../components/WordReveal";
 function BotanicalStem() {
   return (
     <svg viewBox="0 0 80 160" fill="none" className="w-16 h-32 botanical-float mx-auto">
-      {/* Main vertical stem line (dynamic draw from top to bottom) */}
+      {/* Main vertical stem line */}
       <motion.line
         x1="40" y1="8" x2="40" y2="152"
         stroke="#4C1D95" strokeWidth="1.5" opacity="0.6"
@@ -50,7 +50,7 @@ function BotanicalStem() {
         transition={{ duration: 0.5, delay: 0.6 }}
       />
 
-      {/* Left leaf (blooms out from stem) */}
+      {/* Left leaf */}
       <motion.path
         d="M40 55 C 20 45, 12 62, 30 70 C 38 72, 40 65, 40 60 Z"
         fill="url(#leaf-grad-l)" opacity="0.9"
@@ -61,7 +61,7 @@ function BotanicalStem() {
         style={{ transformOrigin: "40px 60px" }}
       />
 
-      {/* Right leaf (blooms out from stem) */}
+      {/* Right leaf */}
       <motion.path
         d="M40 80 C 60 70, 68 87, 50 95 C 42 97, 40 90, 40 85 Z"
         fill="url(#leaf-grad-r)" opacity="0.9"
@@ -100,24 +100,6 @@ function BotanicalStem() {
         transition={{ duration: 0.6, delay: 0.95 }}
         style={{ transformOrigin: "40px 135px" }}
       />
-      <motion.path
-        d="M40 128 C 28 124, 24 134, 32 140 C 37 143, 40 140, 40 135 Z"
-        fill="url(#petal-grad2)" opacity="0.85"
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 1.0 }}
-        style={{ transformOrigin: "40px 135px" }}
-      />
-      <motion.path
-        d="M40 128 C 52 124, 56 134, 48 140 C 43 143, 40 140, 40 135 Z"
-        fill="url(#petal-grad2)" opacity="0.85"
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 1.05 }}
-        style={{ transformOrigin: "40px 135px" }}
-      />
       <circle cx="40" cy="135" r="5" fill="#F59E0B" filter="url(#dot-glow)" className="star-node-pulse" />
 
       <defs>
@@ -132,10 +114,6 @@ function BotanicalStem() {
         <linearGradient id="petal-grad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#7C3AED" />
           <stop offset="100%" stopColor="#8B5CF6" />
-        </linearGradient>
-        <linearGradient id="petal-grad2" x1="1" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6D28D9" />
-          <stop offset="100%" stopColor="#A78BFA" />
         </linearGradient>
         <filter id="dot-glow" x="-150%" y="-150%" width="400%" height="400%">
           <feGaussianBlur stdDeviation="3" result="blur" />
@@ -155,14 +133,14 @@ export default function EternaStoryBanner({ onOpenStory }) {
       </div>
 
       <div className="space-y-10">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-white leading-[1.25]">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-white leading-[1.3]">
           <WordSlideUp
-            text="We set out to create the ideal verification protocol."
+            text="Resumes are marketing documents. Take-home tests can be solved by a chatbot."
             delay={0.1}
           />
           <br />
           <WordSlideUp
-            text="The one that turns unprovable developer claims into transparent, mathematically sound proof of work."
+            text="Public repositories can be cloned in a minute. We built VeriProof so skill can be told apart from packaging."
             delay={0.28}
           />
         </h2>

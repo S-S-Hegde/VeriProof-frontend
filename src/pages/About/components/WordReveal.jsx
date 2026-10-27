@@ -1,11 +1,12 @@
-﻿import React from "react";
-import { motion } from "framer-motion";
+import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 /**
  * WordSlideUp:
  * Splits a sentence into individual words with an overflow-hidden mask.
  * Accurately replicates EternaCloud's signature GSAP SplitType:
  * tl.from(words, { opacity: 0, yPercent: 100, duration: 0.6, ease: "back.out(2)", stagger: 0.04 })
+ * When reduced motion is preferred, seamlessly falls back to a gentle opacity fade.
  */
 export function WordSlideUp({
   text,
@@ -14,6 +15,7 @@ export function WordSlideUp({
   delay = 0,
   stagger = 0.04,
 }) {
+  const shouldReduceMotion = useReducedMotion();
   const Component = as;
   const words = text.split(" ");
 
@@ -21,7 +23,7 @@ export function WordSlideUp({
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: stagger,
+        staggerChildren: shouldReduceMotion ? 0.01 : stagger,
         delayChildren: delay,
       },
     },
@@ -30,14 +32,14 @@ export function WordSlideUp({
   const wordVariants = {
     hidden: {
       opacity: 0,
-      y: "115%",
+      y: shouldReduceMotion ? "0%" : "115%",
     },
     visible: {
       opacity: 1,
       y: "0%",
       transition: {
-        duration: 0.62,
-        ease: [0.34, 1.45, 0.64, 1], // back.out(2) signature bounce curve
+        duration: shouldReduceMotion ? 0.35 : 0.62,
+        ease: shouldReduceMotion ? "easeOut" : [0.34, 1.45, 0.64, 1], // back.out(2) signature bounce curve
       },
     },
   };

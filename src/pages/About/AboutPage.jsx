@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Lenis from "lenis";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -13,6 +13,7 @@ import EternaVision from "./sections/EternaVision";
 import EternaValues from "./sections/EternaValues";
 import EternaCulture from "./sections/EternaCulture";
 import EternaFit from "./sections/EternaFit";
+import EternaStats from "./sections/EternaStats";
 import EternaFooterSection from "./sections/EternaFooterSection";
 
 // Interactive Modals
@@ -35,8 +36,13 @@ export default function AboutPage() {
 
   const lenisRef = useRef(null);
 
-  // Initialize Lenis with exact EternaCloud configuration
+  // Initialize Lenis with exact EternaCloud configuration (disabled if prefers-reduced-motion)
   useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      return;
+    }
+
     const lenis = new Lenis({
       lerp: 0.1,
       wheelMultiplier: 0.7,
@@ -88,14 +94,17 @@ export default function AboutPage() {
         {/* One Vision with Vertical Filament Art */}
         <EternaVision />
 
-        {/* Core Values: We are all One (T • R • U • E) */}
+        {/* Core Values: Four Principles We Live By */}
         <EternaValues />
 
         {/* Culture & Expansion Pillars */}
         <EternaCulture />
 
-        {/* Sound Like You? Fit & Checklist */}
+        {/* For Both Sides: Candidates & Recruiters */}
         <EternaFit onOpenJoinModal={() => setIsJoinTeamOpen(true)} />
+
+        {/* Measured Results / Stats */}
+        <EternaStats />
 
         {/* Bottom Botanical Footer & Modal Triggers */}
         <EternaFooterSection

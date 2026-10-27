@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
-import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
+import { WordSlideUp } from "../components/WordReveal";
 
 // Botanical leaf+bud motif with scroll path drawing
 function BotanicalLeafBud() {
@@ -62,7 +62,7 @@ function BotanicalLeafBud() {
       />
       <circle cx="58" cy="41" r="2.5" fill="#A78BFA" filter="url(#vg1)" />
 
-      {/* large center leaf pair */}
+      {/* center leaf pair */}
       <motion.path
         d="M40 65 C 18 55, 14 76, 32 84 C 38 86, 40 78, 40 68 Z"
         fill="url(#lg1)" opacity="0.88"
@@ -126,8 +126,17 @@ function BotanicalLeafBud() {
 }
 
 export default function EternaVision() {
+  const steps = [
+    { num: "01", title: "Connect GitHub", desc: "Candidate authenticates repository access." },
+    { num: "02", title: "Check authorship", desc: "Match commit author to candidate; at least 30% authorship required." },
+    { num: "03", title: "Read the code", desc: "Flag commits under 600 seconds apart, forks, and starter scaffolds via AST analysis." },
+    { num: "04", title: "Fuse the evidence", desc: "Resume claims are cross-checked against repository evidence; exaggerations are flagged." },
+    { num: "05", title: "Run the adaptive exam", desc: "Phase 1 calibration, then a 5-15 min intermission while Phase 2 is generated from their code." },
+    { num: "06", title: "Deliver the verdict", desc: "Ranked candidates, percentiles, hiring policy recommendations, and exportable dossiers." },
+  ];
+
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto text-center flex flex-col items-center gap-8">
+    <section id="section-process" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center flex flex-col items-center gap-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -137,15 +146,39 @@ export default function EternaVision() {
         <BotanicalLeafBud />
       </motion.div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 max-w-3xl">
+        <span className="eterna-pill-badge">
+          Step By Step
+        </span>
         <h2 className="text-4xl sm:text-5xl font-normal tracking-tight text-white">
-          <WordSlideUp text="One Vision" delay={0.1} />
+          <WordSlideUp text="How It Works" delay={0.1} />
         </h2>
-        <FadeInParagraph delay={0.25}>
-          <p className="text-base sm:text-lg text-white/60 font-light max-w-lg mx-auto leading-relaxed">
-            Freedom for every engineer, student, and builder to validate their craft on transparent, cryptographic truth.
-          </p>
-        </FadeInParagraph>
+      </div>
+
+      {/* Process Steps Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 text-left w-full mt-4">
+        {steps.map((s, idx) => (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="eterna-value-letter-card p-6 sm:p-7 flex flex-col justify-between group hover:border-violet-400/40"
+          >
+            <div className="space-y-3">
+              <span className="text-xs font-mono font-bold tracking-widest text-violet-400">
+                {s.num} //
+              </span>
+              <h3 className="text-lg font-normal text-white group-hover:text-violet-200 transition-colors">
+                {s.title}
+              </h3>
+              <p className="text-xs sm:text-sm text-white/60 font-light leading-relaxed">
+                {s.desc}
+              </p>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </section>
   );

@@ -52,8 +52,8 @@ export default function CauseEffectModal({ isOpen, onClose }) {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-5">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-orange-400">
-                [ THE_PHILOSOPHY ]
+              <span className="text-xs uppercase tracking-widest text-orange-400 font-medium">
+                The Philosophy
               </span>
               <h3 className="text-xl font-medium tracking-tight mt-1">
                 Every cause <span className="text-gradient-eterna">has effects</span>

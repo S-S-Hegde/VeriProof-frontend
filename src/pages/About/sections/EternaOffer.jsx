@@ -1,16 +1,14 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import { WordSlideUp } from "../components/WordReveal";
 
 export default function EternaOffer() {
   const cards = [
     {
-      title: "Delivering cryptographic certainty",
-      desc: "Make it indisputable. We transform unverified commit histories and messy repositories into verifiable, tamper-evident certainty.",
+      title: "Verify the code",
+      desc: "We match commit authors to the candidate, require meaningful authorship (at least 30%), flag repositories whose history was pushed in minutes, and analyse the code structure to separate original work from templates and forks.",
       svg: (
         <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
-          {/* concentric orbit rings matching EternaCloud card 1 */}
           <motion.ellipse
             cx="200" cy="160" rx="160" ry="60"
             stroke="#8B5CF6" strokeWidth="1" opacity="0.35"
@@ -35,7 +33,6 @@ export default function EternaOffer() {
             viewport={{ once: true }}
             transition={{ duration: 1.2, ease: "easeInOut", delay: 0.2 }}
           />
-          {/* glowing star dots with pulse */}
           <circle cx="80" cy="120" r="5" fill="#FFFFFF" filter="url(#glow1)" className="star-node-pulse" />
           <circle cx="290" cy="185" r="4" fill="#C4B5FD" filter="url(#glow1)" className="star-node-pulse" style={{ animationDelay: "1s" }} />
           <circle cx="200" cy="70" r="7" fill="#FFFFFF" filter="url(#glow1)" className="star-node-pulse" style={{ animationDelay: "0.5s" }} />
@@ -50,11 +47,10 @@ export default function EternaOffer() {
       ),
     },
     {
-      title: "Orchestrating forensic AST analysis",
-      desc: "Keep it rigorous. Abstract Syntax Tree parsing, dependency graph auditing, and git authorship verification that expose authentic code craft.",
+      title: "Test what they built",
+      desc: "A two-phase adaptive exam calibrates the candidate, then builds a second round from their own codebase, made of debugging and architecture scenarios rather than memorisable definitions.",
       svg: (
         <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
-          {/* radial fan lines with staggered draw */}
           {[-70, -50, -30, -10, 10, 30, 50, 70].map((deg, i) => (
             <motion.line
               key={i}
@@ -84,8 +80,8 @@ export default function EternaOffer() {
       ),
     },
     {
-      title: "Compounding developer merit",
-      desc: "Empower real builders. Objective engineering metrics that eliminate resume fraud and uncover genuine technical excellence.",
+      title: "Score the trust",
+      desc: "Resume claims, repository evidence and live results are combined into one Forensic Trust Score from 0 to 100, with the reasons behind it visible.",
       svg: (
         <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
           <motion.path
@@ -128,7 +124,7 @@ export default function EternaOffer() {
 
   return (
     <section id="section-offer" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Eyebrow + Headline with Word-by-Word Snappy Reveal */}
+      {/* Eyebrow + Headline */}
       <div className="text-center space-y-5 mb-16">
         <motion.div
           initial={{ opacity: 0, y: -12 }}
@@ -138,17 +134,16 @@ export default function EternaOffer() {
           className="flex justify-center"
         >
           <span className="eterna-pill-badge">
-            <Sparkles className="h-3.5 w-3.5 text-violet-300" />
-            We Offer
+            What We Do
           </span>
         </motion.div>
         
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-white">
-          <WordSlideUp text="One Verifiable Protocol" delay={0.1} />
+          <WordSlideUp text="Three Pillars of Verification" delay={0.1} />
         </h2>
       </div>
 
-      {/* Cards with Staggered Entrance & Interactive Hover */}
+      {/* 3 Pillar Cards with Staggered Entrance & Interactive Hover */}
       <div className="flex flex-col md:flex-row items-stretch justify-center gap-6">
         {cards.map((card, idx) => (
           <motion.div

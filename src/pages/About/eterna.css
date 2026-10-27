@@ -1,35 +1,12 @@
 ﻿/* ═══════════════════════════════════════════════════════════
-   OFFICIAL ETERNACLOUD FONTS (MAZZARDH)
+   CLEAN CORPORATE TYPOGRAPHY (PLUS JAKARTA SANS)
+   Matches EternaCloud's geometric sans classification (MazzardH)
+   via Google Fonts (free & open license).
    ═══════════════════════════════════════════════════════════ */
-@font-face {
-  font-family: 'Mazzardh';
-  src: url('/fonts/MazzardH-Light.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
-@font-face {
-  font-family: 'Mazzardh';
-  src: url('/fonts/MazzardH-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Mazzardh';
-  src: url('/fonts/MazzardH-Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PAGE ROOT & GLOBAL TYPOGRAPHY
-   ═══════════════════════════════════════════════════════════ */
 .eterna-page {
-  font-family: 'Mazzardh', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   background-color: #13101c !important;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
@@ -37,7 +14,7 @@
 }
 
 .eterna-page * {
-  font-family: 'Mazzardh', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .eterna-page h1,
@@ -46,15 +23,15 @@
 .eterna-page h4,
 .eterna-page h5,
 .eterna-page h6 {
-  font-family: 'Mazzardh', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-style: normal !important;
   text-transform: none !important;
-  font-weight: 400;
   letter-spacing: -0.025em;
+  font-weight: 500;
 }
 
 .eterna-page p {
-  font-family: 'Mazzardh', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 300;
   font-style: normal !important;
   letter-spacing: normal;
@@ -81,7 +58,7 @@ html.lenis body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   AMBIENT DRIFTING BLOBS
+   AMBIENT DRIFTING BLOBS (Procedural Mesh)
    ═══════════════════════════════════════════════════════════ */
 .eterna-blob-purple {
   position: fixed;
@@ -268,7 +245,7 @@ html.lenis body {
   backdrop-filter: blur(8px);
   color: rgba(255, 255, 255, 0.85);
   font-size: 0.82rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: -0.01em;
   text-transform: uppercase;
 }
@@ -292,7 +269,7 @@ html.lenis body {
   transform-origin: top center;
 }
 
-/* Expanding Letters Cards (T • R • U • E) */
+/* 4 Principles Letter Cards */
 .eterna-value-letter-card {
   background-image: radial-gradient(circle at 50% 100%, #2a2245, #161228 85%);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -307,3 +284,21 @@ html.lenis body {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ═══════════════════════════════════════════════════════════
+   PREFERS-REDUCED-MOTION SUPPORT
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .eterna-blob-purple,
+  .eterna-blob-amber,
+  .eterna-blob-purple-bottom,
+  .eterna-blob-blue-right,
+  .eterna-halo-ring,
+  .star-node-pulse,
+  .botanical-float,
+  .botanical-sway {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

@@ -26,8 +26,8 @@ export default function StoryModal({ isOpen, onClose }) {
           {/* Header */}
           <div className="flex items-start justify-between border-b border-white/10 pb-6">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-cyan-400">
-                [ THE_ORIGIN_STORY ]
+              <span className="text-xs uppercase tracking-widest text-cyan-400 font-medium">
+                The Origin Story
               </span>
               <h2 className="text-2xl sm:text-3xl font-medium tracking-tight mt-1">
                 Designed for engineers, <span className="text-gradient-eterna">built on truth.</span>
@@ -65,7 +65,7 @@ export default function StoryModal({ isOpen, onClose }) {
                 The VeriProof Core Principle
               </h4>
               <p className="text-sm text-white/80">
-                "If you can prove it, we can verify it. If you can verify it, you can trust it. We never monitor webcams or invade candidate privacy—we audit code, timing, and reasoning."
+                "If you can prove it, we can verify it. If you can verify it, you can trust it. Integrity checks use in-browser event telemetry. No video, no screen recording."
               </p>
             </div>
 
