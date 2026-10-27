@@ -1,7 +1,7 @@
-import React from "react";
+﻿import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { UserCheck, Shield, Sparkles } from "lucide-react";
+import { MaskedLine } from "../components/MaskedText";
 
 export default function EternaFooterSection({
   onOpenWisdom,
@@ -32,7 +32,7 @@ export default function EternaFooterSection({
         </div>
 
         {/* Right Foliage Vector */}
-        <div className="w-[280px] sm:w-[420px] md:w-[480px] botanical-sway -mr-16 sm:-mr-8 mb-4" style={{animationDelay: '2s'}}>
+        <div className="w-[280px] sm:w-[420px] md:w-[480px] botanical-sway -mr-16 sm:-mr-8 mb-4" style={{ animationDelay: "2s" }}>
           <svg viewBox="0 0 400 600" fill="none" className="w-full h-auto">
             <path d="M350 600 C 340 400, 280 300, 240 150" stroke="#7C3AED" strokeWidth="2.5" opacity="0.45" />
             <path d="M280 600 C 270 450, 200 350, 140 220" stroke="#5B21B6" strokeWidth="2.5" opacity="0.5" />
@@ -68,7 +68,13 @@ export default function EternaFooterSection({
       {/* ── Main Center Content ── */}
       <div className="max-w-4xl mx-auto text-center space-y-12 relative z-10">
         {/* Top Buttons Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-wrap items-center justify-center gap-4"
+        >
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full border border-purple-500/50 bg-gradient-to-tr from-cyan-400 via-purple-500 to-amber-400 p-[2px]">
               <div className="h-full w-full rounded-full bg-[#13101c]" />
@@ -80,32 +86,38 @@ export default function EternaFooterSection({
 
           <Link
             to="/contact"
-            className="btn-eterna-gradient rounded-xl px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-lg"
+            className="btn-eterna-gradient rounded-xl px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all"
           >
             Contact
           </Link>
 
           <button
             onClick={onOpenJoinTeam}
-            className="rounded-xl border border-white/20 bg-white/5 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10 transition-colors"
+            className="rounded-xl border border-white/20 bg-white/5 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10 hover:border-white/30 cursor-pointer active:scale-95 transition-all"
           >
             Join our team
           </button>
-        </div>
+        </motion.div>
 
-        {/* Central Bold Statement */}
+        {/* Central Bold Statement with Masked Reveal */}
         <div className="space-y-4">
           <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-gradient-eterna">
-            Nothing is impossible
+            <MaskedLine delay={0.1}>Nothing is impossible</MaskedLine>
           </h2>
         </div>
 
-        {/* 3 Interactive Modal Trigger Squares */}
+        {/* 3 Interactive Modal Trigger Squares with Staggered Entrance */}
         <div className="flex items-center justify-center gap-5 sm:gap-6">
           {/* Einstein Icon: Wisdom we live by */}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            whileHover={{ scale: 1.08, y: -4 }}
+            whileTap={{ scale: 0.96 }}
             onClick={onOpenWisdom}
-            className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-all duration-300 hover:border-purple-400/50 hover:scale-105 hover:shadow-xl hover:shadow-purple-600/30"
+            className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-colors duration-300 hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-600/30 cursor-pointer"
             title="Wisdom we live by"
           >
             <div className="text-center">
@@ -116,12 +128,18 @@ export default function EternaFooterSection({
                 Wisdom
               </span>
             </div>
-          </button>
+          </motion.button>
 
           {/* VeriProof Ring Icon: Why the name */}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            whileHover={{ scale: 1.08, y: -4 }}
+            whileTap={{ scale: 0.96 }}
             onClick={onOpenWhyName}
-            className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/50 hover:scale-105 hover:shadow-xl hover:shadow-cyan-600/30"
+            className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-colors duration-300 hover:border-cyan-400/50 hover:shadow-xl hover:shadow-cyan-600/30 cursor-pointer"
             title="Why the name VeriProof?"
           >
             <div className="text-center">
@@ -130,12 +148,18 @@ export default function EternaFooterSection({
                 Name
               </span>
             </div>
-          </button>
+          </motion.button>
 
           {/* Butterfly Icon: Cause and effects */}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            whileHover={{ scale: 1.08, y: -4 }}
+            whileTap={{ scale: 0.96 }}
             onClick={onOpenCauseEffect}
-            className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-all duration-300 hover:border-amber-400/50 hover:scale-105 hover:shadow-xl hover:shadow-amber-600/30"
+            className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-colors duration-300 hover:border-amber-400/50 hover:shadow-xl hover:shadow-amber-600/30 cursor-pointer"
             title="Every cause has effects"
           >
             <div className="text-center">
@@ -146,11 +170,17 @@ export default function EternaFooterSection({
                 Cause
               </span>
             </div>
-          </button>
+          </motion.button>
         </div>
 
         {/* Bottom Epilogue Quote & Legal Line */}
-        <div className="border-t border-white/10 pt-10 space-y-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="border-t border-white/10 pt-10 space-y-4"
+        >
           <p className="text-xs sm:text-sm text-white/60 font-light">
             When every claim is proven and clear, absolute trust must appear.
           </p>
@@ -162,7 +192,7 @@ export default function EternaFooterSection({
             <span>•</span>
             <Link to="/contact" className="hover:text-white transition-colors">Support & Inquiries</Link>
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );

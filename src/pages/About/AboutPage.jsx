@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import Lenis from "lenis";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -38,12 +38,13 @@ export default function AboutPage() {
   // Initialize Lenis smooth scroll
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.25,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 0.8,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.8,
     });
 
     lenisRef.current = lenis;
@@ -68,7 +69,7 @@ export default function AboutPage() {
   };
 
   return (
-    <div className={`eterna-page min-h-screen relative overflow-hidden transition-colors duration-500 font-sans ${
+    <div className={`eterna-page min-h-screen relative overflow-x-clip transition-colors duration-500 font-sans ${
       isDark ? "bg-[#08080E] text-white" : "bg-[#f5f6fa] text-slate-900"
     }`}>
       {/* ── Vivid EternaCloud-Accurate Ambient Blobs ── */}

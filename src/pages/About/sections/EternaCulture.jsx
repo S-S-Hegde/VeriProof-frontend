@@ -1,6 +1,7 @@
 ﻿import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { MaskedLine, FadeInSubhead } from "../components/MaskedText";
 
 // Botanical flower SVG icons matching EternaCloud accordion icons
 function FlowerIcon1() {
@@ -87,21 +88,31 @@ export default function EternaCulture() {
     <section id="section-culture" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="text-center space-y-5 mb-14 max-w-3xl mx-auto">
-        <div className="flex justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-center"
+        >
           <span className="eterna-pill-badge">
             <FlowerIcon1 />
             Join Our Team
           </span>
-        </div>
+        </motion.div>
 
         <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white leading-tight">
-          Our people are world-class, <br />
-          <span className="text-gradient-eterna">our expansion is boundless!</span>
+          <MaskedLine delay={0.1}>Our people are world-class,</MaskedLine>
+          <MaskedLine delay={0.22}>
+            <span className="text-gradient-eterna">our expansion is boundless!</span>
+          </MaskedLine>
         </h2>
 
-        <p className="text-base sm:text-lg text-white/55 font-light">
-          We&apos;re not corporate, just intentional. The best work happens with trust, balance and freedom.
-        </p>
+        <FadeInSubhead delay={0.35}>
+          <p className="text-base sm:text-lg text-white/55 font-light">
+            We&apos;re not corporate, just intentional. The best work happens with trust, balance and freedom.
+          </p>
+        </FadeInSubhead>
       </div>
 
       {/* Interactive Accordion */}
@@ -109,26 +120,45 @@ export default function EternaCulture() {
         {pillars.map((p, idx) => {
           const isOpen = openIndex === idx;
           return (
-            <div
+            <motion.div
               key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.6, delay: idx * 0.1 }}
               className="rounded-2xl overflow-hidden transition-all duration-300"
-              style={{ background: "rgba(20, 16, 42, 0.80)", border: "1px solid rgba(255,255,255,0.07)" }}
+              style={{
+                background: isOpen ? "rgba(25, 20, 52, 0.90)" : "rgba(20, 16, 42, 0.80)",
+                border: isOpen ? "1px solid rgba(139, 92, 246, 0.35)" : "1px solid rgba(255,255,255,0.07)",
+                boxShadow: isOpen ? "0 12px 30px -10px rgba(109, 40, 217, 0.25)" : "none",
+              }}
             >
               <button
                 onClick={() => setOpenIndex(isOpen ? -1 : idx)}
-                className="w-full px-6 py-5 flex items-center justify-between gap-4 text-left focus:outline-none"
+                className="w-full px-6 py-5 flex items-center justify-between gap-4 text-left focus:outline-none cursor-pointer group"
               >
                 <div className="flex items-center gap-4">
-                  {p.icon}
-                  <h3 className="text-lg sm:text-xl font-medium text-white">
+                  <motion.div
+                    animate={{
+                      rotate: isOpen ? 60 : 0,
+                      scale: isOpen ? 1.08 : 1,
+                    }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    className="shrink-0"
+                  >
+                    {p.icon}
+                  </motion.div>
+                  <h3 className="text-lg sm:text-xl font-medium text-white group-hover:text-violet-200 transition-colors">
                     {p.title}
                   </h3>
                 </div>
-                <ChevronDown
-                  className={`h-5 w-5 text-white/50 shrink-0 transition-transform duration-300 ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
-                />
+                <motion.div
+                  animate={{ rotate: isOpen ? 180 : 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="shrink-0"
+                >
+                  <ChevronDown className="h-5 w-5 text-white/50 group-hover:text-white" />
+                </motion.div>
               </button>
 
               <AnimatePresence>
@@ -137,7 +167,7 @@ export default function EternaCulture() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
                     className="overflow-hidden"
                   >
                     <div className="px-6 pb-7 pt-1 border-t border-white/5 space-y-4 text-sm sm:text-base text-white/65 font-light leading-relaxed pl-20">
@@ -148,7 +178,7 @@ export default function EternaCulture() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -180,13 +210,13 @@ export default function EternaCulture() {
               transform="rotate(240 30 54)" />
             <ellipse cx="30" cy="54" rx="7" ry="10" fill="url(#hpf2)" opacity="0.78"
               transform="rotate(300 30 54)" />
-            <circle cx="30" cy="54" r="6" fill="#F59E0B" />
+            <circle cx="30" cy="54" r="6" fill="#F59E0B" className="star-node-pulse" />
             <circle cx="30" cy="54" r="3.5" fill="#FCD34D" />
             <defs>
               <linearGradient id="hpf1" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#7C3AED" /><stop offset="100%" stopColor="#8B5CF6" />
               </linearGradient>
-              <linearGradient id="hpf2" x1="0" y1="0" x2="1" y2="1">
+              <linearGradient id="hpf2" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#6D28D9" /><stop offset="100%" stopColor="#A78BFA" />
               </linearGradient>
               <filter id="hf1" x="-150%" y="-150%" width="400%" height="400%">
@@ -197,9 +227,17 @@ export default function EternaCulture() {
           </svg>
         </div>
 
-        <p className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white leading-tight max-w-3xl mx-auto">
-          At VeriProof, we empower our colleagues to take ownership, do meaningful work and live an extraordinary Life.
-        </p>
+        <div className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white leading-tight max-w-3xl mx-auto">
+          <MaskedLine delay={0.1}>
+            At VeriProof, we empower our colleagues
+          </MaskedLine>
+          <MaskedLine delay={0.22}>
+            to take ownership, do meaningful work
+          </MaskedLine>
+          <MaskedLine delay={0.34}>
+            and live an extraordinary Life.
+          </MaskedLine>
+        </div>
       </motion.div>
     </section>
   );

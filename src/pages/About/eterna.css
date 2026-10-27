@@ -1,5 +1,28 @@
 ﻿/* EternaCloud-Accurate About Page - VeriProof */
 
+/* ═══════════════════════════════════════════════════════════
+   LENIS SMOOTH SCROLLING STYLES (Inertia Momentum)
+   ═══════════════════════════════════════════════════════════ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AMBIENT DRIFTING BLOBS
+   ═══════════════════════════════════════════════════════════ */
 .eterna-blob-purple {
   position: fixed;
   top: -5%;
@@ -72,6 +95,9 @@
   100% { transform: translate(-3%, 7%) scale(1.05); }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   HERO HALO RING WITH BREATHING GLOW
+   ═══════════════════════════════════════════════════════════ */
 .eterna-halo-ring {
   border-radius: 50%;
   border: 1.5px solid rgba(139, 92, 246, 0.65);
@@ -81,6 +107,7 @@
     0 0 150px 55px rgba(88, 28, 187, 0.22),
     inset 0 0 50px 15px rgba(139, 92, 246, 0.14);
   animation: halo-breathe 7s ease-in-out infinite;
+  will-change: transform, box-shadow, opacity;
 }
 
 @keyframes halo-breathe {
@@ -102,6 +129,29 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   STAR & CONSTELLATION PULSES
+   ═══════════════════════════════════════════════════════════ */
+@keyframes star-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9));
+  }
+}
+
+.star-node-pulse {
+  animation: star-pulse 3.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GRADIENTS & BUTTONS
+   ═══════════════════════════════════════════════════════════ */
 .text-gradient-eterna {
   background: linear-gradient(90deg, #60A5FA 0%, #A78BFA 48%, #F59E0B 100%);
   -webkit-background-clip: text;
@@ -158,12 +208,15 @@
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 1.5rem;
   overflow: hidden;
-  transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, box-shadow;
 }
 .eterna-offer-card:hover {
-  border-color: rgba(139, 92, 246, 0.32);
+  border-color: rgba(139, 92, 246, 0.42);
   transform: translateY(-6px);
-  box-shadow: 0 24px 50px -16px rgba(109, 40, 217, 0.24);
+  box-shadow: 0 24px 50px -16px rgba(109, 40, 217, 0.32);
 }
 
 @keyframes botanical-float {
@@ -189,11 +242,12 @@
   background: linear-gradient(135deg, #1A1533 0%, #130F2C 100%);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 1.25rem;
-  transition: all 0.35s ease;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .eterna-value-letter-card:hover {
-  border-color: rgba(139, 92, 246, 0.38);
-  box-shadow: 0 0 32px -8px rgba(139, 92, 246, 0.28);
+  border-color: rgba(139, 92, 246, 0.45);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px -8px rgba(139, 92, 246, 0.32);
 }
 
 .eterna-accordion-item {
@@ -206,12 +260,6 @@
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-@keyframes fade-up-in {
-  from { opacity: 0; transform: translateY(32px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.reveal-up { animation: fade-up-in 0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* ═══════════════════════════════════════════════════════════
    FONT RESET — Override global .theme-dark h1/h2 italic+uppercase
