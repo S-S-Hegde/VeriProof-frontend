@@ -68,7 +68,7 @@ export default function AboutPage() {
   };
 
   return (
-    <div className={`min-h-screen relative overflow-hidden transition-colors duration-500 font-sans ${
+    <div className={`eterna-page min-h-screen relative overflow-hidden transition-colors duration-500 font-sans ${
       isDark ? "bg-[#08080E] text-white" : "bg-[#f5f6fa] text-slate-900"
     }`}>
       {/* ── Vivid EternaCloud-Accurate Ambient Blobs ── */}

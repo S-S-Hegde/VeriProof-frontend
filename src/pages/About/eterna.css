@@ -212,3 +212,26 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .reveal-up { animation: fade-up-in 0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ═══════════════════════════════════════════════════════════
+   FONT RESET — Override global .theme-dark h1/h2 italic+uppercase
+   that bleeds into the About page from index.css
+   ═══════════════════════════════════════════════════════════ */
+.eterna-page h1,
+.eterna-page h2,
+.eterna-page h3,
+.eterna-page h4,
+.eterna-page p,
+.eterna-page span,
+.eterna-page button {
+  font-style: normal !important;
+  text-transform: none !important;
+  letter-spacing: normal;
+}
+
+/* Restore tracking on eyebrow/mono elements */
+.eterna-page .eterna-pill-badge {
+  letter-spacing: 0.04em;
+  text-transform: none !important;
+  font-style: normal !important;
+}
