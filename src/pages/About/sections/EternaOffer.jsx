@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
@@ -8,92 +8,114 @@ export default function EternaOffer() {
       title: "Delivering seamless verification",
       desc: "Make it effortless. We transform complex candidate evaluation into verifiable, tamper-evident certainty.",
       svg: (
-        <svg viewBox="0 0 400 200" fill="none" className="w-full h-36 opacity-80 group-hover:opacity-100 transition-opacity">
-          <ellipse cx="200" cy="110" rx="150" ry="55" stroke="#AC24FF" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
-          <ellipse cx="200" cy="110" rx="190" ry="85" stroke="#1B4DFE" strokeWidth="1.2" opacity="0.6" />
-          <ellipse cx="200" cy="110" rx="90" ry="35" stroke="#FE881B" strokeWidth="1" opacity="0.5" />
-          <circle cx="80" cy="100" r="5" fill="#FFFFFF" filter="drop-shadow(0 0 8px #AC24FF)" />
-          <circle cx="290" cy="140" r="4" fill="#00D4FF" filter="drop-shadow(0 0 6px #00D4FF)" />
-          <circle cx="200" cy="50" r="6" fill="#FFFFFF" filter="drop-shadow(0 0 10px #FFFFFF)" />
+        <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
+          {/* concentric orbit rings matching EternaCloud card 1 */}
+          <ellipse cx="200" cy="160" rx="160" ry="60" stroke="#8B5CF6" strokeWidth="1" opacity="0.35" />
+          <ellipse cx="200" cy="160" rx="200" ry="90" stroke="#6D28D9" strokeWidth="1.2" opacity="0.25" />
+          <ellipse cx="200" cy="160" rx="100" ry="38" stroke="#A78BFA" strokeWidth="1" strokeDasharray="4 4" opacity="0.30" />
+          {/* glowing star dots */}
+          <circle cx="80" cy="120" r="5" fill="#FFFFFF" filter="url(#glow1)" opacity="0.9" />
+          <circle cx="290" cy="185" r="4" fill="#C4B5FD" filter="url(#glow1)" opacity="0.85" />
+          <circle cx="200" cy="70" r="7" fill="#FFFFFF" filter="url(#glow1)" opacity="0.95" />
+          <circle cx="340" cy="120" r="3.5" fill="#A78BFA" filter="url(#glow1)" opacity="0.8" />
+          <defs>
+            <filter id="glow1" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
         </svg>
-      )
+      ),
     },
     {
       title: "Orchestrating forensic frameworks",
       desc: "Keep it rigorous. GitHub commit history, AST analysis, and AI question defenses that transcend typical limitations.",
       svg: (
-        <svg viewBox="0 0 400 200" fill="none" className="w-full h-36 opacity-80 group-hover:opacity-100 transition-opacity">
-          {[-60, -40, -20, 0, 20, 40, 60].map((deg, i) => (
+        <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
+          {/* radial fan lines */}
+          {[-70, -50, -30, -10, 10, 30, 50, 70].map((deg, i) => (
             <line
               key={i}
-              x1="200"
-              y1="190"
-              x2={200 + Math.sin((deg * Math.PI) / 180) * 170}
-              y2={190 - Math.cos((deg * Math.PI) / 180) * 170}
-              stroke="#AC24FF"
+              x1="200" y1="280"
+              x2={200 + Math.sin((deg * Math.PI) / 180) * 200}
+              y2={280 - Math.cos((deg * Math.PI) / 180) * 200}
+              stroke="#8B5CF6"
               strokeWidth="1.2"
-              opacity={0.3 + i * 0.08}
+              opacity={0.18 + i * 0.06}
             />
           ))}
-          <circle cx="200" cy="25" r="5" fill="#FFFFFF" filter="drop-shadow(0 0 8px #FFFFFF)" />
-          <circle cx="120" cy="70" r="4" fill="#FE881B" filter="drop-shadow(0 0 6px #FE881B)" />
-          <circle cx="270" cy="65" r="4.5" fill="#00D4FF" filter="drop-shadow(0 0 7px #00D4FF)" />
+          <circle cx="200" cy="30" r="5" fill="#FFFFFF" filter="url(#glow2)" opacity="0.9" />
+          <circle cx="115" cy="80" r="4" fill="#F59E0B" filter="url(#glow2)" opacity="0.85" />
+          <circle cx="280" cy="75" r="5" fill="#C4B5FD" filter="url(#glow2)" opacity="0.85" />
+          <circle cx="200" cy="130" r="3.5" fill="#A78BFA" filter="url(#glow2)" opacity="0.8" />
+          <defs>
+            <filter id="glow2" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
         </svg>
-      )
+      ),
     },
     {
       title: "Compounding hiring gains",
       desc: "Do good for people. Objective evidence that eliminates bias and uncovers exceptional builders.",
       svg: (
-        <svg viewBox="0 0 400 200" fill="none" className="w-full h-36 opacity-80 group-hover:opacity-100 transition-opacity">
-          <path d="M40 50 C 140 50, 180 120, 360 120" stroke="#1B4DFE" strokeWidth="1.2" opacity="0.6" />
-          <path d="M40 100 C 160 100, 220 120, 360 120" stroke="#AC24FF" strokeWidth="1.2" opacity="0.7" />
-          <path d="M40 160 C 180 160, 240 120, 360 120" stroke="#FE881B" strokeWidth="1.2" opacity="0.6" />
-          <circle cx="360" cy="120" r="7" fill="#FFFFFF" filter="drop-shadow(0 0 10px #AC24FF)" />
-          <circle cx="90" cy="50" r="4" fill="#00D4FF" filter="drop-shadow(0 0 6px #00D4FF)" />
-          <circle cx="280" cy="120" r="4" fill="#FFD600" filter="drop-shadow(0 0 6px #FFD600)" />
+        <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
+          <path d="M30 60 C 140 60, 190 160, 370 160" stroke="#6D28D9" strokeWidth="1.3" opacity="0.55" />
+          <path d="M30 110 C 160 110, 220 160, 370 160" stroke="#8B5CF6" strokeWidth="1.3" opacity="0.65" />
+          <path d="M30 180 C 180 180, 250 160, 370 160" stroke="#F59E0B" strokeWidth="1.3" opacity="0.55" />
+          <circle cx="370" cy="160" r="8" fill="#FFFFFF" filter="url(#glow3)" opacity="0.9" />
+          <circle cx="80" cy="60" r="4" fill="#C4B5FD" filter="url(#glow3)" opacity="0.85" />
+          <circle cx="270" cy="160" r="4" fill="#FCD34D" filter="url(#glow3)" opacity="0.8" />
+          <defs>
+            <filter id="glow3" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="7" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
         </svg>
-      )
-    }
+      ),
+    },
   ];
 
   return (
-    <section id="section-offer" className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Eyebrow & Headline */}
-      <div className="text-center space-y-4 mb-16">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
-          <Sparkles className="h-3.5 w-3.5 text-purple-400" />
-          <span className="text-xs font-medium tracking-wide text-white/80">we offer</span>
+    <section id="section-offer" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Eyebrow + Headline */}
+      <div className="text-center space-y-5 mb-16">
+        <div className="flex justify-center">
+          <span className="eterna-pill-badge">
+            <Sparkles className="h-3.5 w-3.5 text-violet-300" />
+            We Offer
+          </span>
         </div>
-
-        <h2 className="text-3xl sm:text-5xl font-medium tracking-tight text-white">
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-white">
           One Adaptive Service
         </h2>
       </div>
 
-      {/* Cards: Text on Top, Vector Graphic on Bottom (Exact EternaCloud Layout) */}
-      <div className="flex flex-col md:flex-row items-stretch justify-center gap-6 sm:gap-8">
+      {/* Cards */}
+      <div className="flex flex-col md:flex-row items-stretch justify-center gap-5">
         {cards.map((card, idx) => (
           <motion.div
             key={idx}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.7, delay: idx * 0.15 }}
-            className="group flex-1 rounded-3xl border border-white/10 bg-[#161226]/85 p-8 sm:p-10 flex flex-col justify-between overflow-hidden relative backdrop-blur-xl hover:border-purple-400/30 transition-all duration-300"
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.7, delay: idx * 0.13 }}
+            className="eterna-offer-card group flex-1 flex flex-col"
           >
-            {/* Top Text Content */}
-            <div className="space-y-3 relative z-10 mb-8">
+            {/* Text top */}
+            <div className="p-8 sm:p-10 space-y-3">
               <h3 className="text-xl sm:text-2xl font-medium tracking-tight text-white leading-snug">
                 {card.title}
               </h3>
-              <p className="text-sm text-white/60 font-light leading-relaxed">
+              <p className="text-sm text-white/55 font-light leading-relaxed">
                 {card.desc}
               </p>
             </div>
-
-            {/* Bottom Graphic Motif */}
-            <div className="mt-auto -mx-4 -mb-4 flex items-center justify-center">
+            {/* SVG bottom */}
+            <div className="mt-auto px-4 pb-4">
               {card.svg}
             </div>
           </motion.div>

@@ -1,115 +1,214 @@
-/* EternaCloud Inspired Luxury Dark Mode Styling & Animations */
+﻿/* EternaCloud-Accurate About Page - VeriProof */
 
-/* Radiant Text Gradient */
-.text-gradient-eterna {
-  background: linear-gradient(90deg, #1B4DFE 0%, #AC24FF 48%, #FE881B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.eterna-blob-purple {
+  position: fixed;
+  top: -5%;
+  left: -10%;
+  width: 60vw;
+  height: 75vh;
+  background: radial-gradient(ellipse at 40% 40%, #7C3AED 0%, #5B21B6 28%, #3B1078 55%, transparent 78%);
+  filter: blur(85px);
+  opacity: 0.60;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+  animation: blob-drift-left 24s ease-in-out infinite alternate;
 }
 
-.text-gradient-cyan-purple {
-  background: linear-gradient(90deg, #00D4FF 0%, #A855F7 50%, #EC4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.eterna-blob-amber {
+  position: fixed;
+  top: -5%;
+  right: -10%;
+  width: 45vw;
+  height: 65vh;
+  background: radial-gradient(ellipse at 60% 35%, #D97706 0%, #92400E 30%, #78350F 58%, transparent 78%);
+  filter: blur(95px);
+  opacity: 0.52;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+  animation: blob-drift-right 28s ease-in-out infinite alternate;
 }
 
-.text-gradient-gold {
-  background: linear-gradient(90deg, #FE881B 0%, #FFD600 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.eterna-blob-purple-bottom {
+  position: fixed;
+  bottom: 5%;
+  left: 0%;
+  width: 40vw;
+  height: 50vh;
+  background: radial-gradient(ellipse at 40% 60%, #6D28D9 0%, #4C1D95 40%, transparent 72%);
+  filter: blur(110px);
+  opacity: 0.38;
+  pointer-events: none;
+  z-index: 0;
+  animation: blob-drift-left 32s ease-in-out infinite alternate-reverse;
 }
 
-/* Shifting Gradient Button */
-.btn-eterna-gradient {
-  background-image: linear-gradient(90deg, #1B4DFE 0%, #AC24FF 50%, #FE881B 100%);
-  background-size: 300% 100%;
-  background-position: left;
-  transition: background-position 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, box-shadow 0.3s ease;
+.eterna-blob-blue-right {
+  position: fixed;
+  bottom: 15%;
+  right: 0%;
+  width: 35vw;
+  height: 45vh;
+  background: radial-gradient(ellipse at 55% 45%, #1D4ED8 0%, #1E3A8A 40%, transparent 72%);
+  filter: blur(100px);
+  opacity: 0.32;
+  pointer-events: none;
+  z-index: 0;
+  animation: blob-drift-right 36s ease-in-out infinite alternate-reverse;
 }
 
-.btn-eterna-gradient:hover {
-  background-position: right;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(172, 36, 255, 0.4);
+@keyframes blob-drift-left {
+  0%   { transform: translate(0, 0) scale(1); }
+  35%  { transform: translate(4%, 6%) scale(1.06); }
+  70%  { transform: translate(-2%, 3%) scale(0.96); }
+  100% { transform: translate(5%, -3%) scale(1.04); }
 }
 
-/* Glass Panels */
-.glass-eterna-card {
-  background: rgba(23, 19, 40, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 2rem;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+@keyframes blob-drift-right {
+  0%   { transform: translate(0, 0) scale(1); }
+  40%  { transform: translate(-5%, 4%) scale(1.07); }
+  75%  { transform: translate(3%, -2%) scale(0.95); }
+  100% { transform: translate(-3%, 7%) scale(1.05); }
 }
 
-.glass-eterna-card:hover {
-  border-color: rgba(172, 36, 255, 0.35);
-  box-shadow: 0 20px 40px -15px rgba(27, 77, 254, 0.2);
-  transform: translateY(-4px);
+.eterna-halo-ring {
+  border-radius: 50%;
+  border: 1.5px solid rgba(139, 92, 246, 0.65);
+  box-shadow:
+    0 0 25px 6px  rgba(139, 92, 246, 0.55),
+    0 0 70px 18px rgba(109, 40, 217, 0.38),
+    0 0 150px 55px rgba(88, 28, 187, 0.22),
+    inset 0 0 50px 15px rgba(139, 92, 246, 0.14);
+  animation: halo-breathe 7s ease-in-out infinite;
 }
 
-/* Cosmic Glow Halo Ring */
-@keyframes pulse-halo {
+@keyframes halo-breathe {
   0%, 100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 0.85;
+    box-shadow:
+      0 0 25px 6px  rgba(139, 92, 246, 0.55),
+      0 0 70px 18px rgba(109, 40, 217, 0.38),
+      0 0 150px 55px rgba(88, 28, 187, 0.22),
+      inset 0 0 50px 15px rgba(139, 92, 246, 0.14);
+    opacity: 0.88;
   }
   50% {
-    transform: scale(1.04) rotate(180deg);
+    box-shadow:
+      0 0 45px 12px rgba(167, 119, 255, 0.70),
+      0 0 110px 38px rgba(129, 60, 237, 0.48),
+      0 0 220px 80px rgba(100, 38, 200, 0.28),
+      inset 0 0 75px 28px rgba(167, 119, 255, 0.20);
     opacity: 1;
   }
 }
 
-.cosmic-halo-ring {
-  background: radial-gradient(circle, rgba(172, 36, 255, 0.35) 0%, rgba(27, 77, 254, 0.25) 45%, rgba(254, 136, 27, 0.15) 70%, transparent 85%);
-  filter: blur(50px);
-  animation: pulse-halo 16s ease-in-out infinite;
+.text-gradient-eterna {
+  background: linear-gradient(90deg, #60A5FA 0%, #A78BFA 48%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.cosmic-halo-border {
-  border-radius: 50%;
-  box-shadow: 
-    0 0 40px rgba(172, 36, 255, 0.6),
-    0 0 90px rgba(27, 77, 254, 0.4),
-    inset 0 0 35px rgba(254, 136, 27, 0.3);
+.text-gradient-purple-blue {
+  background: linear-gradient(135deg, #C084FC 0%, #818CF8 50%, #60A5FA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Botanical Glow Foliage Animation */
-@keyframes sway-subtle-left {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(-1.5deg);
-  }
+.btn-eterna-gradient {
+  background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 50%, #4F46E5 100%);
+  background-size: 200% 100%;
+  background-position: left;
+  transition: background-position 0.6s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+.btn-eterna-gradient:hover {
+  background-position: right;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px -6px rgba(124, 58, 237, 0.55);
 }
 
-@keyframes sway-subtle-right {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(1.5deg);
-  }
+.btn-eterna-solid {
+  background: #4F46E5;
+  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+.btn-eterna-solid:hover {
+  background: #4338CA;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -8px rgba(79, 70, 229, 0.50);
 }
 
-.botanical-sway-left {
-  animation: sway-subtle-left 8s ease-in-out infinite;
+.eterna-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: rgba(14, 11, 32, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
-.botanical-sway-right {
-  animation: sway-subtle-right 8s ease-in-out infinite;
+.eterna-offer-card {
+  background: #100D24;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+}
+.eterna-offer-card:hover {
+  border-color: rgba(139, 92, 246, 0.32);
+  transform: translateY(-6px);
+  box-shadow: 0 24px 50px -16px rgba(109, 40, 217, 0.24);
 }
 
-/* Custom Scrollbar suppression */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+@keyframes botanical-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  30%       { transform: translateY(-12px) rotate(-1.5deg); }
+  70%       { transform: translateY(-7px) rotate(1.2deg); }
 }
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.botanical-float {
+  animation: botanical-float 7s ease-in-out infinite;
 }
+
+@keyframes botanical-sway {
+  0%, 100% { transform: rotate(0deg) translateY(0px); }
+  25%       { transform: rotate(-2.5deg) translateY(-5px); }
+  75%       { transform: rotate(2deg) translateY(-3px); }
+}
+.botanical-sway {
+  animation: botanical-sway 9s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.eterna-value-letter-card {
+  background: linear-gradient(135deg, #1A1533 0%, #130F2C 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1.25rem;
+  transition: all 0.35s ease;
+}
+.eterna-value-letter-card:hover {
+  border-color: rgba(139, 92, 246, 0.38);
+  box-shadow: 0 0 32px -8px rgba(139, 92, 246, 0.28);
+}
+
+.eterna-accordion-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  transition: background 0.3s ease;
+}
+.eterna-accordion-item:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes fade-up-in {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal-up { animation: fade-up-in 0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }

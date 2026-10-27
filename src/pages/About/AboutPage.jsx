@@ -69,14 +69,13 @@ export default function AboutPage() {
 
   return (
     <div className={`min-h-screen relative overflow-hidden transition-colors duration-500 font-sans ${
-      isDark ? "bg-[#0d0b14] text-white" : "bg-[#f5f6fa] text-slate-900"
+      isDark ? "bg-[#08080E] text-white" : "bg-[#f5f6fa] text-slate-900"
     }`}>
-      {/* ── Ambient Background Glow Orbs ── */}
-      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-purple-900/15 rounded-full filter blur-[120px]" />
-        <div className="absolute top-[45%] right-[15%] w-[600px] h-[600px] bg-blue-900/15 rounded-full filter blur-[140px]" />
-        <div className="absolute top-[75%] left-[25%] w-[550px] h-[550px] bg-amber-900/10 rounded-full filter blur-[130px]" />
-      </div>
+      {/* ── Vivid EternaCloud-Accurate Ambient Blobs ── */}
+      <div className="eterna-blob-purple" />
+      <div className="eterna-blob-amber" />
+      <div className="eterna-blob-purple-bottom" />
+      <div className="eterna-blob-blue-right" />
 
       {/* ── Page Section Sequence ── */}
       <main className="relative z-10">

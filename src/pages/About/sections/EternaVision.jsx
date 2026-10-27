@@ -1,47 +1,80 @@
-import React from "react";
+﻿import React from "react";
 import { motion } from "framer-motion";
+
+// EternaCloud-accurate botanical leaf+bud motif for the Vision section
+function BotanicalLeafBud() {
+  return (
+    <svg viewBox="0 0 80 140" fill="none" className="w-14 h-28 botanical-float mx-auto">
+      {/* main stem (thin, dark) */}
+      <line x1="40" y1="6" x2="40" y2="128" stroke="#4C1D95" strokeWidth="1.4" opacity="0.55" />
+      {/* top bud */}
+      <circle cx="40" cy="10" r="5" fill="#F59E0B" filter="url(#vg1)" />
+      {/* left leaf pair */}
+      <line x1="40" y1="38" x2="22" y2="28" stroke="#5B21B6" strokeWidth="1" opacity="0.5" />
+      <path d="M22 28 C 8 22, 6 36, 18 40 C 25 42, 28 36, 22 28 Z"
+        fill="url(#lg1)" opacity="0.92" />
+      <circle cx="22" cy="27" r="3" fill="#F59E0B" filter="url(#vg1)" />
+      {/* right leaf pair */}
+      <line x1="40" y1="52" x2="58" y2="42" stroke="#5B21B6" strokeWidth="1" opacity="0.5" />
+      <path d="M58 42 C 72 36, 74 50, 62 54 C 55 56, 52 50, 58 42 Z"
+        fill="url(#lg2)" opacity="0.92" />
+      <circle cx="58" cy="41" r="2.5" fill="#A78BFA" filter="url(#vg1)" />
+      {/* large center leaf */}
+      <path d="M40 65 C 18 55, 14 76, 32 84 C 38 86, 40 78, 40 68 Z"
+        fill="url(#lg1)" opacity="0.88" />
+      <path d="M40 65 C 62 55, 66 76, 48 84 C 42 86, 40 78, 40 68 Z"
+        fill="url(#lg2)" opacity="0.85" />
+      {/* hanging bell flower */}
+      <path d="M34 100 Q 28 112, 40 120 Q 52 112, 46 100 Z"
+        fill="url(#pf1)" opacity="0.95" />
+      <path d="M36 100 Q 30 108, 40 115 Q 50 108, 44 100 Z"
+        fill="url(#pf2)" opacity="0.9" />
+      <circle cx="40" cy="122" r="3.5" fill="#FCD34D" filter="url(#vg1)" />
+      <defs>
+        <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#4338CA" /><stop offset="100%" stopColor="#5B21B6" />
+        </linearGradient>
+        <linearGradient id="lg2" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3730A3" /><stop offset="100%" stopColor="#6D28D9" />
+        </linearGradient>
+        <linearGradient id="pf1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7C3AED" /><stop offset="100%" stopColor="#8B5CF6" />
+        </linearGradient>
+        <linearGradient id="pf2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#6D28D9" /><stop offset="100%" stopColor="#C4B5FD" />
+        </linearGradient>
+        <filter id="vg1" x="-150%" y="-150%" width="400%" height="400%">
+          <feGaussianBlur stdDeviation="3.5" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+    </svg>
+  );
+}
 
 export default function EternaVision() {
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center flex flex-col items-center">
+    <section className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto text-center flex flex-col items-center gap-8">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="space-y-6 flex flex-col items-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.7 }}
       >
-        {/* Artistic Vertical Filament SVG Motif */}
-        <div className="w-16 h-28 relative flex items-center justify-center">
-          <svg viewBox="0 0 60 120" fill="none" className="w-full h-full">
-            <path
-              d="M30 10 C 25 35, 35 60, 30 85 C 26 100, 30 115, 30 115"
-              stroke="url(#filament-grad)"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            {/* Organic Petal shapes */}
-            <path d="M30 40 C 45 35, 48 50, 30 55 Z" fill="#1B4DFE" opacity="0.8" />
-            <path d="M30 65 C 15 60, 12 75, 30 80 Z" fill="#AC24FF" opacity="0.8" />
-            <circle cx="30" cy="15" r="4" fill="#FFD600" filter="drop-shadow(0 0 6px #FFD600)" />
-            <circle cx="30" cy="115" r="5" fill="#FE881B" filter="drop-shadow(0 0 8px #FE881B)" />
-            <defs>
-              <linearGradient id="filament-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#FFD600" />
-                <stop offset="50%" stopColor="#AC24FF" />
-                <stop offset="100%" stopColor="#1B4DFE" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
+        <BotanicalLeafBud />
+      </motion.div>
 
-        {/* Headline */}
-        <h2 className="text-4xl sm:text-5xl font-medium tracking-tight text-white">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.8, delay: 0.1 }}
+        className="space-y-4"
+      >
+        <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-white">
           One Vision
         </h2>
-
-        {/* Subtitle */}
-        <p className="text-base sm:text-lg text-white/60 font-light max-w-xl">
+        <p className="text-base sm:text-lg text-white/55 font-light max-w-lg mx-auto leading-relaxed">
           Freedom for every engineer and hiring team to build on verified truth.
         </p>
       </motion.div>

@@ -14,47 +14,37 @@ export default function EternaFooterSection({
       {/* ── Botanical Illuminated Foliage SVGs (Left and Right) ── */}
       <div className="absolute inset-0 pointer-events-none -z-10 flex justify-between items-end opacity-40 sm:opacity-75">
         {/* Left Foliage Vector */}
-        <div className="w-[280px] sm:w-[420px] md:w-[480px] botanical-sway-left -ml-16 sm:-ml-8 mb-4">
+        <div className="w-[280px] sm:w-[420px] md:w-[480px] botanical-sway -ml-16 sm:-ml-8 mb-4">
           <svg viewBox="0 0 400 600" fill="none" className="w-full h-auto">
-            {/* Stems */}
-            <path d="M50 600 C 60 400, 120 300, 160 150" stroke="#AC24FF" strokeWidth="2.5" opacity="0.4" />
-            <path d="M120 600 C 130 450, 200 350, 260 220" stroke="#1B4DFE" strokeWidth="2.5" opacity="0.5" />
-            <path d="M20 600 C 30 500, 80 400, 90 280" stroke="#FE881B" strokeWidth="2" opacity="0.4" />
-
-            {/* Glowing Floral Petals Left */}
-            <path d="M160 150 C 140 100, 110 110, 130 160 Z" fill="url(#petal-grad-1)" opacity="0.85" />
-            <path d="M160 150 C 180 90, 220 110, 185 160 Z" fill="url(#petal-grad-2)" opacity="0.85" />
-            <path d="M160 150 C 150 70, 175 60, 175 140 Z" fill="url(#petal-grad-1)" opacity="0.9" />
-            <circle cx="165" cy="140" r="16" fill="#FFD600" filter="drop-shadow(0 0 14px #FFD600)" />
-
-            {/* Small leaves */}
-            <path d="M100 350 C 70 330, 60 360, 95 375 Z" fill="#1B4DFE" opacity="0.75" />
-            <path d="M140 280 C 170 260, 190 290, 145 305 Z" fill="#AC24FF" opacity="0.75" />
-            <path d="M180 420 C 150 400, 130 430, 170 445 Z" fill="#1B4DFE" opacity="0.6" />
-            <circle cx="100" cy="300" r="10" fill="#FFD600" opacity="0.8" />
-            <circle cx="240" cy="380" r="12" fill="#FE881B" opacity="0.75" />
+            <path d="M50 600 C 60 400, 120 300, 160 150" stroke="#7C3AED" strokeWidth="2.5" opacity="0.45" />
+            <path d="M120 600 C 130 450, 200 350, 260 220" stroke="#5B21B6" strokeWidth="2.5" opacity="0.5" />
+            <path d="M20 600 C 30 500, 80 400, 90 280" stroke="#4C1D95" strokeWidth="2" opacity="0.38" />
+            <path d="M160 150 C 140 100, 110 110, 130 160 Z" fill="url(#petal-grad-1)" opacity="0.88" />
+            <path d="M160 150 C 180 90, 220 110, 185 160 Z" fill="url(#petal-grad-2)" opacity="0.88" />
+            <path d="M160 150 C 150 70, 175 60, 175 140 Z" fill="url(#petal-grad-1)" opacity="0.92" />
+            <circle cx="165" cy="140" r="16" fill="#F59E0B" filter="drop-shadow(0 0 14px #F59E0B)" />
+            <path d="M100 350 C 70 330, 60 360, 95 375 Z" fill="#4338CA" opacity="0.75" />
+            <path d="M140 280 C 170 260, 190 290, 145 305 Z" fill="#6D28D9" opacity="0.75" />
+            <path d="M180 420 C 150 400, 130 430, 170 445 Z" fill="#4C1D95" opacity="0.6" />
+            <circle cx="100" cy="300" r="10" fill="#F59E0B" opacity="0.8" />
+            <circle cx="240" cy="380" r="12" fill="#A78BFA" opacity="0.75" />
           </svg>
         </div>
 
         {/* Right Foliage Vector */}
-        <div className="w-[280px] sm:w-[420px] md:w-[480px] botanical-sway-right -mr-16 sm:-mr-8 mb-4">
+        <div className="w-[280px] sm:w-[420px] md:w-[480px] botanical-sway -mr-16 sm:-mr-8 mb-4" style={{animationDelay: '2s'}}>
           <svg viewBox="0 0 400 600" fill="none" className="w-full h-auto">
-            {/* Stems */}
-            <path d="M350 600 C 340 400, 280 300, 240 150" stroke="#AC24FF" strokeWidth="2.5" opacity="0.4" />
-            <path d="M280 600 C 270 450, 200 350, 140 220" stroke="#1B4DFE" strokeWidth="2.5" opacity="0.5" />
-            <path d="M380 600 C 370 500, 320 400, 310 280" stroke="#FE881B" strokeWidth="2" opacity="0.4" />
-
-            {/* Glowing Floral Petals Right */}
-            <path d="M240 150 C 260 100, 290 110, 270 160 Z" fill="url(#petal-grad-1)" opacity="0.85" />
-            <path d="M240 150 C 220 90, 180 110, 215 160 Z" fill="url(#petal-grad-2)" opacity="0.85" />
-            <path d="M240 150 C 250 70, 225 60, 225 140 Z" fill="url(#petal-grad-1)" opacity="0.9" />
-            <circle cx="235" cy="140" r="16" fill="#FFD600" filter="drop-shadow(0 0 14px #FFD600)" />
-
-            {/* Small leaves */}
-            <path d="M300 350 C 330 330, 340 360, 305 375 Z" fill="#1B4DFE" opacity="0.75" />
-            <path d="M260 280 C 230 260, 210 290, 255 305 Z" fill="#AC24FF" opacity="0.75" />
-            <circle cx="300" cy="300" r="10" fill="#FFD600" opacity="0.8" />
-            <circle cx="160" cy="380" r="12" fill="#FE881B" opacity="0.75" />
+            <path d="M350 600 C 340 400, 280 300, 240 150" stroke="#7C3AED" strokeWidth="2.5" opacity="0.45" />
+            <path d="M280 600 C 270 450, 200 350, 140 220" stroke="#5B21B6" strokeWidth="2.5" opacity="0.5" />
+            <path d="M380 600 C 370 500, 320 400, 310 280" stroke="#4C1D95" strokeWidth="2" opacity="0.38" />
+            <path d="M240 150 C 260 100, 290 110, 270 160 Z" fill="url(#petal-grad-1)" opacity="0.88" />
+            <path d="M240 150 C 220 90, 180 110, 215 160 Z" fill="url(#petal-grad-2)" opacity="0.88" />
+            <path d="M240 150 C 250 70, 225 60, 225 140 Z" fill="url(#petal-grad-1)" opacity="0.92" />
+            <circle cx="235" cy="140" r="16" fill="#F59E0B" filter="drop-shadow(0 0 14px #F59E0B)" />
+            <path d="M300 350 C 330 330, 340 360, 305 375 Z" fill="#4338CA" opacity="0.75" />
+            <path d="M260 280 C 230 260, 210 290, 255 305 Z" fill="#6D28D9" opacity="0.75" />
+            <circle cx="300" cy="300" r="10" fill="#F59E0B" opacity="0.8" />
+            <circle cx="160" cy="380" r="12" fill="#A78BFA" opacity="0.75" />
           </svg>
         </div>
 
@@ -62,14 +52,14 @@ export default function EternaFooterSection({
         <svg className="hidden">
           <defs>
             <linearGradient id="petal-grad-1" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#1B4DFE" />
-              <stop offset="50%" stopColor="#AC24FF" />
-              <stop offset="100%" stopColor="#FE881B" />
+              <stop offset="0%" stopColor="#5B21B6" />
+              <stop offset="50%" stopColor="#7C3AED" />
+              <stop offset="100%" stopColor="#8B5CF6" />
             </linearGradient>
             <linearGradient id="petal-grad-2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#AC24FF" />
-              <stop offset="60%" stopColor="#FFD600" />
-              <stop offset="100%" stopColor="#FE881B" />
+              <stop offset="0%" stopColor="#4C1D95" />
+              <stop offset="60%" stopColor="#6D28D9" />
+              <stop offset="100%" stopColor="#A78BFA" />
             </linearGradient>
           </defs>
         </svg>
