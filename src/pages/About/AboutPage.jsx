@@ -10,7 +10,6 @@ import EternaHero from "./sections/EternaHero";
 import EternaOffer from "./sections/EternaOffer";
 import EternaStoryBanner from "./sections/EternaStoryBanner";
 import EternaVision from "./sections/EternaVision";
-import EternaFounders from "./sections/EternaFounders";
 import EternaValues from "./sections/EternaValues";
 import EternaCulture from "./sections/EternaCulture";
 import EternaFit from "./sections/EternaFit";
@@ -92,9 +91,6 @@ export default function AboutPage() {
 
         {/* One Vision with Vertical Filament Art */}
         <EternaVision />
-
-        {/* Meet the Architects */}
-        <EternaFounders />
 
         {/* Core Values: We are all One (T • R • U • S) */}
         <EternaValues />
