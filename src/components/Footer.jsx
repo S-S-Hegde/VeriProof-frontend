@@ -29,7 +29,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-sm text-[var(--color-muted)] leading-relaxed max-w-xs">
-              The definitive standard for cryptographic portfolio validation. Empowering verified talent through architectural evidence.
+              Candidate claims are checked against repository history, live assessments and credential evidence.
             </p>
             <div className="flex items-center gap-4">
               <a

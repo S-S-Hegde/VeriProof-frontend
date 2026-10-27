@@ -605,30 +605,38 @@ const AppContent = () => {
   useEffect(() => {
     window.history.scrollRestoration = "manual";
 
-    const isLowPowerDevice = window.matchMedia("(prefers-reduced-motion: reduce)").matches || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+    const isLowPowerDevice =
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
 
     let lenis = null;
-    let rafId = null;
+    let tickerCallback = null;
 
     if (!isLowPowerDevice) {
       lenis = new Lenis({
-        duration: 1.5,
+        duration: 1.2,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
-        lerp: 0.05,
+        lerp: 0.08,
       });
 
       window.__lenis = lenis;
 
-      const raf = (time) => {
-        lenis.raf(time);
-        rafId = requestAnimationFrame(raf);
+      // Synchronize Lenis scroll position with GSAP ScrollTrigger
+      lenis.on("scroll", ScrollTrigger.update);
+
+      tickerCallback = (time) => {
+        lenis.raf(time * 1000);
       };
-      rafId = requestAnimationFrame(raf);
+      gsap.ticker.add(tickerCallback);
+      gsap.ticker.lagSmoothing(0);
+      ScrollTrigger.config({ ignoreMobileResize: true });
     }
 
     return () => {
-      if (rafId) cancelAnimationFrame(rafId);
+      if (tickerCallback) {
+        gsap.ticker.remove(tickerCallback);
+      }
       if (lenis) {
         lenis.destroy();
         window.__lenis = null;
@@ -653,23 +661,37 @@ const AppContent = () => {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-gradient-to-br from-slate-100 via-white to-cyan-50 text-slate-900 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+      <div className="min-h-screen flex flex-col relative overflow-x-clip bg-gradient-to-br from-slate-100 via-white to-cyan-50 text-slate-900 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
         <ArchiveBackground />
 
         <div
-          className={`relative z-10 flex flex-col flex-grow min-h-screen font-sans transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isAppVisible ? "opacity-100" : "opacity-0"
-            }`}
+          className={`relative z-10 flex flex-col flex-grow min-h-screen font-sans transition-opacity duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isAppVisible ? "opacity-100" : "opacity-0"
+          }`}
         >
           <Navbar />
-          <main className="flex-grow flex flex-col w-full mx-auto pb-6 px-2 sm:px-4 lg:px-6 relative z-10">
-            <ErrorBoundary>
-              {isAppVisible && <AnimatedRoutes />}
-            </ErrorBoundary>
-          </main>
+          <MainContainer isAppVisible={isAppVisible} />
           <Footer />
         </div>
       </div>
     </Router>
+  );
+};
+
+const MainContainer = ({ isAppVisible }) => {
+  const location = useLocation();
+  const isAboutPage = location.pathname === "/about";
+
+  return (
+    <main
+      className={`flex-grow flex flex-col w-full mx-auto relative z-10 ${
+        isAboutPage ? "p-0 pb-0" : "pb-6 px-2 sm:px-4 lg:px-6"
+      }`}
+    >
+      <ErrorBoundary>
+        {isAppVisible && <AnimatedRoutes />}
+      </ErrorBoundary>
+    </main>
   );
 };
 

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
 
@@ -55,7 +55,7 @@ export default function EternaStats() {
 
       <div className="mt-10">
         <p className="text-xs text-white/45 font-light italic max-w-xl mx-auto">
-          Figures come from 100 simulated trials across four candidate cohorts. They are not a claim about live customer outcomes.
+          Figures from 100 simulated trials across four candidate cohorts. Not a claim about live customer outcomes.
         </p>
       </div>
     </section>

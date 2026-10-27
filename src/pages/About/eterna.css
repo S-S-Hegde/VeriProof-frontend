@@ -1,20 +1,25 @@
-﻿/* ═══════════════════════════════════════════════════════════
-   CLEAN CORPORATE TYPOGRAPHY (PLUS JAKARTA SANS)
-   Matches EternaCloud's geometric sans classification (MazzardH)
-   via Google Fonts (free & open license).
+/* ═══════════════════════════════════════════════════════════
+   VERIPROOF ABOUT PAGE — CORE STYLES & DESIGN SYSTEM
+   Matches EternaCloud layout, animations & background feel.
+   Font: Plus Jakarta Sans via Google Fonts (Open & Free).
    ═══════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
+/* Page Root: Edge-to-edge, NO hard boundary, NO side strips */
 .eterna-page {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  background-color: #13101c !important;
+  background-color: #0c0a14 !important;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip !important;
+  position: relative;
+  width: 100%;
 }
 
 .eterna-page * {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
 }
 
 .eterna-page h1,
@@ -25,195 +30,249 @@
 .eterna-page h6 {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-style: normal !important;
-  text-transform: none !important;
   letter-spacing: -0.025em;
   font-weight: 500;
 }
 
-.eterna-page p {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
-  font-weight: 300;
-  font-style: normal !important;
-  letter-spacing: normal;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   LENIS SMOOTH SCROLLING STYLES (Inertia Momentum)
-   ═══════════════════════════════════════════════════════════ */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-.lenis.lenis-smooth iframe {
-  pointer-events: none;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   AMBIENT DRIFTING BLOBS (Procedural Mesh)
-   ═══════════════════════════════════════════════════════════ */
-.eterna-blob-purple {
+/* Faint Film Grain Overlay */
+.eterna-film-grain {
   position: fixed;
-  top: -5%;
-  left: -10%;
-  width: 60vw;
-  height: 75vh;
-  background: radial-gradient(ellipse at 40% 40%, #7C3AED 0%, #5B21B6 28%, #3B1078 55%, transparent 78%);
-  filter: blur(85px);
-  opacity: 0.50;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AMBIENT DRIFTING GRADIENT BLOBS (Section 3)
+   Deep indigo-black base, blue blob bottom-left, violet
+   blobs left & right, amber/gold blob right.
+   ═══════════════════════════════════════════════════════════ */
+.eterna-blob-container {
+  position: fixed;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
-  will-change: transform;
-  animation: blob-drift-left 24s ease-in-out infinite alternate;
+  overflow: hidden;
 }
 
-.eterna-blob-amber {
-  position: fixed;
-  top: -5%;
-  right: -10%;
-  width: 45vw;
+.eterna-blob-1-violet-top {
+  position: absolute;
+  top: -12%;
+  left: 15%;
+  width: 55vw;
   height: 65vh;
-  background: radial-gradient(ellipse at 60% 35%, #D97706 0%, #92400E 30%, #78350F 58%, transparent 78%);
-  filter: blur(95px);
-  opacity: 0.45;
-  pointer-events: none;
-  z-index: 0;
-  will-change: transform;
-  animation: blob-drift-right 28s ease-in-out infinite alternate;
-}
-
-.eterna-blob-purple-bottom {
-  position: fixed;
-  bottom: 5%;
-  left: 0%;
-  width: 40vw;
-  height: 50vh;
-  background: radial-gradient(ellipse at 40% 60%, #6D28D9 0%, #4C1D95 40%, transparent 72%);
-  filter: blur(110px);
-  opacity: 0.32;
-  pointer-events: none;
-  z-index: 0;
-  animation: blob-drift-left 32s ease-in-out infinite alternate-reverse;
-}
-
-.eterna-blob-blue-right {
-  position: fixed;
-  bottom: 15%;
-  right: 0%;
-  width: 35vw;
-  height: 45vh;
-  background: radial-gradient(ellipse at 55% 45%, #1D4ED8 0%, #1E3A8A 40%, transparent 72%);
+  background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.38) 0%, rgba(91, 33, 182, 0.22) 40%, transparent 70%);
   filter: blur(100px);
-  opacity: 0.28;
-  pointer-events: none;
-  z-index: 0;
-  animation: blob-drift-right 36s ease-in-out infinite alternate-reverse;
+  will-change: transform;
+  animation: blob-drift-1 26s ease-in-out infinite alternate;
 }
 
-@keyframes blob-drift-left {
-  0%   { transform: translate(0, 0) scale(1); }
-  35%  { transform: translate(4%, 6%) scale(1.06); }
-  70%  { transform: translate(-2%, 3%) scale(0.96); }
-  100% { transform: translate(5%, -3%) scale(1.04); }
+.eterna-blob-2-amber-right {
+  position: absolute;
+  top: 10%;
+  right: -8%;
+  width: 48vw;
+  height: 60vh;
+  background: radial-gradient(ellipse at center, rgba(217, 119, 6, 0.32) 0%, rgba(180, 83, 9, 0.18) 42%, transparent 72%);
+  filter: blur(110px);
+  will-change: transform;
+  animation: blob-drift-2 30s ease-in-out infinite alternate;
 }
 
-@keyframes blob-drift-right {
-  0%   { transform: translate(0, 0) scale(1); }
-  40%  { transform: translate(-5%, 4%) scale(1.07); }
-  75%  { transform: translate(3%, -2%) scale(0.95); }
-  100% { transform: translate(-3%, 7%) scale(1.05); }
+.eterna-blob-3-blue-left {
+  position: absolute;
+  bottom: 12%;
+  left: -8%;
+  width: 50vw;
+  height: 60vh;
+  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.30) 0%, rgba(29, 78, 216, 0.16) 45%, transparent 72%);
+  filter: blur(105px);
+  will-change: transform;
+  animation: blob-drift-3 34s ease-in-out infinite alternate;
+}
+
+.eterna-blob-4-violet-right {
+  position: absolute;
+  bottom: 8%;
+  right: -4%;
+  width: 46vw;
+  height: 55vh;
+  background: radial-gradient(ellipse at center, rgba(109, 40, 217, 0.28) 0%, rgba(76, 29, 149, 0.15) 45%, transparent 70%);
+  filter: blur(95px);
+  will-change: transform;
+  animation: blob-drift-1 28s ease-in-out infinite alternate-reverse;
+}
+
+.eterna-blob-5-indigo-center {
+  position: absolute;
+  top: 40%;
+  left: 28%;
+  width: 44vw;
+  height: 50vh;
+  background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.20) 0%, rgba(67, 56, 202, 0.10) 45%, transparent 70%);
+  filter: blur(115px);
+  will-change: transform;
+  animation: blob-drift-2 36s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes blob-drift-1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(4vw, 5vh, 0) scale(1.08); }
+  100% { transform: translate3d(-3vw, 2vh, 0) scale(0.96); }
+}
+
+@keyframes blob-drift-2 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-5vw, 4vh, 0) scale(1.06); }
+  100% { transform: translate3d(3vw, -3vh, 0) scale(0.94); }
+}
+
+@keyframes blob-drift-3 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(3vw, -4vh, 0) scale(1.05); }
+  100% { transform: translate3d(-4vw, 3vh, 0) scale(0.95); }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   HERO HALO RING WITH BREATHING GLOW
+   HERO GLOBE & ROTATING GLOW (Section 2)
+   Diameter D = min(78svh, 78vw, 760px).
+   Rotating arcs: ~100 deg wide, trailing fade, blur 18px & 48px.
    ═══════════════════════════════════════════════════════════ */
-.eterna-halo-ring {
+.eterna-globe-container {
+  width: min(78svh, 78vw, 760px);
+  height: min(78svh, 78vw, 760px);
+  position: relative;
   border-radius: 50%;
-  border: 1.5px solid rgba(139, 92, 246, 0.65);
-  box-shadow:
-    0 0 25px 6px  rgba(139, 92, 246, 0.55),
-    0 0 70px 18px rgba(109, 40, 217, 0.38),
-    0 0 150px 55px rgba(88, 28, 187, 0.22),
-    inset 0 0 50px 15px rgba(139, 92, 246, 0.14);
-  animation: halo-breathe 7s ease-in-out infinite;
-  will-change: transform, box-shadow, opacity;
+  pointer-events: none;
 }
 
-@keyframes halo-breathe {
-  0%, 100% {
-    box-shadow:
-      0 0 25px 6px  rgba(139, 92, 246, 0.55),
-      0 0 70px 18px rgba(109, 40, 217, 0.38),
-      0 0 150px 55px rgba(88, 28, 187, 0.22),
-      inset 0 0 50px 15px rgba(139, 92, 246, 0.14);
-    opacity: 0.88;
+@media (max-width: 768px) {
+  .eterna-globe-container {
+    width: min(92vw, 70svh);
+    height: min(92vw, 70svh);
   }
-  50% {
-    box-shadow:
-      0 0 45px 12px rgba(167, 119, 255, 0.70),
-      0 0 110px 38px rgba(129, 60, 237, 0.48),
-      0 0 220px 80px rgba(100, 38, 200, 0.28),
-      inset 0 0 75px 28px rgba(167, 119, 255, 0.20);
-    opacity: 1;
-  }
+}
+
+/* Layer b: Interior soft radial darkening (fades to transparent, NO hard edge) */
+.eterna-globe-interior {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(12, 10, 20, 0.92) 0%, rgba(12, 10, 20, 0.6) 62%, transparent 100%);
+  z-index: 1;
+}
+
+/* Layer c: 2px Conic-Gradient Stroke Ring */
+.eterna-globe-stroke {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b, #3b82f6);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  z-index: 2;
+  opacity: 0.85;
+}
+
+/* Layer d: Rotating Glow Arc 1 (~100deg, clockwise ~14s) */
+.eterna-glow-arc-clockwise {
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(139, 92, 246, 0.4) 30deg, rgba(167, 139, 250, 0.95) 75deg, #ffffff 100deg, transparent 102deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  z-index: 3;
+  animation: arc-rotate-cw var(--glow-duration, 14s) linear infinite;
+  will-change: transform;
+}
+
+/* Glow Arc 1 Blurred Copy (blur ~18px) */
+.eterna-glow-arc-blurred {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(124, 58, 237, 0.3) 30deg, rgba(167, 139, 250, 0.85) 70deg, #ffffff 100deg, transparent 105deg);
+  filter: blur(18px);
+  z-index: 3;
+  animation: arc-rotate-cw var(--glow-duration, 14s) linear infinite;
+  will-change: transform;
+}
+
+/* Glow Arc 1 Wide Soft Bloom (blur ~48px) */
+.eterna-glow-arc-bloom {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(109, 40, 217, 0.2) 20deg, rgba(147, 51, 234, 0.6) 65deg, #c4b5fd 100deg, transparent 110deg);
+  filter: blur(48px);
+  opacity: 0.45;
+  z-index: 2;
+  animation: arc-rotate-cw var(--glow-duration, 14s) linear infinite;
+  will-change: transform;
+}
+
+/* Layer d: Dimmer Counter-Rotating Glow Arc 2 (counter-clockwise ~20s) */
+.eterna-glow-arc-counter {
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, transparent 0deg, rgba(59, 130, 246, 0.3) 30deg, rgba(96, 165, 250, 0.8) 75deg, #93c5fd 100deg, transparent 102deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+  z-index: 3;
+  opacity: 0.6;
+  animation: arc-rotate-ccw var(--glow-counter-duration, 20s) linear infinite;
+  will-change: transform;
+}
+
+@keyframes arc-rotate-cw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes arc-rotate-ccw {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   STAR & CONSTELLATION PULSES
+   PILL BADGES & GRADIENT TEXT
    ═══════════════════════════════════════════════════════════ */
-@keyframes star-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.85;
-  }
-  50% {
-    transform: scale(1.35);
-    opacity: 1;
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9));
-  }
-}
-
-.star-node-pulse {
-  animation: star-pulse 3.5s ease-in-out infinite;
-  transform-origin: center;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   ETERNACLOUD ACCURATE CARDS & GRADIENTS
-   ═══════════════════════════════════════════════════════════ */
-.eterna-offer-card {
-  background-image: radial-gradient(circle at 50% 100%, #362c52, #1a1429 80%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 2rem;
-  overflow: hidden;
-  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, box-shadow;
-}
-.eterna-offer-card:hover {
-  border-color: rgba(139, 92, 246, 0.45);
-  transform: translateY(-8px);
-  box-shadow: 0 24px 50px -16px rgba(109, 40, 217, 0.38);
-}
-
 .text-gradient-eterna {
-  background: linear-gradient(90deg, #60A5FA 0%, #A78BFA 48%, #F59E0B 100%);
+  background: linear-gradient(90deg, #60a5fa 0%, #a78bfa 50%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+.text-gradient-blue-violet {
+  background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.eterna-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1.15rem;
+  border-radius: 999px;
+  background: rgba(22, 18, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
 .btn-eterna-gradient {
-  background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 50%, #4F46E5 100%);
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #4f46e5 100%);
   background-size: 200% 100%;
   background-position: left;
   transition: background-position 0.6s ease, transform 0.3s ease, box-shadow 0.3s ease;
@@ -224,79 +283,122 @@ html.lenis body {
   box-shadow: 0 8px 28px -6px rgba(124, 58, 237, 0.55);
 }
 
-.btn-eterna-solid {
-  background: #4F46E5;
-  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+/* ═══════════════════════════════════════════════════════════
+   WHAT WE DO (ONE EVIDENCE PIPELINE) CARDS (Section 5)
+   3 equal cards, rounded 32px, dark violet gradient, 1px border at 6% white
+   ═══════════════════════════════════════════════════════════ */
+.eterna-pipeline-card {
+  background: radial-gradient(circle at 50% 100%, #2b2244 0%, #151124 85%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 32px;
+  overflow: hidden;
+  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, box-shadow;
 }
-.btn-eterna-solid:hover {
-  background: #4338CA;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px -8px rgba(79, 70, 229, 0.50);
-}
-
-.eterna-pill-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 1.15rem;
-  border-radius: 999px;
-  background: rgba(20, 16, 38, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.82rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-}
-
-@keyframes botanical-float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  30%       { transform: translateY(-12px) rotate(-1.5deg); }
-  70%       { transform: translateY(-7px) rotate(1.2deg); }
-}
-.botanical-float {
-  animation: botanical-float 7s ease-in-out infinite;
-}
-
-@keyframes botanical-sway {
-  0%, 100% { transform: rotate(0deg) translateY(0px); }
-  25%       { transform: rotate(-2.5deg) translateY(-5px); }
-  75%       { transform: rotate(2deg) translateY(-3px); }
-}
-.botanical-sway {
-  animation: botanical-sway 9s ease-in-out infinite;
-  transform-origin: top center;
-}
-
-/* 4 Principles Letter Cards */
-.eterna-value-letter-card {
-  background-image: radial-gradient(circle at 50% 100%, #2a2245, #161228 85%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.5rem;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.eterna-value-letter-card:hover {
-  border-color: rgba(139, 92, 246, 0.50);
+.eterna-pipeline-card:hover {
+  border-color: rgba(139, 92, 246, 0.38);
   transform: translateY(-6px);
-  box-shadow: 0 16px 36px -10px rgba(139, 92, 246, 0.35);
+  box-shadow: 0 20px 45px -12px rgba(109, 40, 217, 0.35);
 }
-
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ═══════════════════════════════════════════════════════════
-   PREFERS-REDUCED-MOTION SUPPORT
+   DOME TRANSITION (Section 3 & 6)
+   Top dark, two violet lobes at left/right edges, blue center-bottom,
+   fading to near-white lavender #fafafa.
+   ═══════════════════════════════════════════════════════════ */
+.eterna-dome-transition {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(180deg, #0c0a14 0%, transparent 60%);
+}
+
+.eterna-dome-canvas {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 45% 65% at 0% 100%, rgba(109, 40, 217, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 65% at 100% 100%, rgba(124, 58, 237, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 75% at 50% 100%, rgba(37, 99, 235, 0.28) 0%, transparent 80%),
+    linear-gradient(180deg, transparent 0%, #fafafa 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROOF PRINCIPLES (LIGHT SECTION) (Section 6)
+   Background #fafafa, deep indigo text #1b1050, 48px rounded bottom corners
+   overlapping next dark section.
+   ═══════════════════════════════════════════════════════════ */
+.eterna-light-section {
+  background-color: #fafafa !important;
+  color: #1b1050 !important;
+  border-bottom-left-radius: 48px;
+  border-bottom-right-radius: 48px;
+  position: relative;
+  z-index: 20;
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.45);
+}
+
+.proof-tile-card {
+  background: #ffffff;
+  border: 1px solid rgba(27, 16, 80, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px -8px rgba(27, 16, 80, 0.08);
+  transition: flex-grow 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 350ms ease,
+              border-color 350ms ease,
+              transform 350ms ease;
+  overflow: hidden;
+  will-change: flex-grow;
+}
+
+.proof-tile-card:hover,
+.proof-tile-card:focus-visible {
+  border-color: rgba(124, 58, 237, 0.35);
+  box-shadow: 0 16px 40px -10px rgba(124, 58, 237, 0.18);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   JOB SEEKER SECTION (Section 8)
+   Dark background, accordion rows + glowing candidate card
+   ═══════════════════════════════════════════════════════════ */
+.jobseeker-accordion-item {
+  background: rgba(22, 17, 38, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+.jobseeker-accordion-item:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.jobseeker-candidate-card {
+  position: relative;
+  border-radius: 32px;
+  overflow: hidden;
+  background: radial-gradient(circle at 10% 90%, rgba(219, 39, 119, 0.22) 0%, transparent 55%),
+              radial-gradient(circle at 90% 90%, rgba(124, 58, 237, 0.25) 0%, transparent 60%),
+              #171228;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px -20px rgba(109, 40, 217, 0.35);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PREFERS-REDUCED-MOTION OVERRIDES
    ═══════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .eterna-blob-purple,
-  .eterna-blob-amber,
-  .eterna-blob-purple-bottom,
-  .eterna-blob-blue-right,
-  .eterna-halo-ring,
-  .star-node-pulse,
-  .botanical-float,
-  .botanical-sway {
+  .eterna-blob-1-violet-top,
+  .eterna-blob-2-amber-right,
+  .eterna-blob-3-blue-left,
+  .eterna-blob-4-violet-right,
+  .eterna-blob-5-indigo-center,
+  .eterna-glow-arc-clockwise,
+  .eterna-glow-arc-blurred,
+  .eterna-glow-arc-bloom,
+  .eterna-glow-arc-counter {
     animation: none !important;
     transition: none !important;
     transform: none !important;
