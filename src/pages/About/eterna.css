@@ -137,12 +137,12 @@
 
 /* ═══════════════════════════════════════════════════════════
    HERO GLOBE & ROTATING GLOW (Section 2)
-   Diameter D = min(78svh, 78vw, 760px).
-   Rotating arcs: ~100 deg wide, trailing fade, blur 18px & 48px.
+   Diameter D = min(76svh, 76vw, 720px).
+   Rotating arcs: pure perimeter ring rotation with zero center sweep.
    ═══════════════════════════════════════════════════════════ */
 .eterna-globe-container {
-  width: min(78svh, 78vw, 760px);
-  height: min(78svh, 78vw, 760px);
+  width: min(76svh, 76vw, 700px);
+  height: min(76svh, 76vw, 700px);
   position: relative;
   border-radius: 50%;
   pointer-events: none;
@@ -150,90 +150,47 @@
 
 @media (max-width: 768px) {
   .eterna-globe-container {
-    width: min(92vw, 70svh);
-    height: min(92vw, 70svh);
+    width: min(84vw, 54svh, 340px);
+    height: min(84vw, 54svh, 340px);
   }
 }
 
-/* Layer b: Interior soft radial darkening (fades to transparent, NO hard edge) */
+/* Interior dark shield: guarantees the circle interior stays completely dark obsidian */
 .eterna-globe-interior {
   position: absolute;
-  inset: 0;
+  inset: 1px;
   border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(12, 10, 20, 0.92) 0%, rgba(12, 10, 20, 0.6) 62%, transparent 100%);
+  background: #0c0a14;
   z-index: 1;
 }
 
-/* Layer c: 2px Conic-Gradient Stroke Ring */
-.eterna-globe-stroke {
+/* Outer subtle perimeter aura (soft subtle outward-only glow behind the ring) */
+.eterna-globe-outer-aura {
   position: absolute;
-  inset: 0;
+  inset: -8px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b, #3b82f6);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
-  z-index: 2;
-  opacity: 0.85;
+  box-shadow: 0 0 45px rgba(139, 92, 246, 0.16);
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* Layer d: Rotating Glow Arc 1 (~100deg, clockwise ~14s) */
-.eterna-glow-arc-clockwise {
-  position: absolute;
-  inset: -1px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(139, 92, 246, 0.4) 30deg, rgba(167, 139, 250, 0.95) 75deg, #ffffff 100deg, transparent 102deg);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
-  z-index: 3;
-  animation: arc-rotate-cw var(--glow-duration, 14s) linear infinite;
+/* Continuous perimeter ring rotation animations */
+.eterna-ring-rotator-cw {
+  animation: eterna-ring-cw 16s linear infinite;
   will-change: transform;
 }
 
-/* Glow Arc 1 Blurred Copy (blur ~18px) */
-.eterna-glow-arc-blurred {
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(124, 58, 237, 0.3) 30deg, rgba(167, 139, 250, 0.85) 70deg, #ffffff 100deg, transparent 105deg);
-  filter: blur(18px);
-  z-index: 3;
-  animation: arc-rotate-cw var(--glow-duration, 14s) linear infinite;
+.eterna-ring-rotator-ccw {
+  animation: eterna-ring-ccw 24s linear infinite;
   will-change: transform;
 }
 
-/* Glow Arc 1 Wide Soft Bloom (blur ~48px) */
-.eterna-glow-arc-bloom {
-  position: absolute;
-  inset: -14px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(109, 40, 217, 0.2) 20deg, rgba(147, 51, 234, 0.6) 65deg, #c4b5fd 100deg, transparent 110deg);
-  filter: blur(48px);
-  opacity: 0.45;
-  z-index: 2;
-  animation: arc-rotate-cw var(--glow-duration, 14s) linear infinite;
-  will-change: transform;
-}
-
-/* Layer d: Dimmer Counter-Rotating Glow Arc 2 (counter-clockwise ~20s) */
-.eterna-glow-arc-counter {
-  position: absolute;
-  inset: -1px;
-  border-radius: 50%;
-  background: conic-gradient(from 180deg, transparent 0deg, rgba(59, 130, 246, 0.3) 30deg, rgba(96, 165, 250, 0.8) 75deg, #93c5fd 100deg, transparent 102deg);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
-  z-index: 3;
-  opacity: 0.6;
-  animation: arc-rotate-ccw var(--glow-counter-duration, 20s) linear infinite;
-  will-change: transform;
-}
-
-@keyframes arc-rotate-cw {
+@keyframes eterna-ring-cw {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
 
-@keyframes arc-rotate-ccw {
+@keyframes eterna-ring-ccw {
   from { transform: rotate(360deg); }
   to   { transform: rotate(0deg); }
 }

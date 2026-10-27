@@ -93,22 +93,25 @@ export default function GlobeHero() {
 
     const container = containerRef.current;
     const globeWrapper = globeWrapperRef.current;
-    const isMobile = window.innerWidth < 768;
+    if (!container || !globeWrapper) return;
 
-    // Pin length: desktop 40svh + 4 * 100svh + 10svh = 450svh; mobile 300svh
-    const pinDistance = isMobile ? "300svh" : "450svh";
+    const getScrollDistance = () => {
+      const isMob = window.innerWidth < 768;
+      return Math.round(window.innerHeight * (isMob ? 2.5 : 3.4));
+    };
 
     const ctx = gsap.context(() => {
-      // Main Scrubbed Timeline
+      // Main Scrubbed Timeline with dynamic pixel scroll distance
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
           start: "top top",
-          end: `+=${pinDistance}`,
+          end: () => `+=${getScrollDistance()}`,
           pin: true,
-          scrub: 0.25,
+          pinSpacing: true,
+          scrub: 0.35,
           invalidateOnRefresh: true,
-          anticipatePin: 1,
+          fastScrollEnd: true,
         },
       });
 
@@ -122,14 +125,13 @@ export default function GlobeHero() {
         }
       });
 
-      // Unroll the 4 text sets across the timeline
+      // Unroll the 4 text sets across the timeline with smooth pacing
       setRefs.current.forEach((el, idx) => {
         if (!el) return;
         const words = el.querySelectorAll(".word-scrub");
         const keyPhrase = el.querySelector(".keyphrase-scrub");
         const sub = el.querySelector(".sub-scrub");
 
-        // Words fill progressively from faint to solid
         if (idx === 0) {
           // Set 1 words fill
           tl.to(
@@ -166,7 +168,7 @@ export default function GlobeHero() {
               opacity: 0,
               y: -16,
               filter: "blur(6px)",
-              duration: 0.25,
+              duration: 0.22,
               onComplete: () => {
                 gsap.set(el, { visibility: "hidden" });
               },
@@ -174,20 +176,20 @@ export default function GlobeHero() {
                 gsap.set(el, { visibility: "visible" });
               },
             },
-            0.6
+            0.62
           );
         } else {
-          // Subsequent sets (2, 3, 4)
-          const enterTime = idx * 0.9;
-          const wordFillTime = enterTime + 0.15;
-          const exitTime = enterTime + 0.75;
+          // Sets 2, 3, 4
+          const enterTime = idx * 0.88;
+          const wordFillTime = enterTime + 0.12;
+          const exitTime = enterTime + 0.68;
 
           // Enter set
           tl.set(el, { visibility: "visible" }, enterTime);
           tl.fromTo(
             el,
             { opacity: 0, y: 16, filter: "blur(6px)" },
-            { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.25 },
+            { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.22 },
             enterTime
           );
 
@@ -197,7 +199,7 @@ export default function GlobeHero() {
             {
               color: "#ffffff",
               stagger: 0.035,
-              duration: 0.3,
+              duration: 0.28,
               ease: "power1.inOut",
             },
             wordFillTime
@@ -211,12 +213,12 @@ export default function GlobeHero() {
                 filter: "drop-shadow(0 0 16px rgba(167,139,250,0.5))",
                 duration: 0.25,
               },
-              wordFillTime + 0.1
+              wordFillTime + 0.08
             );
           }
 
           if (sub) {
-            tl.to(sub, { opacity: 0.85, y: 0, duration: 0.25 }, wordFillTime + 0.15);
+            tl.to(sub, { opacity: 0.85, y: 0, duration: 0.25 }, wordFillTime + 0.12);
           }
 
           // If not the last set, exit
@@ -227,7 +229,7 @@ export default function GlobeHero() {
                 opacity: 0,
                 y: -16,
                 filter: "blur(6px)",
-                duration: 0.22,
+                duration: 0.2,
                 onComplete: () => {
                   gsap.set(el, { visibility: "hidden" });
                 },
@@ -241,15 +243,14 @@ export default function GlobeHero() {
         }
       });
 
-      // After pin finishes: Globe fades slightly and scales to 1.06 as next section slides over
-      const endTimeline = (setRefs.current.length - 1) * 0.9 + 0.65;
+      // Smooth unpinning cushion: gentle easing at the end of Set 4 before releasing into Section 2
+      const endTimeline = (setRefs.current.length - 1) * 0.88 + 0.55;
       tl.to(
         globeWrapper,
         {
-          scale: 1.06,
-          opacity: 0.25,
-          duration: 0.45,
-          ease: "power2.out",
+          opacity: 0.85,
+          duration: 0.3,
+          ease: "power1.out",
         },
         endTimeline
       );
@@ -261,7 +262,7 @@ export default function GlobeHero() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full min-h-[100svh] flex items-center justify-center overflow-x-clip bg-[#0c0a14]"
+      className="relative w-full h-[100vh] min-h-[580px] flex items-center justify-center overflow-x-clip bg-[#0c0a14]"
       style={{ overflowAnchor: "none" }}
     >
       {/* ── Layer a: Surrounding Ambient Gradient Blobs (Masked so interior stays dark) ── */}
@@ -269,9 +270,9 @@ export default function GlobeHero() {
         className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
         style={{
           maskImage:
-            "radial-gradient(circle at 50% 50%, transparent 22%, rgba(0,0,0,0.3) 38%, black 65%)",
+            "radial-gradient(circle at 50% 50%, transparent 25%, rgba(0,0,0,0.4) 42%, black 70%)",
           WebkitMaskImage:
-            "radial-gradient(circle at 50% 50%, transparent 22%, rgba(0,0,0,0.3) 38%, black 65%)",
+            "radial-gradient(circle at 50% 50%, transparent 25%, rgba(0,0,0,0.4) 42%, black 70%)",
         }}
       >
         <div className="eterna-blob-1-violet-top" />
@@ -281,51 +282,154 @@ export default function GlobeHero() {
         <div className="eterna-blob-5-indigo-center" />
       </div>
 
-      {/* ── Fixed Globe Container (Pinned in center, does not move or scale during text changes) ── */}
+      {/* ── Fixed Globe Container (Pinned in center) ── */}
       <div
         ref={globeWrapperRef}
         className="relative z-10 flex items-center justify-center pointer-events-none"
         style={{ willChange: "transform, opacity" }}
       >
         <div ref={globeCircleRef} className="eterna-globe-container relative flex items-center justify-center">
-          {/* Layer b: Interior Soft Radial Darkening (No disc, no edge) */}
+          {/* Layer 1: Dark interior shield (Guarantees center is completely dark obsidian, zero light bleed) */}
           <div className="eterna-globe-interior" />
 
-          {/* Layer c: 2px Conic-Gradient Stroke Ring */}
-          <div className="eterna-globe-stroke" />
+          {/* Layer 2: Outer perimeter aura (Soft subtle glow strictly outside the ring) */}
+          <div className="eterna-globe-outer-aura" />
 
-          {/* Layer d: Rotating Glow Arcs (~100 deg wide, trailing fade, blur 18px & 48px) */}
-          <div className="eterna-glow-arc-clockwise" />
-          <div className="eterna-glow-arc-blurred" />
-          <div className="eterna-glow-arc-bloom" />
-          <div className="eterna-glow-arc-counter" />
+          {/* Layer 3: Base perimeter track ring (1.5px subtle gradient ring) */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-10"
+            viewBox="0 0 500 500"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="baseTrackGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.35" />
+                <stop offset="35%" stopColor="#818cf8" stopOpacity="0.45" />
+                <stop offset="70%" stopColor="#c084fc" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.35" />
+              </linearGradient>
+            </defs>
+            <circle
+              cx="250"
+              cy="250"
+              r="248"
+              fill="none"
+              stroke="url(#baseTrackGrad)"
+              strokeWidth="1.5"
+            />
+          </svg>
 
-          {/* Layer e: Text Stage inside the Circle (All text sized to sit within 0.9 * R) */}
+          {/* Layer 4: Primary Rotating Perimeter Glow Arc (Clockwise ~16s, strictly on perimeter, no radar sweep) */}
+          <div className="absolute inset-0 pointer-events-none z-20 eterna-ring-rotator-cw">
+            <svg
+              className="w-full h-full overflow-visible"
+              viewBox="0 0 500 500"
+              aria-hidden="true"
+            >
+              <defs>
+                <filter id="arcGlowFilter" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="5" result="blur1" />
+                  <feGaussianBlur stdDeviation="12" result="blur2" />
+                  <feMerge>
+                    <feMergeNode in="blur2" />
+                    <feMergeNode in="blur1" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <linearGradient id="arcGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#7c3aed" stopOpacity="0" />
+                  <stop offset="30%" stopColor="#a78bfa" stopOpacity="0.5" />
+                  <stop offset="75%" stopColor="#c084fc" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
+                </linearGradient>
+              </defs>
+              {/* Outer soft glow stroke along the perimeter */}
+              <circle
+                cx="250"
+                cy="250"
+                r="248"
+                fill="none"
+                stroke="rgba(192, 132, 252, 0.75)"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray="400 1158"
+                filter="url(#arcGlowFilter)"
+              />
+              {/* Crisp luminous core arc */}
+              <circle
+                cx="250"
+                cy="250"
+                r="248"
+                fill="none"
+                stroke="url(#arcGlowGrad)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeDasharray="400 1158"
+              />
+            </svg>
+          </div>
+
+          {/* Layer 5: Secondary Counter-Rotating Accent Glow Arc (Counter-Clockwise ~24s) */}
+          <div className="absolute inset-0 pointer-events-none z-20 eterna-ring-rotator-ccw">
+            <svg
+              className="w-full h-full overflow-visible"
+              viewBox="0 0 500 500"
+              aria-hidden="true"
+            >
+              <defs>
+                <filter id="cyanGlowFilter" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="4" result="blur1" />
+                  <feMerge>
+                    <feMergeNode in="blur1" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <linearGradient id="cyanArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#0284c7" stopOpacity="0" />
+                  <stop offset="60%" stopColor="#38bdf8" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.95" />
+                </linearGradient>
+              </defs>
+              <circle
+                cx="250"
+                cy="250"
+                r="248"
+                fill="none"
+                stroke="url(#cyanArcGrad)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray="240 1318"
+                filter="url(#cyanGlowFilter)"
+              />
+            </svg>
+          </div>
+
+          {/* Layer 6: Text Stage inside the Circle (Responsive fitting within circle bounds) */}
           <div
             ref={textStageRef}
-            className="relative z-10 w-[78%] max-w-[520px] px-4 text-center pointer-events-auto select-none"
+            className="relative z-30 w-[82%] max-w-[270px] sm:w-[78%] sm:max-w-[480px] px-2 sm:px-4 text-center pointer-events-auto select-none"
             style={{
-              maxHeight: "78%",
+              maxHeight: "80%",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            {/* Tagline above headline: gradient text, blue to violet to amber, no pill */}
-            <div className="mb-4 sm:mb-5">
-              <span className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-gradient-eterna">
+            {/* Tagline above headline */}
+            <div className="mb-2 sm:mb-4">
+              <span className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-gradient-eterna">
                 Provenance, Rigor & Fairness
               </span>
             </div>
 
             {/* Stage for the 4 Text Sets */}
-            <div className="relative w-full min-h-[180px] sm:min-h-[220px] flex items-center justify-center">
+            <div className="relative w-full min-h-[140px] sm:min-h-[200px] flex items-center justify-center">
               {TEXT_SETS.map((set, idx) => (
                 <div
                   key={set.id}
                   ref={(el) => (setRefs.current[idx] = el)}
-                  className={`absolute inset-0 flex flex-col items-center justify-center space-y-3.5 ${
+                  className={`absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3.5 ${
                     idx === 0 ? "opacity-100" : "opacity-0"
                   }`}
                   style={{ willChange: "transform, opacity, filter" }}
@@ -337,14 +441,14 @@ export default function GlobeHero() {
 
                   {/* Headline with word-by-word scrub fill */}
                   <h1
-                    className="text-2xl sm:text-4xl md:text-[2.6rem] font-medium tracking-tight leading-[1.12] text-center"
+                    className="text-lg sm:text-3xl md:text-[2.4rem] font-medium tracking-tight leading-[1.15] text-center"
                     aria-hidden="true"
                   >
                     {set.headlineLead &&
                       set.headlineLead.split(" ").map((w, wi) => (
                         <span
                           key={wi}
-                          className="word-scrub inline-block mr-1.5 transition-colors"
+                          className="word-scrub inline-block mr-1 sm:mr-1.5 transition-colors"
                           style={{ color: "rgba(255, 255, 255, 0.18)" }}
                         >
                           {w}
@@ -360,7 +464,7 @@ export default function GlobeHero() {
 
                   {/* Subline with smooth fade-up */}
                   <p
-                    className="sub-scrub text-xs sm:text-sm md:text-base text-white/70 font-light leading-relaxed max-w-md mx-auto opacity-0 translate-y-3 transition-all"
+                    className="sub-scrub text-[11px] sm:text-xs md:text-sm text-white/70 font-light leading-relaxed max-w-[240px] sm:max-w-md mx-auto opacity-0 translate-y-3 transition-all"
                     aria-hidden="true"
                   >
                     {set.sub}

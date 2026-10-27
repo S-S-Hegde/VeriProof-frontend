@@ -614,10 +614,9 @@ const AppContent = () => {
 
     if (!isLowPowerDevice) {
       lenis = new Lenis({
-        duration: 1.2,
+        duration: 1.0,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
-        lerp: 0.08,
       });
 
       window.__lenis = lenis;
@@ -629,7 +628,7 @@ const AppContent = () => {
         lenis.raf(time * 1000);
       };
       gsap.ticker.add(tickerCallback);
-      gsap.ticker.lagSmoothing(0);
+      gsap.ticker.lagSmoothing(500, 33);
       ScrollTrigger.config({ ignoreMobileResize: true });
     }
 
