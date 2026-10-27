@@ -1,0 +1,560 @@
+
+========================================
+=== INLINE SCRIPT 1 ===
+========================================
+!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);
+
+========================================
+=== INLINE SCRIPT 2 ===
+========================================
+!function(){window.semaphore=window.semaphore||[],window.ketch=function(){window.semaphore.push(arguments)};var e=new URLSearchParams(document.location.search),n=document.createElement("script");n.type="text/javascript", n.src="https://global.ketchcdn.com/web/v3/config/eternacloud/website_smart_tag/boot.js", n.defer=n.async=!0,document.getElementsByTagName("head")[0].appendChild(n)}();
+
+========================================
+=== INLINE SCRIPT 3 ===
+========================================
+
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-SNC2TKJ01D');
+
+
+========================================
+=== INLINE SCRIPT 4 ===
+========================================
+
+let lenis = new Lenis({
+  lerp: 0.1,
+  wheelMultiplier: 0.7,
+  gestureOrientation: "vertical",
+  normalizeWheel: false,
+  smoothTouch: false,
+});
+  
+  // ✅ Make Lenis globally accessible
+window.lenis = lenis;
+  
+function raf(time) {
+  lenis.raf(time);
+  requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+$("[data-lenis-start]").on("click", function () {
+  lenis.start();
+});
+$("[data-lenis-stop]").on("click", function () {
+  lenis.stop();
+});
+$("[data-lenis-toggle]").on("click", function () {
+  $(this).toggleClass("stop-scroll");
+  if ($(this).hasClass("stop-scroll")) {
+    lenis.stop();
+  } else {
+    lenis.start();
+  }
+});
+
+
+========================================
+=== INLINE SCRIPT 5 ===
+========================================
+
+const linksBlock = document.querySelector(".links_block")
+const desktopNavLinks = document.querySelectorAll(".nav-link.desktop")
+const navBDesktop = document.querySelector(".nav-b-desktop")
+const navBrand = document.querySelector(".nav-brand")
+
+// Set transform origin so scaling happens from the left
+if (navBrand) {
+  navBrand.style.transformOrigin = "left"
+}
+
+// Function to set styles for a given progress value
+function setNavStyles(progress) {
+  if (linksBlock) {
+    const maxGap = 2.5 // 2.5vw
+    const minGap = 1 // 1vw
+    const gapVW = maxGap - (maxGap - minGap) * progress
+    linksBlock.style.gap = `${gapVW}vw`
+  }
+
+  desktopNavLinks.forEach((link) => {
+    const maxPadding = 1.5 // 1.5vw
+    const minPadding = 0.5 // 0.5vw
+    const padVW = maxPadding - (maxPadding - minPadding) * progress
+    link.style.padding = `inherit ${padVW}vw`
+  })
+
+  if (navBDesktop) {
+    const maxGapB = 13 // 13vw
+    const minGapB = 6 // 6vw
+    const gapBWV = maxGapB - (maxGapB - minGapB) * progress
+    navBDesktop.style.gap = `${gapBWV}vw`
+  }
+
+  if (navBrand) {
+    const maxScale = 1.2
+    const minScale = 1
+    const scale = maxScale - (maxScale - minScale) * progress
+    navBrand.style.transform = `scale(${scale})`
+  }
+}
+
+// Check if we're on an /insights/ CMS page
+  
+ if (!window.location.pathname.startsWith("/insights/")) { 
+  
+  // Animate normally - this was commented out in your code
+  function smoothScrollHandler() {
+    const scrollY = window.scrollY
+    const progress = Math.min(scrollY / 300, 1)
+    setNavStyles(progress)
+    requestAnimationFrame(smoothScrollHandler)
+  }
+  requestAnimationFrame(smoothScrollHandler)
+
+   } else {
+ // Set to largest state (progress = 0) for insights pages
+  setNavStyles(0)
+}  
+
+
+
+========================================
+=== INLINE SCRIPT 6 ===
+========================================
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const videos = document.querySelectorAll('.video-footer');
+
+    if (!videos.length) return;
+
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const video = entry.target;
+
+          // Wait 1 second before playing the video
+          setTimeout(() => {
+            video.play().catch(e => console.log("Autoplay failed:", e));
+          }, 3000);
+
+          // Stop observing this particular video
+          observer.unobserve(video);
+        }
+      });
+    }, {
+      threshold: 0.6 // 50% visibility required
+    });
+
+    videos.forEach(video => observer.observe(video));
+  });
+
+
+========================================
+=== INLINE SCRIPT 7 ===
+========================================
+
+import Swiper from "https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.mjs";
+
+// Function to calculate dynamic spaceBetween for swiper-1
+const getDynamicSpacingSwiper1 = () => window.innerWidth * 0.01111;
+
+// Function to calculate dynamic spaceBetween for swiper-2 based on 0.833vw
+const getDynamicSpacingSwiper2 = () => window.innerWidth * 0.00833;
+
+// Initialize Swiper instances
+const initSwipers = () => {
+  const swiper1 = new Swiper(".wb-swiper-1", {
+    slideClass: "swiper-slide-1",
+    wrapperClass: "swiper-wrapper-1",
+    centeredSlides: false,
+    loop: true,
+    pagination: {
+      el: ".wb-swiper_pagination-1",
+      bulletClass: "wb-swiper_bullet",
+      bulletActiveClass: "is-active",
+      clickable: true,
+    },
+    navigation: {
+      nextEl: `[wb-swiper="next-1"]`,
+      prevEl: `[wb-swiper="previous-1"]`,
+    },
+    breakpoints: {
+      992: {
+        slidesPerView: 3,
+        spaceBetween: getDynamicSpacingSwiper1(),
+      },
+      480: {
+        slidesPerView: "auto",
+        spaceBetween: getDynamicSpacingSwiper1(),
+      },
+      320: {
+        slidesPerView: "auto",
+         spaceBetween: getDynamicSpacingSwiper1(),
+      },
+    },
+  });
+
+  const swiper2 = new Swiper(".wb-swiper-2", {
+    slideClass: "swiper-slide-2",
+    wrapperClass: "swiper-wrapper-2",
+    centeredSlides: true,
+    loop: false,
+    spaceBetween: getDynamicSpacingSwiper2(),
+    slidesPerView: "auto",
+    pagination: {
+      el: ".wb-swiper_pagination-2",
+      bulletClass: "wb-swiper_bullet",
+      bulletActiveClass: "is-active",
+      clickable: true,
+    },
+    navigation: {
+      nextEl: `[wb-swiper="next-2"]`,
+      prevEl: `[wb-swiper="previous-2"]`,
+      disabledClass: "is-disabled",
+    },
+    breakpoints: {
+      992: {
+        slidesPerView: "auto",
+        spaceBetween: getDynamicSpacingSwiper2(),
+      },
+      480: {
+        slidesPerView: "auto",
+        spaceBetween: 5,
+      },
+      320: {
+        slidesPerView: "auto",
+        spaceBetween: 5,
+      },
+    },
+    on: {
+      slideChange: function () {
+        const prevButton = document.querySelector('[wb-swiper="previous-2"]');
+        const nextButton = document.querySelector('[wb-swiper="next-2"]');
+
+        if (this.activeIndex === 0) {
+          prevButton.classList.add('swiper-button-disabled');
+          prevButton.setAttribute('aria-disabled', 'true');
+        } else {
+          prevButton.classList.remove('swiper-button-disabled');
+          prevButton.setAttribute('aria-disabled', 'false');
+        }
+
+        if (this.activeIndex === this.slides.length - 1) {
+          nextButton.classList.add('swiper-button-disabled');
+          nextButton.setAttribute('aria-disabled', 'true');
+        } else {
+          nextButton.classList.remove('swiper-button-disabled');
+          nextButton.setAttribute('aria-disabled', 'false');
+        }
+      },
+    },
+  });
+
+  const swiper3 = new Swiper("#swiper3", {
+    slideClass: "swiper-slide-full",
+    wrapperClass: "swiper-wrapper-3",
+    centeredSlides: true,
+    loop: false,
+    slidesPerView: 1,
+    navigation: {
+      nextEl: `[wb-swiper="next-3"]`,
+      prevEl: `[wb-swiper="previous-3"]`,
+      disabledClass: "is-disabled",
+    },
+    breakpoints: {
+      992: {
+        slidesPerView: 1,
+      },
+      480: {
+        slidesPerView: 1,
+      },
+      320: {
+        slidesPerView: 1,
+      },
+    },
+    on: {
+      slideChange: function () {
+        const prevButton = document.querySelector('[wb-swiper="previous-3"]');
+        const nextButton = document.querySelector('[wb-swiper="next-3"]');
+
+        if (this.activeIndex === 0) {
+          prevButton.classList.add('swiper-button-disabled');
+          prevButton.setAttribute('aria-disabled', 'true');
+        } else {
+          prevButton.classList.remove('swiper-button-disabled');
+          prevButton.setAttribute('aria-disabled', 'false');
+        }
+
+        if (this.activeIndex === this.slides.length - 1) {
+          nextButton.classList.add('swiper-button-disabled');
+          nextButton.setAttribute('aria-disabled', 'true');
+        } else {
+          nextButton.classList.remove('swiper-button-disabled');
+          nextButton.setAttribute('aria-disabled', 'false');
+        }
+      },
+    },
+  });
+
+  // Function to update spaceBetween dynamically on window resize
+  const updateSpacing = () => {
+    const newSpacingSwiper1 = getDynamicSpacingSwiper1();
+    const newSpacingSwiper2 = getDynamicSpacingSwiper2();
+    
+    swiper1.params.breakpoints[992].spaceBetween = newSpacingSwiper1;
+    swiper2.params.breakpoints[992].spaceBetween = newSpacingSwiper2;
+    
+    swiper1.update();
+    swiper2.update();
+  };
+
+  window.addEventListener("resize", updateSpacing);
+};
+
+// Initialize Swipers after DOM is loaded
+document.addEventListener("DOMContentLoaded", initSwipers);
+
+
+========================================
+=== INLINE SCRIPT 8 ===
+========================================
+
+document.addEventListener("DOMContentLoaded", function () {
+  const videos = document.querySelectorAll('video');
+
+  // Play all videos except .video-footer and .flowers-mob-video's video
+  videos.forEach(video => {
+    if (
+      !video.classList.contains('video-footer') &&
+      !video.closest('.flowers-mob-video')
+    ) {
+      video.play().catch(function(error) {
+        console.warn("Autoplay blocked on load:", error);
+      });
+    }
+  });
+
+  // Rewind and replay on tab focus — excluding .video-footer and .flowers-mob-video
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      videos.forEach(video => {
+        if (
+          !video.classList.contains('video-footer') &&
+          !video.closest('.flowers-mob-video')
+        ) {
+          try {
+            video.currentTime = 0;
+            video.play();
+          } catch (error) {
+            console.warn("Error restarting video:", error);
+          }
+        }
+      });
+    }
+  });
+});
+
+
+========================================
+=== INLINE SCRIPT 9 ===
+========================================
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const flowersContainer = document.querySelector('.flowers-mob-video');
+    const flowersVideo = flowersContainer?.querySelector('video');
+
+    if (!flowersContainer || !flowersVideo) return;
+
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            flowersVideo.play().catch(e => console.log("Autoplay failed:", e));
+          }, 1000);
+
+          observer.unobserve(flowersContainer);
+        }
+      });
+    }, {
+      threshold: 0.5 // 50% visible
+    });
+
+    observer.observe(flowersContainer);
+  });
+
+
+========================================
+=== INLINE SCRIPT 10 ===
+========================================
+!function(){if(!window.UnicornStudio){window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4/dist/unicornStudio.umd.js",i.onload=function(){window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)},(document.head || document.body).appendChild(i)}}();
+
+========================================
+=== INLINE SCRIPT 11 ===
+========================================
+
+// when the DOM is ready
+$(document).ready(function() {
+  // get the anchor link buttons
+  const menuBtn = $('.hero-btn');
+  // when each button is clicked
+  menuBtn.click(()=>{	
+    // set a short timeout before taking action
+    // so as to allow hash to be set
+    setTimeout(()=>{
+      // call removeHash function after set timeout
+      removeHash();
+    }, 5); // 5 millisecond timeout in this case
+  });
+
+  // removeHash function
+  // uses HTML5 history API to manipulate the location bar
+  function removeHash(){
+    history.replaceState('', document.title, window.location.origin + window.location.pathname + window.location.search);
+  }
+});
+
+/**
+* another way to skin the same cat 
+*
+* $('.links').click(function(e){ 
+*	 $('html, body').animate({
+*   scrollTop: $( $.attr(this, 'href') ).offset().top - $('.nav').height()
+*	 }, 1000);
+*  return false;
+* });
+*/
+
+
+========================================
+=== INLINE SCRIPT 12 ===
+========================================
+
+  // Reload page if loaded from cache
+  window.onpageshow = function(event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  };
+
+  // Delay before visiting another page for specified classes
+  $('.nav-link, .nav-brand, .button, .main-cta, .button-gradient, .footer_link, .role-btn, .article-link').click(function(e) {
+    e.preventDefault();
+    setTimeout(function(url) { window.location = url; }, 1500, this.href);
+  });
+
+
+========================================
+=== INLINE SCRIPT 13 ===
+========================================
+
+window.addEventListener("DOMContentLoaded", (event) => {
+  // Split text into spans
+  let typeSplit = new SplitType("[text-split]", {
+    types: "words, chars",
+    tagName: "span"
+  });
+
+  // Link timelines to scroll position
+  function createScrollTrigger(triggerElement, timeline) {
+    // Reset tl when scroll out of view past bottom of screen
+    ScrollTrigger.create({
+      trigger: triggerElement,
+      start: "top bottom",
+      onLeaveBack: () => {
+        timeline.progress(0);
+        timeline.pause();
+      }
+    });
+    // Play tl when scrolled into view (60% from top of screen)
+    ScrollTrigger.create({
+      trigger: triggerElement,
+      start: "top 60%",
+      onEnter: () => timeline.play()
+    });
+  }
+
+  $("[words-slide-up]").each(function (index) {
+    let tl = gsap.timeline({ paused: true });
+    tl.from($(this).find(".word"), { opacity: 0, yPercent: 100, duration: 0.5, ease: "back.out(2)", stagger: { amount: 0.5 } });
+    createScrollTrigger($(this), tl);
+  });
+
+  $("[words-rotate-in]").each(function (index) {
+    let tl = gsap.timeline({ paused: true });
+    tl.set($(this).find(".word"), { transformPerspective: 1000 });
+    tl.from($(this).find(".word"), { rotationX: -90, duration: 0.6, ease: "power2.out", stagger: { amount: 0.6 } });
+    createScrollTrigger($(this), tl);
+  });
+
+  $("[words-slide-from-right]").each(function (index) {
+    let tl = gsap.timeline({ paused: true });
+    tl.from($(this).find(".word"), { opacity: 0, x: "1em", duration: 0.6, ease: "power2.out", stagger: { amount: 0.2 } });
+    createScrollTrigger($(this), tl);
+  });
+
+  $("[letters-slide-up]").each(function (index) {
+    let tl = gsap.timeline({ paused: true });
+    tl.from($(this).find(".char"), { yPercent: 100, duration: 0.2, ease: "power1.out", stagger: { amount: 0.6 } });
+    createScrollTrigger($(this), tl);
+  });
+
+  $("[letters-slide-down]").each(function (index) {
+    let tl = gsap.timeline({ paused: true });
+    tl.from($(this).find(".char"), { yPercent: -120, duration: 0.3, ease: "power1.out", stagger: { amount: 0.7 } });
+    createScrollTrigger($(this), tl);
+  });
+
+  $("[letters-fade-in]").each(function (index) {
+    let tl = gsap.timeline({ paused: true });
+    tl.from($(this).find(".char"), { opacity: 0.25, duration: 0.2, ease: "power1.out", stagger: { amount: 0.8 } });
+    createScrollTrigger($(this), tl);
+  });
+
+  $("[letters-fade-in-random]").each(function (index) {
+    let tl = gsap.timeline({ paused: true });
+    tl.from($(this).find(".char"), { opacity: 0, duration: 0.05, ease: "power1.out", stagger: { amount: 0.4, from: "random" } });
+    createScrollTrigger($(this), tl);
+  });
+
+  $("[scrub-each-word]").each(function (index) {
+    let tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: $(this),
+        start: "top 90%",
+        end: "top center",
+        scrub: true
+      }
+    });
+    tl.from($(this).find(".word"), { opacity: 0.2, duration: 0.2, ease: "power1.out", stagger: { each: 0.4 } });
+  });
+
+  // Avoid flash of unstyled content
+  gsap.set("[text-split]", { opacity: 1 });
+});
+
+
+========================================
+=== INLINE SCRIPT 14 ===
+========================================
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const inputs = document.querySelectorAll(".input-custom");
+
+    inputs.forEach(function(input) {
+      input.addEventListener("input", function() {
+        if (input.value.trim() !== "") {
+          input.classList.add("filled");
+        } else {
+          input.classList.remove("filled");
+        }
+      });
+    });
+  });
+
+
+========================================
+=== INLINE SCRIPT 15 ===
+========================================
+!function(){if(!window.UnicornStudio){window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.25/dist/unicornStudio.umd.js",i.onload=function(){window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)},(document.head || document.body).appendChild(i)}}();

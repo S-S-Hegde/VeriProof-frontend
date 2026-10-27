@@ -1,42 +1,42 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
-import { MaskedLine, FadeInSubhead } from "../components/MaskedText";
+import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
 
 export default function EternaValues() {
   const values = [
     {
       letter: "T",
-      title: "Truth powers our presence",
-      desc: "Code never lies. Real commits and authentic authorship replace resume speculation.",
+      title: "Truth powers our protocol",
+      desc: "Code never lies. Real cryptographic commits and authentic git authorship replace speculative claims.",
     },
     {
       letter: "R",
-      title: "Rigor lights our path",
-      desc: "AST inspection and tamper-evident telemetry ensure every technical verdict is defendable.",
+      title: "Rigor lights our audits",
+      desc: "Abstract Syntax Tree inspection and bytecode telemetry ensure every technical verdict is defendable.",
     },
     {
       letter: "U",
-      title: "Unity reflects our purpose",
-      desc: "Aligning candidates, hiring managers, and recruiters on a single, trusted source of truth.",
+      title: "Unity connects our mesh",
+      desc: "Aligning developers, student engineers, and technical evaluators on a single zero-knowledge source of truth.",
     },
     {
-      letter: "S",
-      title: "Signal radiates our actions",
-      desc: "Measuring deep engineering problem-solving rather than surveillance or trivia.",
+      letter: "E",
+      title: "Evidence radiates our actions",
+      desc: "Measuring deep algorithmic problem-solving, architectural depth, and real proof of work.",
     },
   ];
 
   return (
     <section id="section-values" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto text-center">
       <div className="space-y-4 mb-16">
-        <h2 className="text-4xl sm:text-6xl font-semibold tracking-tight text-white">
-          <MaskedLine delay={0.1}>We are all One</MaskedLine>
+        <h2 className="text-4xl sm:text-6xl font-normal tracking-tight text-white">
+          <WordSlideUp text="We are all One" delay={0.1} />
         </h2>
-        <FadeInSubhead delay={0.22}>
-          <p className="text-base text-white/45 font-light max-w-lg mx-auto">
-            Four principles that guide every line of code and every hiring decision we make.
+        <FadeInParagraph delay={0.22}>
+          <p className="text-base text-white/50 font-light max-w-lg mx-auto leading-relaxed">
+            Four foundational principles that govern every verification pipeline and cryptographic metric we compute.
           </p>
-        </FadeInSubhead>
+        </FadeInParagraph>
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 sm:gap-5">
@@ -68,7 +68,7 @@ export default function EternaValues() {
               </span>
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg sm:text-xl font-medium tracking-tight text-white group-hover:text-violet-200 transition-colors">
+              <h3 className="text-lg sm:text-xl font-normal tracking-tight text-white group-hover:text-violet-200 transition-colors">
                 {v.title}
               </h3>
               <p className="text-xs sm:text-sm text-white/55 font-light leading-relaxed">

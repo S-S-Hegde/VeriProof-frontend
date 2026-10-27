@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Sparkles, ArrowDown } from "lucide-react";
-import { MaskedLine, FadeInSubhead } from "../components/MaskedText";
+import { ShieldCheck, ArrowDown } from "lucide-react";
+import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
 
 export default function EternaHero({ onScrollNext }) {
   const { scrollY } = useScroll();
@@ -14,7 +14,7 @@ export default function EternaHero({ onScrollNext }) {
   const exploreOpacity = useTransform(scrollY, [0, 150], [1, 0]);
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8 overflow-hidden pt-20 pb-16">
       {/* ── Large Glowing Halo Ring with Scroll Parallax & Scale ── */}
       <motion.div
         style={{
@@ -44,7 +44,7 @@ export default function EternaHero({ onScrollNext }) {
         />
       </motion.div>
 
-      {/* ── Hero Content with Editorial Masked Reveals ── */}
+      {/* ── Hero Content with Word-by-Word Snappy Reveals ── */}
       <div className="max-w-4xl mx-auto space-y-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: -16 }}
@@ -53,31 +53,30 @@ export default function EternaHero({ onScrollNext }) {
           className="flex justify-center"
         >
           <span className="eterna-pill-badge">
-            <Sparkles className="h-3.5 w-3.5 text-violet-300" />
-            Our Business is Truth, Auditability & Evidence
+            <ShieldCheck className="h-3.5 w-3.5 text-violet-300" />
+            Our Protocol is Truth, Auditability & Evidence
           </span>
         </motion.div>
 
         <div className="space-y-6">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-white leading-[1.06]">
-            <MaskedLine delay={0.15}>
-              We are evidence architects
-            </MaskedLine>
-            <MaskedLine delay={0.28}>
-              <span className="text-white/90">with hyperfocus.</span>
-            </MaskedLine>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-white leading-[1.08]">
+            <WordSlideUp text="We are evidence architects" delay={0.1} />
+            <br />
+            <span className="text-white/90">
+              <WordSlideUp text="with hyperfocus." delay={0.25} />
+            </span>
           </h1>
 
-          <FadeInSubhead delay={0.45}>
-            <p className="max-w-xl mx-auto text-base sm:text-lg text-white/55 font-light leading-relaxed">
-              VeriProof replaces unverifiable resume claims with forensic evidence
-              from candidate code, live problem-solving, and auditable trust scores.
+          <FadeInParagraph delay={0.45}>
+            <p className="max-w-2xl mx-auto text-base sm:text-lg text-white/60 font-light leading-relaxed">
+              VeriProof replaces unverified resume claims and AI-generated fluff with
+              cryptographic code forensics, AST syntactic depth analysis, and auditable proof of work.
             </p>
-          </FadeInSubhead>
+          </FadeInParagraph>
         </div>
       </div>
 
-      {/* Explore indicator (fades out as user begins scrolling) */}
+      {/* Explore indicator */}
       <motion.button
         style={{ opacity: exploreOpacity }}
         onClick={onScrollNext}
@@ -87,7 +86,7 @@ export default function EternaHero({ onScrollNext }) {
         className="absolute bottom-10 flex flex-col items-center gap-2 text-white/35 hover:text-white/70 transition-colors z-10 cursor-pointer"
         aria-label="Scroll to next section"
       >
-        <span className="text-[10px] font-mono tracking-widest uppercase">Explore</span>
+        <span className="text-[11px] font-mono tracking-widest uppercase">Explore</span>
         <ArrowDown className="h-4 w-4 animate-bounce text-violet-400" />
       </motion.button>
     </section>

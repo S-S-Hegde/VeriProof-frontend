@@ -1,7 +1,7 @@
 ﻿import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
-import { MaskedLine, FadeInSubhead } from "../components/MaskedText";
+import { ChevronDown, Users } from "lucide-react";
+import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
 
 // Botanical flower SVG icons matching EternaCloud accordion icons
 function FlowerIcon1() {
@@ -60,26 +60,26 @@ export default function EternaCulture() {
   const pillars = [
     {
       icon: <FlowerIcon1 />,
-      title: "We do what we say we'll do",
+      title: "We verify what code actually does",
       paragraphs: [
-        "Our mission is not just about making it easy to audit code at scale. We are here to fundamentally transform the daily hiring experience of every engineer and technical leader. Together we're revealing a world where merit, simplicity, and peace of mind become daily reality.",
-        "We liberate and elevate everyone to give their best without micromanagement. Great engineering is defined by the impact you create, so we are remote-first and ownership-driven. Every voice matters, code speaks louder than titles, and truth is greater than opinion.",
+        "Our mission is not about corporate bureaucracy. We are here to fundamentally revolutionize how engineers prove their capabilities. Together we're building a world where verified code speaks louder than self-proclaimed resume titles.",
+        "We liberate developers from keyword filters and blind ATS screening. Great engineering is defined by architectural integrity and authentic problem solving. Open-source, tamper-proof, and peer-defendable.",
       ],
     },
     {
       icon: <FlowerIcon2 />,
-      title: "We treasure our people",
+      title: "We treasure deep engineering craft",
       paragraphs: [
-        "Clean, fresh minds who are not exhausted by bureaucracy build the future. We eliminate friction so our engineers and researchers can dive deep into compilers, machine learning, and UX design.",
-        "Every full-time team member enjoys comprehensive health coverage, flexible time-off, and gratitude profit-sharing. We celebrate diverse perspectives and unite on the same wavelength across teams worldwide.",
+        "Curious minds who love compilers, distributed systems, and clean code shape the future. We eliminate resume noise so researchers and builders can focus on algorithms, cryptographic proof, and real systems.",
+        "We honor genuine authorship and celebrate builders who dive into the details.",
       ],
     },
     {
       icon: <FlowerIcon3 />,
-      title: "Freedom is the way",
+      title: "Truth and autonomy is the way",
       paragraphs: [
-        "Work is a meaningful part of Life. Our culture is crafted to balance technical excellence with personal fulfillment. We give you the autonomy and support to push boundaries on your terms.",
-        "Any idea can thrive and nothing is impossible. We nurture understanding, celebrate creativity, and act with mutual respect. When engineers thrive, technology thrives.",
+        "Building software is a craft. Our platform is architected to elevate authentic skill without surveillance or privacy intrusion. We verify the code artifact, not your webcam or keystroke pacing.",
+        "Transparent metrics, zero-knowledge proofs, and complete developer dignity.",
       ],
     },
   ];
@@ -96,27 +96,28 @@ export default function EternaCulture() {
           className="flex justify-center"
         >
           <span className="eterna-pill-badge">
-            <FlowerIcon1 />
-            Join Our Team
+            <Users className="h-3.5 w-3.5 text-violet-300" />
+            Our Community
           </span>
         </motion.div>
 
-        <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight text-white leading-tight">
-          <MaskedLine delay={0.1}>Our people are world-class,</MaskedLine>
-          <MaskedLine delay={0.22}>
-            <span className="text-gradient-eterna">our expansion is boundless!</span>
-          </MaskedLine>
+        <h2 className="text-3xl sm:text-5xl font-normal tracking-tight text-white leading-tight">
+          <WordSlideUp text="Our community is world-class," delay={0.1} />
+          <br />
+          <span className="text-gradient-eterna">
+            <WordSlideUp text="our expansion is boundless!" delay={0.25} />
+          </span>
         </h2>
 
-        <FadeInSubhead delay={0.35}>
-          <p className="text-base sm:text-lg text-white/55 font-light">
-            We&apos;re not corporate, just intentional. The best work happens with trust, balance and freedom.
+        <FadeInParagraph delay={0.35}>
+          <p className="text-base sm:text-lg text-white/60 font-light">
+            We&apos;re not corporate, just intentional. Authentic engineering happens with transparency, open protocols, and freedom.
           </p>
-        </FadeInSubhead>
+        </FadeInParagraph>
       </div>
 
       {/* Interactive Accordion */}
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {pillars.map((p, idx) => {
           const isOpen = openIndex === idx;
           return (
@@ -148,7 +149,7 @@ export default function EternaCulture() {
                   >
                     {p.icon}
                   </motion.div>
-                  <h3 className="text-lg sm:text-xl font-medium text-white group-hover:text-violet-200 transition-colors">
+                  <h3 className="text-lg sm:text-xl font-normal text-white group-hover:text-violet-200 transition-colors">
                     {p.title}
                   </h3>
                 </div>
@@ -227,16 +228,11 @@ export default function EternaCulture() {
           </svg>
         </div>
 
-        <div className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white leading-tight max-w-3xl mx-auto">
-          <MaskedLine delay={0.1}>
-            At VeriProof, we empower our colleagues
-          </MaskedLine>
-          <MaskedLine delay={0.22}>
-            to take ownership, do meaningful work
-          </MaskedLine>
-          <MaskedLine delay={0.34}>
-            and live an extraordinary Life.
-          </MaskedLine>
+        <div className="text-2xl sm:text-4xl md:text-5xl font-normal text-white leading-tight max-w-3xl mx-auto">
+          <WordSlideUp
+            text="At VeriProof, we empower engineers to prove their craft, own their credentials, and build an extraordinary career."
+            delay={0.1}
+          />
         </div>
       </motion.div>
     </section>

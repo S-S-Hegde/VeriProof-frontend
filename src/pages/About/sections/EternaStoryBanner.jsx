@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
-import { MaskedLine } from "../components/MaskedText";
+import { WordSlideUp } from "../components/WordReveal";
 
 // Botanical leaf/flower SVG with scroll-triggered SVG path drawing
 function BotanicalStem() {
@@ -148,23 +148,23 @@ function BotanicalStem() {
 
 export default function EternaStoryBanner({ onOpenStory }) {
   return (
-    <section className="relative py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
+    <section className="relative py-14 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
       {/* Botanical divider top with dynamic pathLength draw */}
       <div className="mb-12">
         <BotanicalStem />
       </div>
 
       <div className="space-y-10">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white leading-[1.25]">
-          <MaskedLine delay={0.1}>
-            We set out to create the ideal hiring scenario.
-          </MaskedLine>
-          <MaskedLine delay={0.22}>
-            The one that turns isolated moments of excellence
-          </MaskedLine>
-          <MaskedLine delay={0.34}>
-            into a seamless, repeatable experience.
-          </MaskedLine>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-white leading-[1.25]">
+          <WordSlideUp
+            text="We set out to create the ideal verification protocol."
+            delay={0.1}
+          />
+          <br />
+          <WordSlideUp
+            text="The one that turns unprovable developer claims into transparent, mathematically sound proof of work."
+            delay={0.28}
+          />
         </h2>
 
         <motion.div
@@ -175,7 +175,7 @@ export default function EternaStoryBanner({ onOpenStory }) {
         >
           <button
             onClick={onOpenStory}
-            className="btn-eterna-solid inline-flex items-center gap-2 rounded-full px-9 py-3.5 text-sm sm:text-base font-medium text-white shadow-xl hover:scale-105 active:scale-95 transition-all"
+            className="btn-eterna-solid inline-flex items-center gap-2 rounded-full px-9 py-3.5 text-sm sm:text-base font-normal text-white shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
             Read our story
           </button>

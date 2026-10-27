@@ -2,7 +2,7 @@
 import Lenis from "lenis";
 import { useTheme } from "../../context/ThemeContext";
 
-// Styling & Keyframes
+// Styling & Keyframes (includes official MazzardH fonts)
 import "./eterna.css";
 
 // Page Sections
@@ -35,16 +35,14 @@ export default function AboutPage() {
 
   const lenisRef = useRef(null);
 
-  // Initialize Lenis smooth scroll
+  // Initialize Lenis with exact EternaCloud configuration
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.25,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
+      lerp: 0.1,
+      wheelMultiplier: 0.7,
       gestureOrientation: "vertical",
-      smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 1.8,
+      normalizeWheel: false,
+      smoothTouch: false,
     });
 
     lenisRef.current = lenis;
@@ -64,14 +62,12 @@ export default function AboutPage() {
   const scrollToOffer = () => {
     const el = document.getElementById("section-offer");
     if (el && lenisRef.current) {
-      lenisRef.current.scrollTo(el, { offset: -40, duration: 1.4 });
+      lenisRef.current.scrollTo(el, { offset: -40, duration: 1.2 });
     }
   };
 
   return (
-    <div className={`eterna-page min-h-screen relative overflow-x-clip transition-colors duration-500 font-sans ${
-      isDark ? "bg-[#08080E] text-white" : "bg-[#f5f6fa] text-slate-900"
-    }`}>
+    <div className="eterna-page min-h-screen relative overflow-x-clip bg-[#13101c] text-white">
       {/* ── Vivid EternaCloud-Accurate Ambient Blobs ── */}
       <div className="eterna-blob-purple" />
       <div className="eterna-blob-amber" />
@@ -83,7 +79,7 @@ export default function AboutPage() {
         {/* Hero Section */}
         <EternaHero onScrollNext={scrollToOffer} />
 
-        {/* Offer: One Adaptive Platform with 3 curved vector glass cards */}
+        {/* Offer: One Adaptive Service / Platform with 3 curved vector glass cards */}
         <EternaOffer />
 
         {/* Story Banner Statement & CTA */}
@@ -92,7 +88,7 @@ export default function AboutPage() {
         {/* One Vision with Vertical Filament Art */}
         <EternaVision />
 
-        {/* Core Values: We are all One (T • R • U • S) */}
+        {/* Core Values: We are all One (T • R • U • E) */}
         <EternaValues />
 
         {/* Culture & Expansion Pillars */}

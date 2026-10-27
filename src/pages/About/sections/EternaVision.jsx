@@ -1,8 +1,8 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
-import { MaskedLine, FadeInSubhead } from "../components/MaskedText";
+import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
 
-// EternaCloud-accurate botanical leaf+bud motif with scroll path drawing
+// Botanical leaf+bud motif with scroll path drawing
 function BotanicalLeafBud() {
   return (
     <svg viewBox="0 0 80 140" fill="none" className="w-14 h-28 botanical-float mx-auto">
@@ -138,14 +138,14 @@ export default function EternaVision() {
       </motion.div>
 
       <div className="space-y-4">
-        <h2 className="text-4xl sm:text-5xl font-semibold tracking-tight text-white">
-          <MaskedLine delay={0.1}>One Vision</MaskedLine>
+        <h2 className="text-4xl sm:text-5xl font-normal tracking-tight text-white">
+          <WordSlideUp text="One Vision" delay={0.1} />
         </h2>
-        <FadeInSubhead delay={0.25}>
-          <p className="text-base sm:text-lg text-white/55 font-light max-w-lg mx-auto leading-relaxed">
-            Freedom for every engineer and hiring team to build on verified truth.
+        <FadeInParagraph delay={0.25}>
+          <p className="text-base sm:text-lg text-white/60 font-light max-w-lg mx-auto leading-relaxed">
+            Freedom for every engineer, student, and builder to validate their craft on transparent, cryptographic truth.
           </p>
-        </FadeInSubhead>
+        </FadeInParagraph>
       </div>
     </section>
   );

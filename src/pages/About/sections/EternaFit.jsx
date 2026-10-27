@@ -1,15 +1,15 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
-import { MaskedLine } from "../components/MaskedText";
+import { WordSlideUp, FadeInParagraph } from "../components/WordReveal";
 
 export default function EternaFit({ onOpenJoinModal }) {
   const points = [
-    "Always have a perpetual desire to understand how complex systems truly operate.",
-    "Truly put your Heart, craft, and attention into everything you build.",
-    "Genuinely apply and reliably balance determined focus with intuitive awareness.",
-    "Hold yourself, your colleagues, and the work you create to an exceptional standard.",
-    "Have deep appreciation for elegant developer tooling, compilers, and evidence-first design.",
+    "Have a relentless drive to understand how software systems function down to the AST.",
+    "Truly put craftsmanship, security, and elegance into every repository you build.",
+    "Believe that demonstrable code evidence is infinitely more valuable than polished resumes.",
+    "Hold your code, your commits, and the systems you build to rigorous cryptographic standards.",
+    "Appreciate zero-knowledge proofs, compiler pipelines, and honest technical peer audit.",
   ];
 
   return (
@@ -17,7 +17,7 @@ export default function EternaFit({ onOpenJoinModal }) {
       <div
         className="p-8 sm:p-14 overflow-hidden relative rounded-3xl"
         style={{
-          background: "rgba(16, 13, 36, 0.82)",
+          backgroundImage: "radial-gradient(circle at 50% 100%, #2a2245, #141026 85%)",
           border: "1px solid rgba(255,255,255,0.08)",
           backdropFilter: "blur(20px)",
         }}
@@ -40,35 +40,30 @@ export default function EternaFit({ onOpenJoinModal }) {
             >
               <span className="eterna-pill-badge">
                 <Sparkles className="h-3.5 w-3.5 text-violet-300" />
-                Our Culture Fit
+                Our Fit
               </span>
             </motion.div>
 
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
-              <MaskedLine delay={0.1}>Experience work</MaskedLine>
-              <MaskedLine delay={0.22}>
-                <span
-                  style={{
-                    background: "linear-gradient(90deg, #60A5FA 0%, #A78BFA 48%, #F59E0B 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  in a new way.
-                </span>
-              </MaskedLine>
+            <h2 className="text-3xl sm:text-4xl font-normal tracking-tight text-white leading-tight">
+              <WordSlideUp text="Experience engineering evaluation" delay={0.1} />
+              <br />
+              <span
+                style={{
+                  background: "linear-gradient(90deg, #60A5FA 0%, #A78BFA 48%, #F59E0B 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                <WordSlideUp text="in a new way." delay={0.25} />
+              </span>
             </h2>
 
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-sm text-white/55 font-light leading-relaxed"
-            >
-              We look for people who are driven by curiosity, intellectual rigor, and genuine empathy.
-            </motion.p>
+            <FadeInParagraph delay={0.35}>
+              <p className="text-sm text-white/60 font-light leading-relaxed">
+                We look for engineers who are driven by curiosity, cryptographic rigor, and genuine craft.
+              </p>
+            </FadeInParagraph>
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -80,7 +75,7 @@ export default function EternaFit({ onOpenJoinModal }) {
                 onClick={onOpenJoinModal}
                 className="btn-eterna-gradient inline-flex items-center gap-2.5 rounded-full px-7 py-3 text-sm font-medium text-white shadow-xl cursor-pointer hover:scale-105 active:scale-95 transition-all"
               >
-                <span>Explore open roles</span>
+                <span>Verify your portfolio</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </motion.div>
@@ -88,7 +83,7 @@ export default function EternaFit({ onOpenJoinModal }) {
 
           {/* Right Column: Checklist */}
           <div className="lg:col-span-7 space-y-4">
-            <h3 className="text-lg font-medium text-white/90 mb-4">Sound like you?</h3>
+            <h3 className="text-lg font-normal text-white/90 mb-4">Sound like you?</h3>
             <div className="space-y-3">
               {points.map((pt, i) => (
                 <motion.div

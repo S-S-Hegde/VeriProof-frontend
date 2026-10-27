@@ -1,4 +1,64 @@
-﻿/* EternaCloud-Accurate About Page - VeriProof */
+﻿/* ═══════════════════════════════════════════════════════════
+   OFFICIAL ETERNACLOUD FONTS (MAZZARDH)
+   ═══════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: 'Mazzardh';
+  src: url('/fonts/MazzardH-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mazzardh';
+  src: url('/fonts/MazzardH-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mazzardh';
+  src: url('/fonts/MazzardH-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE ROOT & GLOBAL TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════ */
+.eterna-page {
+  font-family: 'Mazzardh', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  background-color: #13101c !important;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.eterna-page * {
+  font-family: 'Mazzardh', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.eterna-page h1,
+.eterna-page h2,
+.eterna-page h3,
+.eterna-page h4,
+.eterna-page h5,
+.eterna-page h6 {
+  font-family: 'Mazzardh', sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+.eterna-page p {
+  font-family: 'Mazzardh', sans-serif !important;
+  font-weight: 300;
+  font-style: normal !important;
+  letter-spacing: normal;
+}
 
 /* ═══════════════════════════════════════════════════════════
    LENIS SMOOTH SCROLLING STYLES (Inertia Momentum)
@@ -31,7 +91,7 @@ html.lenis body {
   height: 75vh;
   background: radial-gradient(ellipse at 40% 40%, #7C3AED 0%, #5B21B6 28%, #3B1078 55%, transparent 78%);
   filter: blur(85px);
-  opacity: 0.60;
+  opacity: 0.50;
   pointer-events: none;
   z-index: 0;
   will-change: transform;
@@ -46,7 +106,7 @@ html.lenis body {
   height: 65vh;
   background: radial-gradient(ellipse at 60% 35%, #D97706 0%, #92400E 30%, #78350F 58%, transparent 78%);
   filter: blur(95px);
-  opacity: 0.52;
+  opacity: 0.45;
   pointer-events: none;
   z-index: 0;
   will-change: transform;
@@ -61,7 +121,7 @@ html.lenis body {
   height: 50vh;
   background: radial-gradient(ellipse at 40% 60%, #6D28D9 0%, #4C1D95 40%, transparent 72%);
   filter: blur(110px);
-  opacity: 0.38;
+  opacity: 0.32;
   pointer-events: none;
   z-index: 0;
   animation: blob-drift-left 32s ease-in-out infinite alternate-reverse;
@@ -75,7 +135,7 @@ html.lenis body {
   height: 45vh;
   background: radial-gradient(ellipse at 55% 45%, #1D4ED8 0%, #1E3A8A 40%, transparent 72%);
   filter: blur(100px);
-  opacity: 0.32;
+  opacity: 0.28;
   pointer-events: none;
   z-index: 0;
   animation: blob-drift-right 36s ease-in-out infinite alternate-reverse;
@@ -150,17 +210,26 @@ html.lenis body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   GRADIENTS & BUTTONS
+   ETERNACLOUD ACCURATE CARDS & GRADIENTS
    ═══════════════════════════════════════════════════════════ */
-.text-gradient-eterna {
-  background: linear-gradient(90deg, #60A5FA 0%, #A78BFA 48%, #F59E0B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.eterna-offer-card {
+  background-image: radial-gradient(circle at 50% 100%, #362c52, #1a1429 80%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2rem;
+  overflow: hidden;
+  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, box-shadow;
+}
+.eterna-offer-card:hover {
+  border-color: rgba(139, 92, 246, 0.45);
+  transform: translateY(-8px);
+  box-shadow: 0 24px 50px -16px rgba(109, 40, 217, 0.38);
 }
 
-.text-gradient-purple-blue {
-  background: linear-gradient(135deg, #C084FC 0%, #818CF8 50%, #60A5FA 100%);
+.text-gradient-eterna {
+  background: linear-gradient(90deg, #60A5FA 0%, #A78BFA 48%, #F59E0B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -192,31 +261,16 @@ html.lenis body {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.4rem 1rem;
+  padding: 0.45rem 1.15rem;
   border-radius: 999px;
-  background: rgba(14, 11, 32, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(20, 16, 38, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-}
-
-.eterna-offer-card {
-  background: #100D24;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 1.5rem;
-  overflow: hidden;
-  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, box-shadow;
-}
-.eterna-offer-card:hover {
-  border-color: rgba(139, 92, 246, 0.42);
-  transform: translateY(-6px);
-  box-shadow: 0 24px 50px -16px rgba(109, 40, 217, 0.32);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 @keyframes botanical-float {
@@ -238,48 +292,18 @@ html.lenis body {
   transform-origin: top center;
 }
 
+/* Expanding Letters Cards (T • R • U • E) */
 .eterna-value-letter-card {
-  background: linear-gradient(135deg, #1A1533 0%, #130F2C 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1.25rem;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  background-image: radial-gradient(circle at 50% 100%, #2a2245, #161228 85%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .eterna-value-letter-card:hover {
-  border-color: rgba(139, 92, 246, 0.45);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px -8px rgba(139, 92, 246, 0.32);
-}
-
-.eterna-accordion-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  transition: background 0.3s ease;
-}
-.eterna-accordion-item:hover {
-  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(139, 92, 246, 0.50);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px -10px rgba(139, 92, 246, 0.35);
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* ═══════════════════════════════════════════════════════════
-   FONT RESET — Override global .theme-dark h1/h2 italic+uppercase
-   that bleeds into the About page from index.css
-   ═══════════════════════════════════════════════════════════ */
-.eterna-page h1,
-.eterna-page h2,
-.eterna-page h3,
-.eterna-page h4,
-.eterna-page p,
-.eterna-page span,
-.eterna-page button {
-  font-style: normal !important;
-  text-transform: none !important;
-  letter-spacing: normal;
-}
-
-/* Restore tracking on eyebrow/mono elements */
-.eterna-page .eterna-pill-badge {
-  letter-spacing: 0.04em;
-  text-transform: none !important;
-  font-style: normal !important;
-}

@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { MaskedLine } from "../components/MaskedText";
+import { WordSlideUp } from "../components/WordReveal";
 
 export default function EternaFooterSection({
   onOpenWisdom,
@@ -95,20 +95,20 @@ export default function EternaFooterSection({
             onClick={onOpenJoinTeam}
             className="rounded-xl border border-white/20 bg-white/5 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10 hover:border-white/30 cursor-pointer active:scale-95 transition-all"
           >
-            Join our team
+            Join the mesh
           </button>
         </motion.div>
 
-        {/* Central Bold Statement with Masked Reveal */}
+        {/* Central Bold Statement with Word-by-Word Reveal */}
         <div className="space-y-4">
-          <h2 className="text-4xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-gradient-eterna">
-            <MaskedLine delay={0.1}>Nothing is impossible</MaskedLine>
+          <h2 className="text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-gradient-eterna">
+            <WordSlideUp text="Nothing is impossible" delay={0.1} />
           </h2>
         </div>
 
         {/* 3 Interactive Modal Trigger Squares with Staggered Entrance */}
         <div className="flex items-center justify-center gap-5 sm:gap-6">
-          {/* Einstein Icon: Wisdom we live by */}
+          {/* Einstein Icon: Wisdom we build by */}
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -118,7 +118,7 @@ export default function EternaFooterSection({
             whileTap={{ scale: 0.96 }}
             onClick={onOpenWisdom}
             className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-colors duration-300 hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-600/30 cursor-pointer"
-            title="Wisdom we live by"
+            title="Wisdom we build by"
           >
             <div className="text-center">
               <span className="text-2xl sm:text-3xl block filter drop-shadow group-hover:scale-110 transition-transform">
@@ -130,7 +130,7 @@ export default function EternaFooterSection({
             </div>
           </motion.button>
 
-          {/* VeriProof Ring Icon: Why the name */}
+          {/* VeriProof Ring Icon: Why VeriProof */}
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -140,17 +140,17 @@ export default function EternaFooterSection({
             whileTap={{ scale: 0.96 }}
             onClick={onOpenWhyName}
             className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-colors duration-300 hover:border-cyan-400/50 hover:shadow-xl hover:shadow-cyan-600/30 cursor-pointer"
-            title="Why the name VeriProof?"
+            title="Why VeriProof?"
           >
             <div className="text-center">
               <div className="h-6 w-6 sm:h-7 sm:w-7 mx-auto rounded-full border-2 border-cyan-400 border-t-purple-500 border-r-amber-400 group-hover:rotate-180 transition-transform duration-700" />
               <span className="text-[10px] block font-mono text-white/50 group-hover:text-white transition-colors mt-1">
-                Name
+                Protocol
               </span>
             </div>
           </motion.button>
 
-          {/* Butterfly Icon: Cause and effects */}
+          {/* Butterfly Icon: Proof and Effect */}
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -160,14 +160,14 @@ export default function EternaFooterSection({
             whileTap={{ scale: 0.96 }}
             onClick={onOpenCauseEffect}
             className="group flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-white/10 bg-[#1e1834]/80 backdrop-blur-xl transition-colors duration-300 hover:border-amber-400/50 hover:shadow-xl hover:shadow-amber-600/30 cursor-pointer"
-            title="Every cause has effects"
+            title="Proof and Effect"
           >
             <div className="text-center">
               <span className="text-2xl sm:text-3xl block filter drop-shadow group-hover:scale-110 transition-transform">
-                🦋
+                ⚡
               </span>
               <span className="text-[10px] block font-mono text-white/50 group-hover:text-white transition-colors mt-0.5">
-                Cause
+                Effects
               </span>
             </div>
           </motion.button>
@@ -182,7 +182,7 @@ export default function EternaFooterSection({
           className="border-t border-white/10 pt-10 space-y-4"
         >
           <p className="text-xs sm:text-sm text-white/60 font-light">
-            When every claim is proven and clear, absolute trust must appear.
+            When every commit is cryptographically proven, absolute trust must appear.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/40">

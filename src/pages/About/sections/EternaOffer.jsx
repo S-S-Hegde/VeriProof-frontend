@@ -1,13 +1,13 @@
 ﻿import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
-import { MaskedLine } from "../components/MaskedText";
+import { WordSlideUp } from "../components/WordReveal";
 
 export default function EternaOffer() {
   const cards = [
     {
-      title: "Delivering seamless verification",
-      desc: "Make it effortless. We transform complex candidate evaluation into verifiable, tamper-evident certainty.",
+      title: "Delivering cryptographic certainty",
+      desc: "Make it indisputable. We transform unverified commit histories and messy repositories into verifiable, tamper-evident certainty.",
       svg: (
         <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
           {/* concentric orbit rings matching EternaCloud card 1 */}
@@ -50,8 +50,8 @@ export default function EternaOffer() {
       ),
     },
     {
-      title: "Orchestrating forensic frameworks",
-      desc: "Keep it rigorous. GitHub commit history, AST analysis, and AI question defenses that transcend typical limitations.",
+      title: "Orchestrating forensic AST analysis",
+      desc: "Keep it rigorous. Abstract Syntax Tree parsing, dependency graph auditing, and git authorship verification that expose authentic code craft.",
       svg: (
         <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
           {/* radial fan lines with staggered draw */}
@@ -84,8 +84,8 @@ export default function EternaOffer() {
       ),
     },
     {
-      title: "Compounding hiring gains",
-      desc: "Do good for people. Objective evidence that eliminates bias and uncovers exceptional builders.",
+      title: "Compounding developer merit",
+      desc: "Empower real builders. Objective engineering metrics that eliminate resume fraud and uncover genuine technical excellence.",
       svg: (
         <svg viewBox="0 0 400 260" fill="none" className="w-full h-44">
           <motion.path
@@ -128,7 +128,7 @@ export default function EternaOffer() {
 
   return (
     <section id="section-offer" className="relative py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Eyebrow + Headline with Masked Reveal */}
+      {/* Eyebrow + Headline with Word-by-Word Snappy Reveal */}
       <div className="text-center space-y-5 mb-16">
         <motion.div
           initial={{ opacity: 0, y: -12 }}
@@ -143,13 +143,13 @@ export default function EternaOffer() {
           </span>
         </motion.div>
         
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-white">
-          <MaskedLine delay={0.1}>One Adaptive Service</MaskedLine>
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-white">
+          <WordSlideUp text="One Verifiable Protocol" delay={0.1} />
         </h2>
       </div>
 
       {/* Cards with Staggered Entrance & Interactive Hover */}
-      <div className="flex flex-col md:flex-row items-stretch justify-center gap-5">
+      <div className="flex flex-col md:flex-row items-stretch justify-center gap-6">
         {cards.map((card, idx) => (
           <motion.div
             key={idx}
@@ -165,11 +165,11 @@ export default function EternaOffer() {
             className="eterna-offer-card group flex-1 flex flex-col cursor-pointer"
           >
             {/* Text top */}
-            <div className="p-8 sm:p-10 space-y-3">
-              <h3 className="text-xl sm:text-2xl font-medium tracking-tight text-white leading-snug group-hover:text-violet-200 transition-colors">
+            <div className="p-8 sm:p-10 space-y-3.5">
+              <h3 className="text-xl sm:text-2xl font-normal tracking-tight text-white leading-snug group-hover:text-violet-200 transition-colors">
                 {card.title}
               </h3>
-              <p className="text-sm text-white/55 font-light leading-relaxed">
+              <p className="text-sm text-white/60 font-light leading-relaxed">
                 {card.desc}
               </p>
             </div>
