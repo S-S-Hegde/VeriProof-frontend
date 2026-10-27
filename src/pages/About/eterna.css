@@ -146,117 +146,110 @@
      Dark Void:      #080711 to #0B0913
    ═══════════════════════════════════════════════════════════ */
 
-/* ── Layer A: Ambient Background Bloom (Large Soft Multi-Color Radial Field) ── */
-.eterna-orb-ambient-bloom {
+/* ═══════════════════════════════════════════════════════════
+   ETERNACLOUD CELESTIAL ORB LIGHTING SYSTEM (IMAGE 2 MATCH)
+   Exact visual replica of the reference:
+   1. Left: Deep Blue Atmospheric Haze in background.
+   2. Right: Enormous sweeping concentric corona (Violet to Golden Amber).
+   3. Orb Left Edge: Radiant, volumetric eclipse crescent (Magenta-Violet limb glow).
+   4. Orb Right Edge: Faint silhouette edge against the glowing corona.
+   5. Center: Velvety dark crystal void with crisp white text.
+   ═══════════════════════════════════════════════════════════ */
+
+/* 1. Left Deep Blue Atmospheric Haze */
+.eterna-haze-blue-left {
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 14%;
   transform: translate(-50%, -50%);
-  width: min(130svh, 130vw, 1150px);
-  height: min(130svh, 130vw, 1150px);
+  width: min(90svh, 90vw, 850px);
+  height: min(90svh, 90vw, 850px);
+  border-radius: 50%;
   pointer-events: none;
   z-index: 1;
-  animation: orb-ambient-breathe 9.5s ease-in-out infinite alternate;
-  will-change: transform, opacity;
+  background: radial-gradient(
+    circle at center,
+    rgba(37, 99, 235, 0.42) 0%,
+    rgba(29, 78, 216, 0.24) 38%,
+    rgba(30, 58, 138, 0.10) 58%,
+    transparent 75%
+  );
+  filter: blur(85px);
+  will-change: opacity, transform;
+  animation: orb-blue-drift 12s ease-in-out infinite alternate;
 }
 
-/* A.1 Dominant Left-Side Purple & Magenta Bloom */
-.eterna-bloom-purple-left {
-  position: absolute;
-  top: 10%;
-  left: -8%;
-  width: 78%;
-  height: 82%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse 65% 65% at 36% 50%, rgba(139, 53, 255, 0.46) 0%, rgba(214, 92, 255, 0.26) 32%, rgba(75, 13, 131, 0.16) 55%, transparent 75%);
-  filter: blur(75px);
-  transform: translateZ(0);
-}
-
-/* A.2 Electric Blue Cool Transition (Top & Upper-Right) */
-.eterna-bloom-blue-topright {
-  position: absolute;
-  top: 6%;
-  right: 4%;
-  width: 58%;
-  height: 58%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 65% 35%, rgba(53, 169, 255, 0.28) 0%, rgba(37, 99, 235, 0.12) 38%, transparent 70%);
-  filter: blur(65px);
-  transform: translateZ(0);
-}
-
-/* A.3 Restrained Warm Amber Glow (Lower-Right) */
-.eterna-bloom-amber-bottomright {
-  position: absolute;
-  bottom: 8%;
-  right: 6%;
-  width: 52%;
-  height: 52%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 65% 65%, rgba(255, 155, 69, 0.22) 0%, rgba(217, 119, 6, 0.08) 35%, transparent 68%);
-  filter: blur(60px);
-  transform: translateZ(0);
-}
-
-/* A.4 Deep Violet Foundation Core */
-.eterna-bloom-violet-core {
-  position: absolute;
-  inset: 18%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 45% 50%, rgba(75, 13, 131, 0.38) 0%, rgba(139, 53, 255, 0.16) 48%, transparent 75%);
-  filter: blur(55px);
-  transform: translateZ(0);
-}
-
-/* ── Layer B: Concentrated Neon Halo (Biased Along Left & Lower-Left Circumference) ── */
-.eterna-orb-halo-wrapper {
+/* 2. Giant Concentric Corona on the Right (Violet transitioning outward to Golden Amber) */
+.eterna-corona-right {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(86svh, 86vw, 790px);
-  height: min(86svh, 86vw, 790px);
+  width: min(140svh, 140vw, 1280px);
+  height: min(140svh, 140vw, 1280px);
+  border-radius: 50%;
   pointer-events: none;
-  z-index: 2;
-  animation: orb-halo-shimmer 8s ease-in-out infinite alternate;
+  z-index: 1;
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    transparent 36%,
+    rgba(109, 40, 217, 0.25) 42%,
+    rgba(147, 51, 234, 0.82) 49%,
+    rgba(168, 85, 247, 0.95) 55%,
+    rgba(250, 204, 21, 0.90) 64%,
+    rgba(234, 179, 8, 0.68) 71%,
+    rgba(217, 119, 6, 0.28) 77%,
+    transparent 83%
+  );
+  filter: blur(48px);
+  -webkit-mask-image: linear-gradient(to right, transparent 30%, rgba(0,0,0,0.3) 44%, black 60%);
+  mask-image: linear-gradient(to right, transparent 30%, rgba(0,0,0,0.3) 44%, black 60%);
   will-change: opacity, transform;
+  animation: orb-corona-pulse 10s ease-in-out infinite alternate;
 }
 
 @media (max-width: 768px) {
-  .eterna-orb-halo-wrapper {
-    width: min(94vw, 62svh, 390px);
-    height: min(94vw, 62svh, 390px);
+  .eterna-corona-right {
+    width: min(130vw, 650px);
+    height: min(130vw, 650px);
+    transform: translate(-50%, -50%);
+    filter: blur(28px);
   }
 }
 
-/* B.1 Broad Diffused Purple Aura on the Left */
-.eterna-halo-diffuse-left {
+/* 3. The Left Eclipse Crescent Bloom (Volumetric outer atmosphere) */
+.eterna-eclipse-aura-left {
   position: absolute;
-  top: 6%;
-  left: -22%;
-  width: 75%;
-  height: 88%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(84svh, 84vw, 780px);
+  height: min(84svh, 84vw, 780px);
   border-radius: 50%;
-  background: radial-gradient(ellipse at 78% 50%, rgba(139, 53, 255, 0.58) 0%, rgba(75, 13, 131, 0.36) 45%, transparent 75%);
-  filter: blur(42px);
-  transform: translateZ(0);
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    ellipse 55% 75% at 20% 48%,
+    rgba(217, 70, 239, 0.88) 0%,
+    rgba(168, 85, 247, 0.70) 35%,
+    rgba(126, 34, 206, 0.38) 55%,
+    transparent 78%
+  );
+  filter: blur(35px);
+  will-change: opacity, transform;
+  animation: orb-eclipse-shimmer 8s ease-in-out infinite alternate;
 }
 
-/* B.2 Concentrated Magenta-Violet Neon Glow (Hugging Left Perimeter) */
-.eterna-halo-core-left {
-  position: absolute;
-  top: 14%;
-  left: -8%;
-  width: 55%;
-  height: 72%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 88% 50%, rgba(214, 92, 255, 0.72) 0%, rgba(139, 53, 255, 0.48) 38%, transparent 70%);
-  filter: blur(24px);
-  transform: translateZ(0);
+@media (max-width: 768px) {
+  .eterna-eclipse-aura-left {
+    width: min(92vw, 60svh, 380px);
+    height: min(92vw, 60svh, 380px);
+    filter: blur(24px);
+  }
 }
 
-/* ── Layer C: Orb Geometry & Multi-Color Directional Rim Box-Shadow ── */
+/* 4. Orb Container & Directional Edge Treatment */
 .eterna-globe-container {
   width: min(76svh, 76vw, 700px);
   height: min(76svh, 76vw, 700px);
@@ -264,10 +257,9 @@
   border-radius: 50%;
   pointer-events: none;
   box-shadow:
-    -18px 0 45px rgba(139, 53, 255, 0.48),
-    -6px 0 16px rgba(214, 92, 255, 0.70),
-    14px -8px 34px rgba(53, 169, 255, 0.24),
-    12px 14px 30px rgba(255, 155, 69, 0.20);
+    inset 16px 8px 32px rgba(217, 70, 239, 0.28),
+    -25px 0 65px rgba(192, 38, 211, 0.55),
+    -8px 0 20px rgba(232, 121, 249, 0.85);
 }
 
 @media (max-width: 768px) {
@@ -275,19 +267,18 @@
     width: min(84vw, 54svh, 340px);
     height: min(84vw, 54svh, 340px);
     box-shadow:
-      -12px 0 30px rgba(139, 53, 255, 0.42),
-      -4px 0 12px rgba(214, 92, 255, 0.60),
-      10px -6px 24px rgba(53, 169, 255, 0.20),
-      8px 10px 22px rgba(255, 155, 69, 0.16);
+      inset 10px 5px 20px rgba(217, 70, 239, 0.25),
+      -16px 0 40px rgba(192, 38, 211, 0.45),
+      -5px 0 14px rgba(232, 121, 249, 0.75);
   }
 }
 
-/* ── Layer E: Interior Subtle Depth (Dark crystal sphere depth with high text contrast) ── */
+/* 5. Dark Interior Shield: velvety obsidian with a faint planetary shadow */
 .eterna-globe-interior {
   position: absolute;
   inset: 1px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 50%, rgba(75, 13, 131, 0.12) 0%, rgba(8, 7, 17, 0.98) 55%, #080711 100%);
+  background: radial-gradient(circle at 35% 48%, rgba(59, 7, 100, 0.12) 0%, rgba(8, 7, 17, 0.98) 60%, #080711 100%);
   z-index: 1;
 }
 
@@ -321,19 +312,29 @@
   to   { transform: rotate(0deg); }
 }
 
-/* Coordinated subtle breathing animations */
-@keyframes orb-ambient-breathe {
+@keyframes orb-corona-pulse {
   0% {
-    transform: translate(-50%, -50%) scale(0.97);
-    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(0.98);
+    opacity: 0.88;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1.03);
+    transform: translate(-50%, -50%) scale(1.025);
     opacity: 1;
   }
 }
 
-@keyframes orb-halo-shimmer {
+@keyframes orb-blue-drift {
+  0% {
+    transform: translate(-50%, -50%) scale(0.96);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.04);
+    opacity: 1;
+  }
+}
+
+@keyframes orb-eclipse-shimmer {
   0% {
     transform: translate(-50%, -50%) scale(0.98);
     opacity: 0.88;
@@ -346,8 +347,9 @@
 
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
-  .eterna-orb-ambient-bloom,
-  .eterna-orb-halo-wrapper,
+  .eterna-haze-blue-left,
+  .eterna-corona-right,
+  .eterna-eclipse-aura-left,
   .eterna-ring-rotator-cw,
   .eterna-ring-rotator-ccw {
     animation: none !important;

@@ -120,6 +120,12 @@ export default function GlobeHero() {
         if (!el) return;
         if (i === 0) {
           gsap.set(el, { opacity: 1, y: 0, filter: "blur(0px)", visibility: "visible" });
+          const words = el.querySelectorAll(".word-scrub");
+          const keyPhrase = el.querySelector(".keyphrase-scrub");
+          const sub = el.querySelector(".sub-scrub");
+          gsap.set(words, { color: "#ffffff" });
+          if (keyPhrase) gsap.set(keyPhrase, { opacity: 1, filter: "drop-shadow(0 0 16px rgba(167,139,250,0.5))" });
+          if (sub) gsap.set(sub, { opacity: 0.85, y: 0 });
         } else {
           gsap.set(el, { opacity: 0, y: 16, filter: "blur(6px)", visibility: "hidden" });
         }
@@ -265,19 +271,14 @@ export default function GlobeHero() {
       className="relative w-full h-[100vh] min-h-[580px] flex items-center justify-center overflow-x-clip bg-[#080711]"
       style={{ overflowAnchor: "none" }}
     >
-      {/* ── Layer A: Ambient Background Bloom (Deep Violet, Neon Purple, Electric Blue, Restrained Amber) ── */}
-      <div className="eterna-orb-ambient-bloom" aria-hidden="true">
-        <div className="eterna-bloom-purple-left" />
-        <div className="eterna-bloom-blue-topright" />
-        <div className="eterna-bloom-amber-bottomright" />
-        <div className="eterna-bloom-violet-core" />
-      </div>
+      {/* ── Layer 1: Left Deep Royal Blue Atmospheric Haze (Image 2 Reference Match) ── */}
+      <div className="eterna-haze-blue-left" aria-hidden="true" />
 
-      {/* ── Layer B: Concentrated Neon Halo (Intense Left & Lower-Left Violet/Magenta Radiance) ── */}
-      <div className="eterna-orb-halo-wrapper" aria-hidden="true">
-        <div className="eterna-halo-diffuse-left" />
-        <div className="eterna-halo-core-left" />
-      </div>
+      {/* ── Layer 2: Enormous Sweeping Violet-to-Amber Corona on the Right (Image 2 Reference Match) ── */}
+      <div className="eterna-corona-right" aria-hidden="true" />
+
+      {/* ── Layer 3: Left Eclipse Crescent Volumetric Atmosphere Bloom (Image 2 Reference Match) ── */}
+      <div className="eterna-eclipse-aura-left" aria-hidden="true" />
 
       {/* ── Fixed Globe Container (Pinned in center) ── */}
       <div
@@ -286,184 +287,120 @@ export default function GlobeHero() {
         style={{ willChange: "transform, opacity" }}
       >
         <div ref={globeCircleRef} className="eterna-globe-container relative flex items-center justify-center">
-          {/* Layer 1 (Layer E): Interior Subtle Depth (Dark obsidian crystal core, high contrast) */}
+          {/* Velvety Obsidian Core Interior */}
           <div className="eterna-globe-interior" />
 
-          {/* Layer 2: Outer perimeter subtle aura */}
-          <div className="eterna-globe-outer-aura" />
-
-          {/* Layer 3 (Layer C & D): Base Thin Multicolor Rim with Directional Accents */}
+          {/* SVG Lighting & Luminous Eclipse Crescent (Image 2 Reference Match) */}
           <svg
-            className="absolute inset-0 w-full h-full pointer-events-none z-10"
+            className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible"
             viewBox="0 0 500 500"
             aria-hidden="true"
           >
             <defs>
-              <linearGradient id="baseTrackGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#D65CFF" stopOpacity="0.9" />
-                <stop offset="30%" stopColor="#8B35FF" stopOpacity="0.8" />
-                <stop offset="65%" stopColor="#35A9FF" stopOpacity="0.75" />
-                <stop offset="85%" stopColor="#FF9B45" stopOpacity="0.65" />
-                <stop offset="100%" stopColor="#D65CFF" stopOpacity="0.9" />
-              </linearGradient>
+              {/* Diffuse Wide Glow Filter for Eclipse Crescent */}
+              <filter id="crescentWideGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="16" result="blur1" />
+                <feGaussianBlur stdDeviation="7" result="blur2" />
+                <feMerge>
+                  <feMergeNode in="blur1" />
+                  <feMergeNode in="blur2" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
 
-              {/* Layer D.1: Left Crescent Accent Filter & Gradient */}
-              <filter id="accentLeftFilter" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
+              {/* Core Sharp Glow Filter */}
+              <filter id="crescentCoreGlow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
-              <linearGradient id="accentLeftGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#8B35FF" stopOpacity="0" />
-                <stop offset="35%" stopColor="#D65CFF" stopOpacity="0.9" />
-                <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.95" />
-                <stop offset="65%" stopColor="#D65CFF" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#8B35FF" stopOpacity="0" />
+
+              {/* Left Crescent Color Gradient: Fades seamlessly to 0% at both ends with pure white peak at 10:30 */}
+              <linearGradient id="crescentGrad" x1="75%" y1="0%" x2="15%" y2="95%">
+                <stop offset="0%" stopColor="#c026d3" stopOpacity="0" />
+                <stop offset="12%" stopColor="#c026d3" stopOpacity="0.4" />
+                <stop offset="28%" stopColor="#e879f9" stopOpacity="0.88" />
+                <stop offset="46%" stopColor="#ffffff" stopOpacity="1" />
+                <stop offset="62%" stopColor="#e879f9" stopOpacity="0.88" />
+                <stop offset="80%" stopColor="#c026d3" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#9333ea" stopOpacity="0" />
               </linearGradient>
 
-              {/* Layer D.2: Upper-Right Cyan Accent */}
-              <linearGradient id="accentCyanGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#35A9FF" stopOpacity="0" />
-                <stop offset="50%" stopColor="#35A9FF" stopOpacity="0.85" />
-                <stop offset="80%" stopColor="#bae6fd" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#35A9FF" stopOpacity="0" />
+              {/* White-Hot Spine Gradient: Fades softly to 0% at ends */}
+              <linearGradient id="spineGrad" x1="70%" y1="0%" x2="10%" y2="80%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+                <stop offset="25%" stopColor="#ffffff" stopOpacity="0.85" />
+                <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+                <stop offset="75%" stopColor="#ffffff" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
               </linearGradient>
 
-              {/* Layer D.3: Lower-Right Amber Accent */}
-              <linearGradient id="accentAmberGrad" x1="100%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FF9B45" stopOpacity="0" />
-                <stop offset="60%" stopColor="#FF9B45" stopOpacity="0.75" />
-                <stop offset="100%" stopColor="#FF9B45" stopOpacity="0" />
+              {/* Subtle Full Rim Silhouette Gradient */}
+              <linearGradient id="silhouetteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="rgba(217, 70, 239, 0.35)" />
+                <stop offset="50%" stopColor="rgba(255, 255, 255, 0.10)" />
+                <stop offset="100%" stopColor="rgba(234, 179, 8, 0.20)" />
               </linearGradient>
             </defs>
 
-            {/* Base crisp 1.5px multicolor rim */}
+            {/* 1. Subtle 1px base circle outline defining the orb geometry */}
             <circle
               cx="250"
               cy="250"
               r="248"
               fill="none"
-              stroke="url(#baseTrackGrad)"
-              strokeWidth="1.5"
+              stroke="url(#silhouetteGrad)"
+              strokeWidth="1"
             />
 
-            {/* Directional Accent D.1: Bright neon purple/magenta highlight along left edge */}
+            {/* 2. Layered Volumetric Eclipse Crescent on the Left (fades seamlessly without blunt caps) */}
+            {/* Outer Volumetric Bloom Stroke (Width: 32px) */}
             <path
-              d="M 125 50 A 248 248 0 0 0 125 450"
+              d="M 293 6 A 248 248 0 0 0 60 409"
               fill="none"
-              stroke="url(#accentLeftGrad)"
-              strokeWidth="2.6"
-              strokeLinecap="round"
-              filter="url(#accentLeftFilter)"
+              stroke="url(#crescentGrad)"
+              strokeWidth="32"
+              strokeLinecap="butt"
+              filter="url(#crescentWideGlow)"
+              opacity="0.82"
             />
 
-            {/* Directional Accent D.2: Cyan highlight along upper-right edge */}
+            {/* Mid Radiant Glow Stroke (Width: 14px) */}
             <path
-              d="M 375 50 A 248 248 0 0 1 498 250"
+              d="M 293 6 A 248 248 0 0 0 60 409"
               fill="none"
-              stroke="url(#accentCyanGrad)"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              filter="url(#accentLeftFilter)"
+              stroke="url(#crescentGrad)"
+              strokeWidth="14"
+              strokeLinecap="butt"
+              filter="url(#crescentCoreGlow)"
+              opacity="0.95"
             />
 
-            {/* Directional Accent D.3: Faint warm amber reflection along lower-right edge */}
+            {/* Inner Core Crisp Neon Limb (Width: 4.5px) */}
             <path
-              d="M 498 250 A 248 248 0 0 1 375 450"
+              d="M 293 6 A 248 248 0 0 0 60 409"
               fill="none"
-              stroke="url(#accentAmberGrad)"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              filter="url(#accentLeftFilter)"
+              stroke="url(#crescentGrad)"
+              strokeWidth="4.5"
+              strokeLinecap="butt"
+              opacity="1"
+            />
+
+            {/* Luminous White-Hot Spine at peak focal point (~10:30 o'clock) */}
+            <path
+              d="M 165 17 A 248 248 0 0 0 25 145"
+              fill="none"
+              stroke="url(#spineGrad)"
+              strokeWidth="2.4"
+              strokeLinecap="butt"
+              filter="url(#crescentCoreGlow)"
+              opacity="0.96"
             />
           </svg>
 
-          {/* Layer 4: Primary Rotating Perimeter Glow Arc (Clockwise ~16s) */}
-          <div className="absolute inset-0 pointer-events-none z-20 eterna-ring-rotator-cw">
-            <svg
-              className="w-full h-full overflow-visible"
-              viewBox="0 0 500 500"
-              aria-hidden="true"
-            >
-              <defs>
-                <filter id="arcGlowFilter" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="4.5" result="blur1" />
-                  <feGaussianBlur stdDeviation="11" result="blur2" />
-                  <feMerge>
-                    <feMergeNode in="blur2" />
-                    <feMergeNode in="blur1" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                <linearGradient id="arcGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#4B0D83" stopOpacity="0" />
-                  <stop offset="35%" stopColor="#8B35FF" stopOpacity="0.6" />
-                  <stop offset="75%" stopColor="#D65CFF" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#FFFFFF" stopOpacity="1" />
-                </linearGradient>
-              </defs>
-              <circle
-                cx="250"
-                cy="250"
-                r="248"
-                fill="none"
-                stroke="rgba(214, 92, 255, 0.75)"
-                strokeWidth="3.6"
-                strokeLinecap="round"
-                strokeDasharray="400 1158"
-                filter="url(#arcGlowFilter)"
-              />
-              <circle
-                cx="250"
-                cy="250"
-                r="248"
-                fill="none"
-                stroke="url(#arcGlowGrad)"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeDasharray="400 1158"
-              />
-            </svg>
-          </div>
-
-          {/* Layer 5: Secondary Counter-Rotating Accent Glow Arc (Counter-Clockwise ~24s) */}
-          <div className="absolute inset-0 pointer-events-none z-20 eterna-ring-rotator-ccw">
-            <svg
-              className="w-full h-full overflow-visible"
-              viewBox="0 0 500 500"
-              aria-hidden="true"
-            >
-              <defs>
-                <filter id="cyanGlowFilter" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="4" result="blur1" />
-                  <feMerge>
-                    <feMergeNode in="blur1" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                <linearGradient id="cyanArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#0284c7" stopOpacity="0" />
-                  <stop offset="60%" stopColor="#35A9FF" stopOpacity="0.65" />
-                  <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.95" />
-                </linearGradient>
-              </defs>
-              <circle
-                cx="250"
-                cy="250"
-                r="248"
-                fill="none"
-                stroke="url(#cyanArcGrad)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeDasharray="240 1318"
-                filter="url(#cyanGlowFilter)"
-              />
-            </svg>
-          </div>
-
-          {/* Layer 6: Text Stage inside the Circle (Responsive fitting within circle bounds) */}
+          {/* Layer 4: Text Stage inside the Circle (Responsive fitting within circle bounds) */}
           <div
             ref={textStageRef}
             className="relative z-30 w-[82%] max-w-[270px] sm:w-[78%] sm:max-w-[480px] px-2 sm:px-4 text-center pointer-events-auto select-none"
@@ -508,14 +445,18 @@ export default function GlobeHero() {
                         <span
                           key={wi}
                           className="word-scrub inline-block mr-1 sm:mr-1.5 transition-colors"
-                          style={{ color: "rgba(255, 255, 255, 0.45)" }}
+                          style={{ color: idx === 0 ? "#ffffff" : "rgba(255, 255, 255, 0.45)" }}
                         >
                           {w}
                         </span>
                       ))}
 
                     {set.keyPhrase && (
-                      <span className="keyphrase-scrub text-gradient-blue-violet font-semibold opacity-60 transition-opacity">
+                      <span
+                        className={`keyphrase-scrub text-gradient-blue-violet font-semibold transition-opacity ${
+                          idx === 0 ? "opacity-100" : "opacity-60"
+                        }`}
+                      >
                         {set.keyPhrase}
                       </span>
                     )}
@@ -523,7 +464,9 @@ export default function GlobeHero() {
 
                   {/* Subline with smooth fade-up */}
                   <p
-                    className="sub-scrub text-[11px] sm:text-xs md:text-sm text-white/80 font-light leading-relaxed max-w-[240px] sm:max-w-md mx-auto opacity-0 translate-y-3 transition-all"
+                    className={`sub-scrub text-[11px] sm:text-xs md:text-sm text-white/80 font-light leading-relaxed max-w-[240px] sm:max-w-md mx-auto transition-all ${
+                      idx === 0 ? "opacity-85 translate-y-0" : "opacity-0 translate-y-3"
+                    }`}
                     aria-hidden="true"
                   >
                     {set.sub}
