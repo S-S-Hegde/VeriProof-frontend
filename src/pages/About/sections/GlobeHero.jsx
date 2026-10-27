@@ -262,24 +262,21 @@ export default function GlobeHero() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-[100vh] min-h-[580px] flex items-center justify-center overflow-x-clip bg-[#0c0a14]"
+      className="relative w-full h-[100vh] min-h-[580px] flex items-center justify-center overflow-x-clip bg-[#080711]"
       style={{ overflowAnchor: "none" }}
     >
-      {/* ── Layer a: Surrounding Ambient Gradient Blobs (Masked so interior stays dark) ── */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
-        style={{
-          maskImage:
-            "radial-gradient(circle at 50% 50%, transparent 25%, rgba(0,0,0,0.4) 42%, black 70%)",
-          WebkitMaskImage:
-            "radial-gradient(circle at 50% 50%, transparent 25%, rgba(0,0,0,0.4) 42%, black 70%)",
-        }}
-      >
-        <div className="eterna-blob-1-violet-top" />
-        <div className="eterna-blob-2-amber-right" />
-        <div className="eterna-blob-3-blue-left" />
-        <div className="eterna-blob-4-violet-right" />
-        <div className="eterna-blob-5-indigo-center" />
+      {/* ── Layer A: Ambient Background Bloom (Deep Violet, Neon Purple, Electric Blue, Restrained Amber) ── */}
+      <div className="eterna-orb-ambient-bloom" aria-hidden="true">
+        <div className="eterna-bloom-purple-left" />
+        <div className="eterna-bloom-blue-topright" />
+        <div className="eterna-bloom-amber-bottomright" />
+        <div className="eterna-bloom-violet-core" />
+      </div>
+
+      {/* ── Layer B: Concentrated Neon Halo (Intense Left & Lower-Left Violet/Magenta Radiance) ── */}
+      <div className="eterna-orb-halo-wrapper" aria-hidden="true">
+        <div className="eterna-halo-diffuse-left" />
+        <div className="eterna-halo-core-left" />
       </div>
 
       {/* ── Fixed Globe Container (Pinned in center) ── */}
@@ -289,13 +286,13 @@ export default function GlobeHero() {
         style={{ willChange: "transform, opacity" }}
       >
         <div ref={globeCircleRef} className="eterna-globe-container relative flex items-center justify-center">
-          {/* Layer 1: Dark interior shield (Guarantees center is completely dark obsidian, zero light bleed) */}
+          {/* Layer 1 (Layer E): Interior Subtle Depth (Dark obsidian crystal core, high contrast) */}
           <div className="eterna-globe-interior" />
 
-          {/* Layer 2: Outer perimeter aura (Soft subtle glow strictly outside the ring) */}
+          {/* Layer 2: Outer perimeter subtle aura */}
           <div className="eterna-globe-outer-aura" />
 
-          {/* Layer 3: Base perimeter track ring (1.5px subtle gradient ring) */}
+          {/* Layer 3 (Layer C & D): Base Thin Multicolor Rim with Directional Accents */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none z-10"
             viewBox="0 0 500 500"
@@ -303,12 +300,46 @@ export default function GlobeHero() {
           >
             <defs>
               <linearGradient id="baseTrackGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.35" />
-                <stop offset="35%" stopColor="#818cf8" stopOpacity="0.45" />
-                <stop offset="70%" stopColor="#c084fc" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.35" />
+                <stop offset="0%" stopColor="#D65CFF" stopOpacity="0.9" />
+                <stop offset="30%" stopColor="#8B35FF" stopOpacity="0.8" />
+                <stop offset="65%" stopColor="#35A9FF" stopOpacity="0.75" />
+                <stop offset="85%" stopColor="#FF9B45" stopOpacity="0.65" />
+                <stop offset="100%" stopColor="#D65CFF" stopOpacity="0.9" />
+              </linearGradient>
+
+              {/* Layer D.1: Left Crescent Accent Filter & Gradient */}
+              <filter id="accentLeftFilter" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <linearGradient id="accentLeftGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#8B35FF" stopOpacity="0" />
+                <stop offset="35%" stopColor="#D65CFF" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.95" />
+                <stop offset="65%" stopColor="#D65CFF" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#8B35FF" stopOpacity="0" />
+              </linearGradient>
+
+              {/* Layer D.2: Upper-Right Cyan Accent */}
+              <linearGradient id="accentCyanGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#35A9FF" stopOpacity="0" />
+                <stop offset="50%" stopColor="#35A9FF" stopOpacity="0.85" />
+                <stop offset="80%" stopColor="#bae6fd" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#35A9FF" stopOpacity="0" />
+              </linearGradient>
+
+              {/* Layer D.3: Lower-Right Amber Accent */}
+              <linearGradient id="accentAmberGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#FF9B45" stopOpacity="0" />
+                <stop offset="60%" stopColor="#FF9B45" stopOpacity="0.75" />
+                <stop offset="100%" stopColor="#FF9B45" stopOpacity="0" />
               </linearGradient>
             </defs>
+
+            {/* Base crisp 1.5px multicolor rim */}
             <circle
               cx="250"
               cy="250"
@@ -317,9 +348,39 @@ export default function GlobeHero() {
               stroke="url(#baseTrackGrad)"
               strokeWidth="1.5"
             />
+
+            {/* Directional Accent D.1: Bright neon purple/magenta highlight along left edge */}
+            <path
+              d="M 125 50 A 248 248 0 0 0 125 450"
+              fill="none"
+              stroke="url(#accentLeftGrad)"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              filter="url(#accentLeftFilter)"
+            />
+
+            {/* Directional Accent D.2: Cyan highlight along upper-right edge */}
+            <path
+              d="M 375 50 A 248 248 0 0 1 498 250"
+              fill="none"
+              stroke="url(#accentCyanGrad)"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              filter="url(#accentLeftFilter)"
+            />
+
+            {/* Directional Accent D.3: Faint warm amber reflection along lower-right edge */}
+            <path
+              d="M 498 250 A 248 248 0 0 1 375 450"
+              fill="none"
+              stroke="url(#accentAmberGrad)"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              filter="url(#accentLeftFilter)"
+            />
           </svg>
 
-          {/* Layer 4: Primary Rotating Perimeter Glow Arc (Clockwise ~16s, strictly on perimeter, no radar sweep) */}
+          {/* Layer 4: Primary Rotating Perimeter Glow Arc (Clockwise ~16s) */}
           <div className="absolute inset-0 pointer-events-none z-20 eterna-ring-rotator-cw">
             <svg
               className="w-full h-full overflow-visible"
@@ -328,8 +389,8 @@ export default function GlobeHero() {
             >
               <defs>
                 <filter id="arcGlowFilter" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="5" result="blur1" />
-                  <feGaussianBlur stdDeviation="12" result="blur2" />
+                  <feGaussianBlur stdDeviation="4.5" result="blur1" />
+                  <feGaussianBlur stdDeviation="11" result="blur2" />
                   <feMerge>
                     <feMergeNode in="blur2" />
                     <feMergeNode in="blur1" />
@@ -337,32 +398,30 @@ export default function GlobeHero() {
                   </feMerge>
                 </filter>
                 <linearGradient id="arcGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#7c3aed" stopOpacity="0" />
-                  <stop offset="30%" stopColor="#a78bfa" stopOpacity="0.5" />
-                  <stop offset="75%" stopColor="#c084fc" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
+                  <stop offset="0%" stopColor="#4B0D83" stopOpacity="0" />
+                  <stop offset="35%" stopColor="#8B35FF" stopOpacity="0.6" />
+                  <stop offset="75%" stopColor="#D65CFF" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#FFFFFF" stopOpacity="1" />
                 </linearGradient>
               </defs>
-              {/* Outer soft glow stroke along the perimeter */}
               <circle
                 cx="250"
                 cy="250"
                 r="248"
                 fill="none"
-                stroke="rgba(192, 132, 252, 0.75)"
-                strokeWidth="4"
+                stroke="rgba(214, 92, 255, 0.75)"
+                strokeWidth="3.6"
                 strokeLinecap="round"
                 strokeDasharray="400 1158"
                 filter="url(#arcGlowFilter)"
               />
-              {/* Crisp luminous core arc */}
               <circle
                 cx="250"
                 cy="250"
                 r="248"
                 fill="none"
                 stroke="url(#arcGlowGrad)"
-                strokeWidth="2.5"
+                strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeDasharray="400 1158"
               />
@@ -386,7 +445,7 @@ export default function GlobeHero() {
                 </filter>
                 <linearGradient id="cyanArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="#0284c7" stopOpacity="0" />
-                  <stop offset="60%" stopColor="#38bdf8" stopOpacity="0.6" />
+                  <stop offset="60%" stopColor="#35A9FF" stopOpacity="0.65" />
                   <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.95" />
                 </linearGradient>
               </defs>
@@ -396,7 +455,7 @@ export default function GlobeHero() {
                 r="248"
                 fill="none"
                 stroke="url(#cyanArcGrad)"
-                strokeWidth="2"
+                strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeDasharray="240 1318"
                 filter="url(#cyanGlowFilter)"
@@ -449,14 +508,14 @@ export default function GlobeHero() {
                         <span
                           key={wi}
                           className="word-scrub inline-block mr-1 sm:mr-1.5 transition-colors"
-                          style={{ color: "rgba(255, 255, 255, 0.18)" }}
+                          style={{ color: "rgba(255, 255, 255, 0.45)" }}
                         >
                           {w}
                         </span>
                       ))}
 
                     {set.keyPhrase && (
-                      <span className="keyphrase-scrub text-gradient-blue-violet font-semibold opacity-30 transition-opacity">
+                      <span className="keyphrase-scrub text-gradient-blue-violet font-semibold opacity-60 transition-opacity">
                         {set.keyPhrase}
                       </span>
                     )}
@@ -464,7 +523,7 @@ export default function GlobeHero() {
 
                   {/* Subline with smooth fade-up */}
                   <p
-                    className="sub-scrub text-[11px] sm:text-xs md:text-sm text-white/70 font-light leading-relaxed max-w-[240px] sm:max-w-md mx-auto opacity-0 translate-y-3 transition-all"
+                    className="sub-scrub text-[11px] sm:text-xs md:text-sm text-white/80 font-light leading-relaxed max-w-[240px] sm:max-w-md mx-auto opacity-0 translate-y-3 transition-all"
                     aria-hidden="true"
                   >
                     {set.sub}

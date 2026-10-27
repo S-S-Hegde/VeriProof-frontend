@@ -47,7 +47,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="eterna-page min-h-screen relative overflow-x-clip bg-[#0c0a14] text-white">
+    <div className="eterna-page min-h-screen relative overflow-x-clip bg-[#080711] text-white">
       {/* ── Faint Film Grain Overlay (Opacity ~0.045) ── */}
       <div className="eterna-film-grain" />
 

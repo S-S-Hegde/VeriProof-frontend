@@ -136,40 +136,166 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   HERO GLOBE & ROTATING GLOW (Section 2)
-   Diameter D = min(76svh, 76vw, 720px).
-   Rotating arcs: pure perimeter ring rotation with zero center sweep.
+   CINEMATIC ORB GLOW SYSTEM (EternaCloud-Inspired Depth)
+   Restrained Vivid Palette:
+     Deep Violet:    #4B0D83
+     Neon Purple:    #8B35FF
+     Bright Magenta: #D65CFF
+     Electric Blue:  #35A9FF
+     Warm Amber:     #FF9B45
+     Dark Void:      #080711 to #0B0913
    ═══════════════════════════════════════════════════════════ */
+
+/* ── Layer A: Ambient Background Bloom (Large Soft Multi-Color Radial Field) ── */
+.eterna-orb-ambient-bloom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(130svh, 130vw, 1150px);
+  height: min(130svh, 130vw, 1150px);
+  pointer-events: none;
+  z-index: 1;
+  animation: orb-ambient-breathe 9.5s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+/* A.1 Dominant Left-Side Purple & Magenta Bloom */
+.eterna-bloom-purple-left {
+  position: absolute;
+  top: 10%;
+  left: -8%;
+  width: 78%;
+  height: 82%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 65% 65% at 36% 50%, rgba(139, 53, 255, 0.46) 0%, rgba(214, 92, 255, 0.26) 32%, rgba(75, 13, 131, 0.16) 55%, transparent 75%);
+  filter: blur(75px);
+  transform: translateZ(0);
+}
+
+/* A.2 Electric Blue Cool Transition (Top & Upper-Right) */
+.eterna-bloom-blue-topright {
+  position: absolute;
+  top: 6%;
+  right: 4%;
+  width: 58%;
+  height: 58%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 65% 35%, rgba(53, 169, 255, 0.28) 0%, rgba(37, 99, 235, 0.12) 38%, transparent 70%);
+  filter: blur(65px);
+  transform: translateZ(0);
+}
+
+/* A.3 Restrained Warm Amber Glow (Lower-Right) */
+.eterna-bloom-amber-bottomright {
+  position: absolute;
+  bottom: 8%;
+  right: 6%;
+  width: 52%;
+  height: 52%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 65% 65%, rgba(255, 155, 69, 0.22) 0%, rgba(217, 119, 6, 0.08) 35%, transparent 68%);
+  filter: blur(60px);
+  transform: translateZ(0);
+}
+
+/* A.4 Deep Violet Foundation Core */
+.eterna-bloom-violet-core {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 50%, rgba(75, 13, 131, 0.38) 0%, rgba(139, 53, 255, 0.16) 48%, transparent 75%);
+  filter: blur(55px);
+  transform: translateZ(0);
+}
+
+/* ── Layer B: Concentrated Neon Halo (Biased Along Left & Lower-Left Circumference) ── */
+.eterna-orb-halo-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(86svh, 86vw, 790px);
+  height: min(86svh, 86vw, 790px);
+  pointer-events: none;
+  z-index: 2;
+  animation: orb-halo-shimmer 8s ease-in-out infinite alternate;
+  will-change: opacity, transform;
+}
+
+@media (max-width: 768px) {
+  .eterna-orb-halo-wrapper {
+    width: min(94vw, 62svh, 390px);
+    height: min(94vw, 62svh, 390px);
+  }
+}
+
+/* B.1 Broad Diffused Purple Aura on the Left */
+.eterna-halo-diffuse-left {
+  position: absolute;
+  top: 6%;
+  left: -22%;
+  width: 75%;
+  height: 88%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 78% 50%, rgba(139, 53, 255, 0.58) 0%, rgba(75, 13, 131, 0.36) 45%, transparent 75%);
+  filter: blur(42px);
+  transform: translateZ(0);
+}
+
+/* B.2 Concentrated Magenta-Violet Neon Glow (Hugging Left Perimeter) */
+.eterna-halo-core-left {
+  position: absolute;
+  top: 14%;
+  left: -8%;
+  width: 55%;
+  height: 72%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 88% 50%, rgba(214, 92, 255, 0.72) 0%, rgba(139, 53, 255, 0.48) 38%, transparent 70%);
+  filter: blur(24px);
+  transform: translateZ(0);
+}
+
+/* ── Layer C: Orb Geometry & Multi-Color Directional Rim Box-Shadow ── */
 .eterna-globe-container {
   width: min(76svh, 76vw, 700px);
   height: min(76svh, 76vw, 700px);
   position: relative;
   border-radius: 50%;
   pointer-events: none;
+  box-shadow:
+    -18px 0 45px rgba(139, 53, 255, 0.48),
+    -6px 0 16px rgba(214, 92, 255, 0.70),
+    14px -8px 34px rgba(53, 169, 255, 0.24),
+    12px 14px 30px rgba(255, 155, 69, 0.20);
 }
 
 @media (max-width: 768px) {
   .eterna-globe-container {
     width: min(84vw, 54svh, 340px);
     height: min(84vw, 54svh, 340px);
+    box-shadow:
+      -12px 0 30px rgba(139, 53, 255, 0.42),
+      -4px 0 12px rgba(214, 92, 255, 0.60),
+      10px -6px 24px rgba(53, 169, 255, 0.20),
+      8px 10px 22px rgba(255, 155, 69, 0.16);
   }
 }
 
-/* Interior dark shield: guarantees the circle interior stays completely dark obsidian */
+/* ── Layer E: Interior Subtle Depth (Dark crystal sphere depth with high text contrast) ── */
 .eterna-globe-interior {
   position: absolute;
   inset: 1px;
   border-radius: 50%;
-  background: #0c0a14;
+  background: radial-gradient(circle at 35% 50%, rgba(75, 13, 131, 0.12) 0%, rgba(8, 7, 17, 0.98) 55%, #080711 100%);
   z-index: 1;
 }
 
-/* Outer subtle perimeter aura (soft subtle outward-only glow behind the ring) */
+/* Subtle outer ring aura */
 .eterna-globe-outer-aura {
   position: absolute;
-  inset: -8px;
+  inset: -6px;
   border-radius: 50%;
-  box-shadow: 0 0 45px rgba(139, 92, 246, 0.16);
   pointer-events: none;
   z-index: 0;
 }
@@ -193,6 +319,39 @@
 @keyframes eterna-ring-ccw {
   from { transform: rotate(360deg); }
   to   { transform: rotate(0deg); }
+}
+
+/* Coordinated subtle breathing animations */
+@keyframes orb-ambient-breathe {
+  0% {
+    transform: translate(-50%, -50%) scale(0.97);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.03);
+    opacity: 1;
+  }
+}
+
+@keyframes orb-halo-shimmer {
+  0% {
+    transform: translate(-50%, -50%) scale(0.98);
+    opacity: 0.88;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.02);
+    opacity: 1;
+  }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .eterna-orb-ambient-bloom,
+  .eterna-orb-halo-wrapper,
+  .eterna-ring-rotator-cw,
+  .eterna-ring-rotator-ccw {
+    animation: none !important;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
