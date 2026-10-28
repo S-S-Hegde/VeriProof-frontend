@@ -660,7 +660,7 @@ const AppContent = () => {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen flex flex-col relative overflow-x-clip bg-gradient-to-br from-slate-100 via-white to-cyan-50 text-slate-900 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+      <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-gradient-to-br from-slate-100 via-white to-cyan-50 text-slate-900 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
         <ArchiveBackground />
 
         <div
@@ -669,28 +669,15 @@ const AppContent = () => {
           }`}
         >
           <Navbar />
-          <MainContainer isAppVisible={isAppVisible} />
+          <main className="flex-grow flex flex-col w-full mx-auto pb-6 px-2 sm:px-4 lg:px-6 relative z-10">
+            <ErrorBoundary>
+              {isAppVisible && <AnimatedRoutes />}
+            </ErrorBoundary>
+          </main>
           <Footer />
         </div>
       </div>
     </Router>
-  );
-};
-
-const MainContainer = ({ isAppVisible }) => {
-  const location = useLocation();
-  const isAboutPage = location.pathname === "/about";
-
-  return (
-    <main
-      className={`flex-grow flex flex-col w-full mx-auto relative z-10 ${
-        isAboutPage ? "p-0 pb-0" : "pb-6 px-2 sm:px-4 lg:px-6"
-      }`}
-    >
-      <ErrorBoundary>
-        {isAppVisible && <AnimatedRoutes />}
-      </ErrorBoundary>
-    </main>
   );
 };
 
